@@ -11,7 +11,7 @@ SET copyString=addpath(genpath("%scriptPath%"));
 IF EXIST %startupPath% (
 	FIND /c "addpath(genpath(""%scriptPath%""))" %startupPath% > NUL
 	IF !errorlevel! EQU 0 (
-		MSG "%username%" Already installed.
+		ECHO Already installed.
 	) ELSE (
 		CALL :performInstallation
 	)
@@ -19,6 +19,7 @@ IF EXIST %startupPath% (
 	CALL :performInstallation
 )
 
+PAUSE
 EXIT /B %errorlevel%
 :performInstallation
 	ECHO.>>%startupPath%
@@ -26,4 +27,4 @@ EXIT /B %errorlevel%
 	ECHO %startupHeader%>>%startupPath%
 	ECHO %copyString%>>%startupPath%
 	ECHO | SET /p="%copyString%" | clip
-	MSG "%username%" Installation successful. Restart Matlab or run the following command (automatically copied to clipboard): %copyString%
+	ECHO Installation successful. Restart Matlab or run the following command (automatically copied to clipboard): %copyString%

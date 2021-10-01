@@ -1,7 +1,7 @@
 @ECHO OFF
 SETLOCAL ENABLEDELAYEDEXPANSION
 
-SET startupHeader=%%%% Matt Dvorsky's nLayer Library (Rectangular and Circular)
+SET startupHeader=%%%% Matt Dvorsky nLayer Library (Rectangular and Circular)
 
 SET scriptPath=%~dp0
 SET startupPath=C:\Users\%username%\Documents\MATLAB\startup.m

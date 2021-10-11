@@ -1,0 +1,152 @@
+function [q] = integralVectorized(fun, a, b, RelTol, AbsTol, errInd, verbose)
+%INTEGRALVECTORIZED Numerically evaluate integral using adaptive Gauss-Kronrod quadrature.
+%Based on quadgk but modified to work quickly for array-valued functions.
+%   Usage:
+%       q = integralVectorized(fun, a, b);
+%       q = integralVectorized(fun, a, b, RelTol);
+%       q = integralVectorized(fun, a, b, RelTol, AbsTol);
+%       q = integralVectorized(fun, a, b, RelTol, AbsTol, errInd);
+%
+%   q = integralVectorized(fun, a, b) attempts to approximate the integral 
+%   of an array-valued function FUN from A to B using high order global 
+%   adaptive quadrature and default error tolerances.
+%
+%   The function Y = FUN(X) should accept a column vector argument X and 
+%   return an array result Y, the columns of which are the integrand 
+%   evaluated at each element of Y. The size of the first dimension of Y 
+%   should match X, the remaining dimensions can be any size.
+%
+%   FUN must be a function handle. The parameters A and B
+%   must both be finite and real and in ascending order.
+%
+%   This function attempts to satisfy the following relationship:
+%       ERRBND(errInd) <= max(RELTOL*|Q(errInd)|, ABSTOL)
+%   This constraint is the same as the one used in the built-in "integral"
+%   funtion. The default value of RELTOL is 1e-6, and the default of ABSTOL
+%   is 1e-8.
+%
+%   The size of Q will be the same as FUN((A + B)/2).
+
+%% Check Inputs
+arguments
+    fun
+    a = -1;
+    b = 1;
+    RelTol = 1e-6;
+    AbsTol = 1e-6;
+    errInd = 1;
+    verbose = 0;
+end
+maxIntervalCount = 10000;
+
+if ~(isscalar(a) && isfloat(a) && isfinite(a) ...
+        && isscalar(b) && isfloat(b) && isfinite(b))
+    error("Integral endpoints must be finite and scalar.");
+end
+
+%% Generate Gauss-Kronrod Weights and Nodes
+% Gauss-Kronrod (7,15) pair. Use symmetry in defining nodes and weights.
+nodes = [ ...
+    -0.9914553711208126; -0.9491079123427585; -0.8648644233597691; ...
+    -0.7415311855993944; -0.5860872354676911; -0.4058451513773972; ...
+    -0.2077849550078985;  0;                   0.2077849550078985; ...
+     0.4058451513773972;  0.5860872354676911;  0.7415311855993944; ...
+     0.8648644233597691;  0.9491079123427585;  0.9914553711208126];
+weights = [ ...
+    0.0229353220105292; 0.0630920926299786; 0.1047900103222502; ...
+    0.1406532597155259; 0.1690047266392679; 0.1903505780647854; ...
+    0.2044329400752989; 0.2094821410847278; 0.2044329400752989; ...
+    0.1903505780647854; 0.1690047266392679; 0.1406532597155259; ...
+    0.1047900103222502; 0.0630920926299786; 0.0229353220105292];
+errorWeights = [ ...
+     0.0229353220105292; -0.0663928735388910;  0.1047900103222502; ...
+    -0.139052131773751;   0.1690047266392679; -0.191479472440334; ...
+     0.2044329400752989; -0.2084770425887420;  0.2044329400752989; ...
+    -0.191479472440334;   0.1690047266392679; -0.139052131773751; ...
+     0.1047900103222502; -0.0663928735388910;  0.0229353220105292];
+
+%% Initialize Integral Loop
+% INTERVALS contains subintervals of [a,b] where the integral is not
+%  accurate enough. First and second rows are left and right endpoints.
+
+intervalPoints = linspace(a, b, 10);    % Start with 9 intervals
+intervals = [intervalPoints(1:end - 1); intervalPoints(2:end)];
+
+pathlength = b - a;
+qPartial = 0;
+errorPartial = 0;
+qSize = 0;
+
+numEvaluations = 0;
+
+%% Main Integration Loop
+while true
+    % Calculate new function evaluation coordinates
+    midpoints = 0.5 * sum(intervals, 1);
+    halfLengths = 0.5 * diff(intervals, 1);
+    x = reshape(nodes .* halfLengths + midpoints, [], 1);
+            
+    % Evaluate the function at new coordinates
+    fx = fun(x);
+    qSize = size(fx);
+    fx = reshape(fx, length(weights), length(midpoints), []);
+    numEvaluations = numEvaluations + length(x);
+    
+    % Compute integral and error estimate for each subinterval
+    qIntervals = sum(weights .* halfLengths .* fx, 1);
+    errorIntervals = sum(errorWeights .* halfLengths .* fx(:, :, errInd), 1);
+    
+    % Calculate current values of q
+    q = qPartial + sum(qIntervals, 2);
+    
+    % Calculate absolute tolerance from relative tolerance
+    AbsTolTmp = max(RelTol .* abs(q(1, 1, errInd)), AbsTol);
+    
+    % Find indices of the subinterals that are sufficiently accurate
+    accurateIntervals = all(abs(errorIntervals) <= ...
+        (2*AbsTolTmp ./ pathlength) .* abs(halfLengths), 3);
+    
+    % Update cumulative error of all sufficiently accurate intervals
+    errorPartial = errorPartial + sum(errorIntervals(1, accurateIntervals, :), 2);
+    
+    % Calculate upper bound of current error estimate
+    errorBound = abs(errorPartial) ...
+        + sum(abs(errorIntervals(1, ~accurateIntervals, :)), 2);
+    
+    % Error if we have non-finite values
+    if ~(all(isfinite(q)) && all(isfinite(errorBound)))
+        error("Calculation returned a non-finite value.");
+    end
+    
+    % Check for convergence or if all intervals are accurate
+    if all(errorBound <= AbsTolTmp) || all(accurateIntervals)
+        if verbose
+            fprintf("Converged after (%d) function evaluations.\n", ...
+                numEvaluations);
+        end
+        break;
+    end
+    
+    % Update cumulative integral of all sufficiently accurate intervals
+    qPartial = qPartial + sum(qIntervals(1, accurateIntervals, :), 2);
+    
+    % Split the remaining subintervals in half
+    intervals = reshape( ...
+        [intervals(1, ~accurateIntervals); ...
+        midpoints(~accurateIntervals); ...
+        midpoints(~accurateIntervals); ...
+        intervals(2, ~accurateIntervals)], ...
+        2, []);
+    
+    % Error if splitting results in too many subintervals
+    if size(intervals, 2) > maxIntervalCount
+        error("Maximum number of subintervals reached (%d > %d).", ...
+            size(intervals, 2), maxIntervalCount);
+    end
+end
+
+%% Reshape Output
+q = reshape(q, [1, qSize(2:end)]);
+
+end
+

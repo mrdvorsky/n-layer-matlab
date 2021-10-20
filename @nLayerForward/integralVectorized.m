@@ -1,11 +1,11 @@
-function [q] = integralVectorized(fun, a, b, RelTol, AbsTol, errInd, verbose)
+function [q] = integralVectorized(fun, a, b, options)
 %INTEGRALVECTORIZED Numerically evaluate integral using adaptive Gauss-Kronrod quadrature.
 %Based on quadgk but modified to work quickly for array-valued functions.
-%   Usage:
-%       q = integralVectorized(fun, a, b);
-%       q = integralVectorized(fun, a, b, RelTol);
-%       q = integralVectorized(fun, a, b, RelTol, AbsTol);
-%       q = integralVectorized(fun, a, b, RelTol, AbsTol, errInd);
+% Example Usage:
+%   q = integralVectorized(fun, a, b);
+%   q = integralVectorized(fun, a, b, RelTol=1e-4);
+%   q = integralVectorized(fun, a, b, InitialIntervalCount=20);
+%   q = integralVectorized(fun, a, b, MaxFunctionEvaluations=20000);
 %
 %   q = integralVectorized(fun, a, b) attempts to approximate the integral 
 %   of an array-valued function FUN from A to B using high order global 
@@ -25,23 +25,32 @@ function [q] = integralVectorized(fun, a, b, RelTol, AbsTol, errInd, verbose)
 %   funtion. The default value of RELTOL is 1e-6, and the default of ABSTOL
 %   is 1e-8.
 %
-%   The size of Q will be the same as FUN((A + B)/2).
+%   The size of the output Q will be the same as FUN((A + B)/2).
+%
+% Optional Arguments:
+%   RelTol (1e-6): Relative function tolerance constraint. See above.
+%   AbsTol (1e-8): Absolute function tolerance constraint. See above.
+%   Verbosity (0): Set to 1 or higher for console output upon convergence.
+%   InitialIntervalCount (2000): Maximum number of subintervals to attempt
+%       before giving up.
+%   MaxFunctionEvaluations (30000): Maximum number of function evaluations
+%       to attempt before giving up.
+%   ErrInd (0): Indices ii of q(:, ii) to use for error bounds. See above.
+%   TolFun (0): Custom tolerance function to use for error bounds. See above.
 
-%% Check Inputs
 arguments
-    fun
-    a = -1;
-    b = 1;
-    RelTol = 1e-6;
-    AbsTol = 1e-6;
-    errInd = 1;
-    verbose = 0;
-end
-maxIntervalCount = 10000;
-
-if ~(isscalar(a) && isfloat(a) && isfinite(a) ...
-        && isscalar(b) && isfloat(b) && isfinite(b))
-    error("Integral endpoints must be finite and scalar.");
+    fun;
+    a(1, 1) {mustBeNumeric, mustBeFinite} = -1;
+    b(1, 1) {mustBeNumeric, mustBeFinite} = 1;
+    
+    options.RelTol(1, 1) {mustBeNumeric, mustBeFinite} = 1e-6;
+    options.AbsTol(1, 1) {mustBeNumeric, mustBeFinite} = 1e-8;
+    options.Verbosity double {mustBeNumeric, mustBeFinite} = 0;
+    options.InitialIntervalCount {mustBeNumeric, mustBeFinite} = 9;
+    options.MaxIntervalCount {mustBeNumeric} = 2000;
+    options.MaxFunctionEvaluations {mustBeNumeric} = 30000;
+    options.ErrInd(:, 1) = 1;
+    options.TolFun = @defaultTolFun;        % Currently Unused
 end
 
 %% Generate Gauss-Kronrod Weights and Nodes
@@ -69,7 +78,7 @@ errorWeights = [ ...
 % INTERVALS contains subintervals of [a,b] where the integral is not
 %  accurate enough. First and second rows are left and right endpoints.
 
-intervalPoints = linspace(a, b, 10);    % Start with 9 intervals
+intervalPoints = linspace(a, b, options.InitialIntervalCount + 1);
 intervals = [intervalPoints(1:end - 1); intervalPoints(2:end)];
 
 pathlength = b - a;
@@ -94,13 +103,13 @@ while true
     
     % Compute integral and error estimate for each subinterval
     qIntervals = sum(weights .* halfLengths .* fx, 1);
-    errorIntervals = sum(errorWeights .* halfLengths .* fx(:, :, errInd), 1);
+    errorIntervals = sum(errorWeights .* halfLengths .* fx(:, :, options.ErrInd), 1);
     
     % Calculate current values of q
     q = qPartial + sum(qIntervals, 2);
     
     % Calculate absolute tolerance from relative tolerance
-    AbsTolTmp = max(RelTol .* abs(q(1, 1, errInd)), AbsTol);
+    AbsTolTmp = max(options.RelTol .* abs(q(1, 1, options.ErrInd)), options.AbsTol);
     
     % Find indices of the subinterals that are sufficiently accurate
     accurateIntervals = all(abs(errorIntervals) <= ...
@@ -120,7 +129,7 @@ while true
     
     % Check for convergence or if all intervals are accurate
     if all(errorBound <= AbsTolTmp) || all(accurateIntervals)
-        if verbose
+        if options.Verbosity > 0
             fprintf("Converged after (%d) function evaluations.\n", ...
                 numEvaluations);
         end
@@ -139,9 +148,15 @@ while true
         2, []);
     
     % Error if splitting results in too many subintervals
-    if size(intervals, 2) > maxIntervalCount
+    if size(intervals, 2) > options.MaxIntervalCount
         error("Maximum number of subintervals reached (%d > %d).", ...
-            size(intervals, 2), maxIntervalCount);
+            size(intervals, 2), options.MaxIntervalCount);
+    end
+    
+    % Error if splitting results in too many function evaluations
+    if numel(nodes)*size(intervals, 2) + numEvaluations > options.MaxFunctionEvaluations
+        error("Maximum number of subintervals reached (%d > %d).", ...
+            size(intervals, 2), options.MaxIntervalCount);
     end
 end
 

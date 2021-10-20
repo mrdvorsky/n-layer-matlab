@@ -38,7 +38,7 @@ classdef nLayerForward < handle
         
         c = 299.792458;             % Speed of light (mm GHz). Defines the units used for all calculations.
         
-        verbose = 0;                % Set to true for command line output.
+        verbosity = 0;              % Verbosity Level. Set to 1 for command line output.
     end
     
     %% Public member function definitions (virtual, not implemented)
@@ -57,7 +57,7 @@ classdef nLayerForward < handle
     %% Public static function definitions (implemented in separate files)
     methods (Static, Access = public)
         [nodes, weights] = gaussLegendre(orderN, a, b);
-        [nodesGK, weightsGK, errWeights] = gaussKronrod(numSegs, a, b)
+        [nodesGK, weightsGK, errorWeightsGK] = gaussKronrod(numSegs, a, b);
         [q] = integralVectorized(fun, a, b, RelTol, AbsTol, errInd, verbose);
     end
 

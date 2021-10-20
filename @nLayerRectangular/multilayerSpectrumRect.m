@@ -1,15 +1,31 @@
-function [ specE, specH ] = multilayerSpectrumRect( tau, k0, er, ur, thk )
-%MULTILAYERSPECTRUMTE Calculate multilayer reflection coefficient spectrum
-%   for circular waveguide TM01 nLayer
+function [specE, specH] = multilayerSpectrumRect(tau, k0, er, ur, thk)
+%MULTILAYERSPECTRUMRECT Calculate reflection coefficient spectrum.
+%   This function computes the spectrum for the multilayer structure
+%   reflection coefficient for a rectangular waveguide. Specifically, it
+%   computes k_1/(zeta_1*D1^(e)) and zeta_1*D1^(h)/k_1 as a function of
+%   tau.
+%
 % Inputs
-%   tau - spectral wavenumber (can be an array of any size)
-%   k0 - free-space wavenumber (must have compatible dimensions with tau)
-%   er - vector of complex relative permittivities for each layer
-%   ur - vector of complex relative permeabilities for each layer
-%   thk - vector of thicknesses for each layer (same length as er and ur)
+%   tau - Spectral wavenumber (can be an array of any size)
+%   k0 - Free-space wavenumber (must have compatible dimensions with tau).
+%   er - Array of complex relative permittivities for each layer (must have
+%       compatible dimensions with k0).
+%   ur - Array of complex relative permeabilities for each layer (must have
+%       compatible dimensions with k0).
+%   thk - Array of thicknesses for each layer (must have compatible 
+%       dimensions with er and ur). The last element of thk should have a 
+%       value of inf in the infinite halfspace case.
 % Outputs
 %   specE - Calculated spectrum, same size as (tau .* k0)
 %   specH - Calculated spectrum, same size as (tau .* k0)
+%
+%   The output of this function can be used along with the output of
+%   "computeIntegrandEH" to compute the integrals I^(e)_ii(m, n, p, q) and 
+%   I^(h)_ii(m, n, p, q). See documentation for "computeIntegrandEH" for
+%   more details.
+%
+%   The outputs specE and specH are equal to k_1/(zeta_1*D1^(e)) and 
+%   zeta_1*D1^(h)/k_1, respectively, as a function of tau.
 
 %% Calculate Last Layer
 k = k0 .* sqrt(er(end) .* ur(end));

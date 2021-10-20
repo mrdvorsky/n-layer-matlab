@@ -3,9 +3,9 @@ function [a, b] = setWaveguideBand(O, band, unitScaleFactor)
 %   Sets the 
 
 arguments
-    O
-    band {mustBeText}
-    unitScaleFactor(1, 1) {mustBeNumeric} = 1
+    O;
+    band {mustBeText};
+    unitScaleFactor(1, 1) {mustBeNumeric} = 1;
 end
 
 %% List of rectangular waveguide bands and dimensions in inches

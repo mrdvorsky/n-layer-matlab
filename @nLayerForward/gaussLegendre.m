@@ -17,6 +17,15 @@ function [nodes, weights] = gaussLegendre(orderN, a, b)
 % Use of these quadrature rules will never result in evalation of the
 % function at the interval endpoints a and b.
 %
+% The weights and nodes are computed in two steps. First, the Golub-Welsh
+% algorithm is used to compute the nodes. This step involves finding the
+% eigenvalues of a symmetric tridiagonal matrix. Typically, the
+% eigenvectors of this matrix are used to compute the wieghts; however,
+% this requires O(n^2) memory, which is prohibitive. Instead, only the
+% eigenvalues are computed using O(n) memory. The next step computes the
+% weights by using the three-term recursion formula for the Legendre
+% polynomials. Each step requires O(n) memory and O(n^2) time.
+%
 % Example Usage:
 %   [nodes, weights] = gaussLegendre(N, a, b);
 %   q = sum(fun(nodes) .* weights, 1);
@@ -37,52 +46,38 @@ arguments
     b(1, 1) {mustBeNumeric} = -1;
 end
 
-%% Calculate Weights and Nodes
-N=orderN-1;
-N1=N+1; N2=N+2;
+%% Calculate Nodes
+% Golub-Welsh Algorithm
+alpha(:, 1) = 1:(orderN - 1);
+beta = alpha ./ sqrt(4*alpha.^2 - 1);
+J = spdiags([0; beta], 1, orderN, orderN) + spdiags([beta; 0], -1, orderN, orderN);
 
-xu=linspace(-1,1,N1)';
+% The nodes are the eigenvalues of the the matrix J
+nodes = eig(J);
 
-% Initial guess
-y=cos((2*(0:N)'+1)*pi/(2*N+2))+(0.27/N1)*sin(pi*xu*N/N2);
+%% Calculate Weights Using Legendre Polynomial
+% The weights can be computed by evaluating the derivative of P_n(x) at
+% each node coordinate, where P_n(x) is the nth order Legendre polynomial.
+% P_n'(x) can be evaluated using the recurrence relationship.
 
-% Legendre-Gauss Vandermonde Matrix
-L=zeros(N1,N2);
+% Initial Values of P_0(x), P_0'(x), P_1(x), P_1'(x)
+pn_prev = 1 + 0*nodes;      % P_0(x) = 1
+pn = nodes;                 % P_1(x) = x
 
-% Derivative of LGVM
-Lp=zeros(N1,N2);
-
-% Compute the zeros of the N+1 Legendre Polynomial
-% using the recursion relation and the Newton-Raphson method
-
-y0=2;
-
-% Iterate until new points are uniformly within epsilon of old points
-while max(abs(y-y0))>eps
+pn_prime_prev = 0*nodes;    % P_0'(x) = 0
+pn_prime = 1 + 0*nodes;     % P_1'(x) = 1
+for n = 2:orderN
+    pn_next = ((2*n - 1).*nodes.*pn - (n - 1).*pn_prev) ./ n;
+    pn_deriv_next = ((2*n - 1).*(pn + nodes.*pn_prime) ...
+        - (n - 1).*pn_prime_prev) ./ n;
     
-    
-    L(:,1)=1;
-    Lp(:,1)=0;
-    
-    L(:,2)=y;
-    Lp(:,2)=1;
-    
-    for k=2:N1
-        L(:,k+1)=( (2*k-1)*y.*L(:,k)-(k-1)*L(:,k-1) )/k;
-    end
- 
-    Lp=(N2)*( L(:,N1)-y.*L(:,N2) )./(1-y.^2);   
-    
-    y0=y;
-    y=y0-L(:,N2)./Lp;
-    
+    % Update For Next Loop
+    [pn_prev, pn] = deal(pn, pn_next);
+    [pn_prime_prev, pn_prime] = deal(pn_prime, pn_deriv_next);
 end
 
-% Linear map from[-1,1] to [a,b]
-nodes=(-1*(1-y)+1*(1+y))/2;      
-
-% Compute the weights
-weights=(1-(-1))./((1-y.^2).*Lp.^2)*(N2/N1)^2;
+% Compute weights from P_n'(x)
+weights = 2 ./ (1 - nodes.^2) ./ pn_prime.^2;
 
 %% Change Interval
 weights = 0.5*(b - a) .* weights;

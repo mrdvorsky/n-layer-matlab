@@ -1,11 +1,31 @@
-function [a, b] = setWaveguideBand(O, band, unitScaleFactor)
-%SETWAVEGUIDEBAND Set waveguide a and b dimensions (mm) to a specific band
-%   Sets the 
+function [a, b] = setWaveguideBand(O, band, options)
+%SETWAVEGUIDEBAND Set waveguide a and b dimensions (mm) to a specific band.
+% Calling this functions sets O.a and O.b to the dimensions of the band
+% specified. The default unit is mm, however, this can be changed by
+% specifying a the UnitScaleFactor optional parameter, which will be used
+% as a multiplier to determine the new values of O.a and O.b.
+%
+% After calling this function, the "recomputeInterpolants" function should
+% be called before calling "calculate".
+%
+% Example Usage:
+%   NL = nLayerRectangular(...);
+%   NL.setWaveguideBand(band, UnitScaleFactor=0.001);
+%   NL.recomputeInterpolants();
+%
+% Inputs:
+%   band - Case-Insensitive waveguide band designator.
+%   UnitScaleFactor (optional) - Multiplier for O.a and O.b
+% Outputs:
+%   a - New value of O.a
+%   b - New value of O.b
+%
+% Author: Matt Dvorsky
 
 arguments
     O;
     band {mustBeText};
-    unitScaleFactor(1, 1) {mustBeNumeric} = 1;
+    options.UnitScaleFactor(1, 1) {mustBeNumeric} = 1;
 end
 
 %% List of rectangular waveguide bands and dimensions in inches
@@ -20,8 +40,8 @@ if isempty(bandIndex)
 end
 
 %% Set dimensions
-O.a = bandDimsA(bandIndex) .* 25.4 .* unitScaleFactor;
-O.b = bandDimsB(bandIndex) .* 25.4 .* unitScaleFactor;
+O.a = bandDimsA(bandIndex) .* 25.4 .* options.UnitScaleFactor;
+O.b = bandDimsB(bandIndex) .* 25.4 .* options.UnitScaleFactor;
 
 a = O.a;
 b = O.b;

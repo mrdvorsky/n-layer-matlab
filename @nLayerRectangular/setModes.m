@@ -7,9 +7,13 @@ function [modesTE, modesTM] = setModes(O, maxM, maxN)
 %   modesTE - Rows of [m, n] mode index pairs for all considered TE modes.
 %   modesTM - Rows of [m, n] mode index pairs for all considered TM modes.
 %
-% Usage:
+% After calling this function, the "recomputeInterpolants" function should
+% be called before calling "calculate".
+%
+% Example Usage:
 %   NL = nLayerRectangular(...);
 %   [modesTE, modesTM] = NL.setModes(3, 2);     % 6 modes considered.
+%   NL.recomputeInterpolants();
 %
 % Author: Matt Dvorsky
 

@@ -30,8 +30,8 @@ function [A1, b1] = computeA1b1(O, f, er, ur, thk, AbsTol)
 %   b1 - Array of O.numModes by 1 matrices for each frequency. The size of 
 %       b1 will be O.numModes by 1 by numel(f).
 %
-% Note that b1 is always equal to the first column of A1. This fact will be
-% utilized here.
+% Note that the negative of b1 is always equal to the first column of A1.
+% This fact will be utilized here.
 %
 % Author: Matt Dvorsky
 
@@ -95,14 +95,15 @@ for ff = 1:length(k0)
         
         A1(:, :, :, ff) = O.integralVectorized(...
             @(tauP) O.integrandA1(tauP, k0(ff), er, ur, thk), ...
-            0, 1, RelTol=AbsTol, Verbosity=(O.verbosity > 1));
+            0, 1, RelTol=AbsTol, Verbosity=(O.verbosity > 1), ...
+            InitialIntervalCount=O.integralInitialSegmentCount);
     end
 end
 
 %% Format Outputs
-% Note that b1 is always the first column of A1.
+% Note that (-b1) is always the first column of A1.
 A1 = reshape(A1, O.numModes, O.numModes, length(k0));
-b1 = A1(:, 1, :);
+b1 = -A1(:, 1, :);
 
 end
 

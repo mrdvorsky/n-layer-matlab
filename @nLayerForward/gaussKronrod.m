@@ -1,19 +1,36 @@
-function [nodes, weights, errWeights] = gaussKronrod(numSegs, a, b)
+function [nodes, weights, errorWeights] = gaussKronrod(numSegs, a, b)
 %GAUSSLEGENDRE Generate Gauss-Kronrod weights and nodes for closed interval integration.
-%   This function generates the weights and nodes required to compute a
-%   definite integral over a closed interval. The weights and nodes are
-%   defined using the Gauss-Kronrod Quadrature rules.
-%   
-%   The function outputs "nodes" and "weights" can be used to approximate
-%   the definite integral of a function f(x)dx over the interval [a,b] by
-%   computing I = sum(weights .* f(nodes)). This should give approximately
-%   the same result as I = integral(f, a, b), with a higher value of
-%   numSegs resulting in a better approximation. The parameter orderN is
-%   the number of points at which to evaluate f(x). If f(x) is a polynomial
-%   with degree less than to 2*orderN, the result will be exact.
-%   The inputs "a" and "b" must be real, finite values.
+% This function generates the weights and nodes required to compute a
+% definite integral over a closed interval. The weights and nodes are
+% defined using the Gauss-Kronrod Quadrature rules.
 %
-%   numSegs ...
+% The function outputs "nodes" and "weights" can be used to approximate
+% the definite integral of a function f(x)dx over the interval [a,b] by
+% computing q = sum(weights .* f(nodes)). This should give approximately
+% the same result as q = integral(f, a, b), with a higher value of
+% numSegs resulting in a better approximation. The output "errorWeights"
+% can be similarly used to estimate the error in the evaluation of q (i.e,
+% q = sum(errorWeights .* f(nodes)); ).
+%
+% Use of these quadrature rules will never result in evalation of the
+% function at the interval endpoints a and b.
+%
+% Example Usage:
+%   [nodes, weights, errorWeights] = gaussKronrod(N, a, b);
+%   q = sum(fun(nodes) .* weights, 1);
+%   qErr = sum(fun(nodes) .* errorWeights, 1);
+%
+% Inputs:
+%   numSegs - Number of uniformly-sized segments to subdivide [a, b].
+%   a - Scalar integration lower bound. Must be finite.
+%   b - Scalar integration upper bound. Must be finite.
+% Outputs:
+%   nodes - Column vector of coordinates at which to evaluate function.
+%   weights - Column vector of weights to perform weighted sum.
+%   errorWeights - Column vector of weights to perform weighted sum for
+%       estimation of error.
+%
+% Author: Matt Dvorsky
 
 arguments
     numSegs(1, 1) = 10;
@@ -47,7 +64,7 @@ halfLengths = 0.5 * diff(intervals, 1);
 
 nodes = reshape(nodesGK .* halfLengths + midpoints, [], 1);
 weights = reshape(weightsGK .* halfLengths, [], 1);
-errWeights = reshape(errorWeightsGK .* halfLengths, [], 1);
+errorWeights = reshape(errorWeightsGK .* halfLengths, [], 1);
 
 end
 

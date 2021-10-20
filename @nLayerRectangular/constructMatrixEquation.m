@@ -45,6 +45,8 @@ function [A1, A2, b1, b2] = constructMatrixEquation(O, nLayerInt)
 %   1: Mode matrix columns
 %   2: Mode matrix rows
 %   3: Subscript ii of integration parameters I_ii(m, n, p, q)
+%
+% Author: Matt Dvorsky
 
 arguments
     O;

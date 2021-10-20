@@ -21,6 +21,9 @@ function [] = recomputeInterpolants(O)
 % Author: Matt Dvorsky
 
 %% Check For Parameter Validity
+% This initial segment count for adaptive integration should be odd so
+% that the "integrandA1" function can use that fact to determine when the
+% first pass occurs. See "integrandA1" for more details.
 if mod(O.integralInitialSegmentCount, 2) == 0 % Check if even
     error("Parameter 'integralInitialSegmentCount' must be an odd integer (current value: %d).", ...
         O.integralInitialSegmentCount);
@@ -44,7 +47,7 @@ tauP(:, 1) = linspace(0, 1, O.interpolationPointsTau);
 % dimensions to be m, n, and i.
 % Note that A2 and b2 do not depend on I_i^(e) or I_i^(h), and thus are
 % only computed once. Also note that b1 is ignored since it is always equal
-% to the first column of A1.
+% to the negative of the first column of A1.
 [A1_E, A2, ~, b2] = O.constructMatrixEquation(permute(integrandE, [2, 3, 4, 1]));
 [A1_H, ~, ~, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
 

@@ -5,17 +5,19 @@ function [gam] = calculate(O, f, er, ur, thk, options)
 %   er - vector of complex relative permittivities for each layer
 %   ur - vector of complex relative permeabilities for each layer
 %   thk - vector of thicknesses for each layer (same length as er and ur)
+%
+% Author: Matt Dvorsky
 
 arguments
     O;
     f(:, 1);
-    er(1, :);
-    ur(1, :);
-    thk(1, :);
+    er(:, :);
+    ur(:, :);
+    thk(:, :);
     options.AbsTol(1, 1) = O.convergenceAbsTol;
 end
 
-% Make sure er, ur, and thk are in the correct range
+%% Check Values and Sizes of er, ur, and thk
 er = complex(max(1, real(er)), -abs(imag(er)));
 ur = complex(max(1, real(ur)), -abs(imag(ur)));
 thk = abs(thk);

@@ -1,16 +1,16 @@
 function [k_A1, k_A2, k_b1, k_b2] = constructFrequencyMultipliers(O, f)
 %CONSTRUCTFREQUENCYMULTIPLIERS Computes k_A1, k_A2, k_b1, k_b2.
-%   Computes the matrices k_A1, k_A2, k_b1, k_b2, used to solve the 
-%   rectangular waveguide equation for multilayer structures.
+% Computes the matrices k_A1, k_A2, k_b1, k_b2, used to solve the 
+% rectangular waveguide equation for multilayer structures.
 %
 % Inputs:
 %   f - vector of frequencies to consider (default unit is GHz).
 % Outputs:
 %   k_A1, k_A2, k_b1, k_b2 - Matrices used to compute S11. See usage below.
 %
-%   The outputs of this function can be used along with the outputs of the
-%   cconstructMatrixEquation(...) function to calculate S11 for a
-%   rectangular waveguide. See example usage below, where "f" is scalar.
+% The outputs of this function can be used along with the outputs of the
+% constructMatrixEquation(...) function to calculate S11 for a
+% rectangular waveguide. See example usage below, where "f" is scalar.
 %
 % Example Usage:
 %   [k_A1, k_A2, k_b1, k_b2] = O.constructFrequencyMultipliers(f);
@@ -20,9 +20,11 @@ function [k_A1, k_A2, k_b1, k_b2] = constructFrequencyMultipliers(O, f)
 %        \ (b1.*k_b1 + etaR1.*b2.*k_b2);
 %   S11 = x(1);
 %
-%   Although the example above shows usage with a scalar value for "f", the
-%   input "f" can be a vector. In this case, the size of the 3rd dimension
-%   of each output matrix will be equal to numel(f).
+% Although the example above shows usage with a scalar value for "f", the
+% input "f" can be a vector. In this case, the size of the 3rd dimension
+% of each output matrix will be equal to numel(f).
+%
+% Author: Matt Dvorsky
 
 arguments
     O;

@@ -57,7 +57,6 @@ classdef nLayerForward < handle
     %% Public static function definitions (implemented in separate files)
     methods (Static, Access = public)
         [nodes, weights, errorWeights] = gaussKronrod(numSegs, a, b);
-        [nodes, weights] = gaussLegendre(orderN, a, b);
         [nodes, weights, errorWeights] = fejer2(orderN, a, b)
         [q] = integralVectorized(fun, a, b, options);
         [q, nodes_out, weights_out] = integralWeightsAndNodes(fun, a, b, options);

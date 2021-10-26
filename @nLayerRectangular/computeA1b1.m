@@ -50,7 +50,7 @@ k0(1, 1, 1, :) = 2*pi .* f(:) ./ O.c;
 %% Check Error in A1 When Using Fixed-Point Integration
 % Use precomputed weights and nodes for fixed point integration to check
 % the accuracy of the dominant mode coefficient. The fixed point weights
-% and nodes (i.e., fixed_****) are computed in the "recomputeInterpolants"
+% and nodes (i.e., fixed_*) are computed in the "recomputeInterpolants"
 % member function.
 [specE, specH] = O.multilayerSpectrumRect(O.fixed_tau, k0, er, ur, thk);
 
@@ -81,6 +81,8 @@ if O.verbosity > 0
     if numLossyFreq < length(k0)
         fprintf("Using adaptive integral method for the remaining (%d) frequencies.\n", ...
             length(k0) - numLossyFreq);
+    else
+        fprintf("\n");
     end
 end
 

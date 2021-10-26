@@ -71,7 +71,7 @@ f = @(xi, eta) (O.a.^2 .* O.b.^2 / 16) ...
 
 %% Compute Integrals Over Psi at All Values of Tau
 [psi(1, 1, 1, 1, :), weightsPsi(1, 1, 1, 1, :)] = ...
-    O.gaussLegendre(O.integralPointsPsi, 0, 0.5*pi);
+    O.fejer2(O.integralPointsPsi, 0, 0.5*pi);
 xi = tau .* cos(psi);
 eta = tau .* sin(psi);
 

@@ -36,7 +36,7 @@ function [nodes, weights, errorWeights] = fejer2(orderN, a, b)
 % Author: Matt Dvorsky
 
 arguments
-   orderN(1, 1) {mustBeInteger, mustBeFinite} = 10;
+    orderN(1, 1) {mustBeInteger, mustBeFinite} = 10;
     a(1, 1) {mustBeNumeric, mustBeFinite} = -1;
     b(1, 1) {mustBeNumeric, mustBeFinite} = 1;
 end
@@ -71,8 +71,7 @@ nodes = 0.5*(b - a) .* nodes + 0.5*(a + b);
 
 %% Compute Error Estimate Weights
 if nargout == 3
-    [~, weightsReducedOrder] = ...
-        fejer2(floor(0.5*N - 1), a, b);
+    [~, weightsReducedOrder] = nLayerForward.fejer2(floor(0.5*N - 1), a, b);
     
     errorWeights = weights;
     errorWeights(2:2:end) = errorWeights(2:2:end) - weightsReducedOrder;

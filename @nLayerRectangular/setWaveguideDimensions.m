@@ -19,6 +19,12 @@ function [] = setWaveguideDimensions(O, a, b)
 %
 % Author: Matt Dvorsky
 
+arguments
+    O;
+    a(1, 1) {mustBeNumeric, mustBePositive};
+    b(1, 1) {mustBeNumeric, mustBePositive};
+end
+
 O.a = a;
 O.b = b;
 

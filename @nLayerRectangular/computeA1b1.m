@@ -24,6 +24,7 @@ function [A1, b1] = computeA1b1(O, f, er, ur, thk, AbsTol)
 %   thk - Array of thicknesses for each layer (must have compatible 
 %       dimensions with er and ur). The last element of thk should have a 
 %       value of inf in the infinite halfspace case.
+%   AbsTol - Tolerance with which to compute the matrix A1.
 % Outputs:
 %   A1 - Array of O.numModes by O.numModes matrices for each frequency. The
 %       size of A1 will be O.numModes by O.numModes by numel(f).
@@ -47,13 +48,19 @@ end
 %% Calculate Freespace Wavenumber
 k0(1, 1, 1, :) = 2*pi .* f(:) ./ O.c;
 
+%% Initialize A1 and specE, specH
+A1 = zeros(1, O.numModes, O.numModes, length(k0));
+
+% multilayerSpectrumRect expects er and ur to be
+% 1-by-numLayers-by-1-by-length(k0).
+[specE, specH] = O.multilayerSpectrumRect(O.fixed_tau, k0, ...
+    permute(er, [3, 2, 4, 1]), permute(ur, [3, 2, 4, 1]), thk);
+
 %% Check Error in A1 When Using Fixed-Point Integration
 % Use precomputed weights and nodes for fixed point integration to check
 % the accuracy of the dominant mode coefficient. The fixed point weights
 % and nodes (i.e., fixed_*) are computed in the "recomputeInterpolants"
 % member function.
-[specE, specH] = O.multilayerSpectrumRect(O.fixed_tau, k0, er, ur, thk);
-
 A1DomMode = sum(specE .* O.fixed_A1_E(:, 1, 1) ...
     + specH .* O.fixed_A1_H(:, 1, 1), 1);
 errorA1DomMode = sum(specE .* O.fixed_errA1_E(:, 1, 1) ...
@@ -61,9 +68,6 @@ errorA1DomMode = sum(specE .* O.fixed_errA1_E(:, 1, 1) ...
 
 % All frequencies that have a low error bound are "lossy".
 isLossyFrequency = (abs(errorA1DomMode) ./ abs(A1DomMode)) < AbsTol;
-
-% Initialize A1
-A1 = zeros(1, O.numModes, O.numModes, length(k0));
 
 %% Compute A1 at Lossy Frequencies Using Fixed Point Integration
 % Use the fixed point integration method to compute the integral at all
@@ -96,7 +100,7 @@ for ff = 1:length(k0)
         end
         
         A1(:, :, :, ff) = O.integralVectorized(...
-            @(tauP) O.integrandA1(tauP, k0(ff), er, ur, thk), ...
+            @(tauP) O.integrandA1(tauP, k0(ff), er(ff, :), ur(ff, :), thk), ...
             0, 1, RelTol=AbsTol, Verbosity=(O.verbosity > 1), ...
             InitialIntervalCount=O.integralInitialSegmentCount);
     end

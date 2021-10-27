@@ -12,6 +12,7 @@ function [] = recomputeInterpolants(O)
 %   interpolationPointsTau;
 %   integralPointsTauFixed;
 %   integralPointsPsi;
+%   integralInitialSegmentCount;
 %
 % Example Usage:
 %   NL = nLayerRectangular(...);

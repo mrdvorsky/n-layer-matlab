@@ -1,9 +1,10 @@
 function [a, b] = setWaveguideBand(O, band, options)
 %SETWAVEGUIDEBAND Set waveguide a and b dimensions (mm) to a specific band.
-% Calling this functions sets O.a and O.b to the dimensions of the band
-% specified. The default unit is mm, however, this can be changed by
-% specifying a the UnitScaleFactor optional parameter, which will be used
-% as a multiplier to determine the new values of O.a and O.b.
+% Calling this functions sets the broad and narrow dimensions, O.a and O.b,
+% to the dimensions of the band specified. The default unit is mm, however,
+% this can be changed by specifying a the UnitScaleFactor optional
+% parameter, which will be used as a multiplier to determine the new values
+% of O.a and O.b.
 %
 % After calling this function, the "recomputeInterpolants" function should
 % be called before calling "calculate".
@@ -17,14 +18,14 @@ function [a, b] = setWaveguideBand(O, band, options)
 %   band - Case-Insensitive waveguide band designator.
 %   UnitScaleFactor (optional) - Multiplier for O.a and O.b
 % Outputs:
-%   a - New value of O.a
-%   b - New value of O.b
+%   a - New value of O.a (waveguide broad dimension), in mm.
+%   b - New value of O.b (waveguide narrow dimension), in mm.
 %
 % Author: Matt Dvorsky
 
 arguments
     O;
-    band {mustBeText};
+    band {mustBeTextScalar};
     options.UnitScaleFactor(1, 1) {mustBeNumeric} = 1;
 end
 
@@ -36,7 +37,9 @@ bandDimsB = [2.15, 1.34, 0.872, 0.622, 0.4, 0.311, 0.17, 0.14, 0.112, 0.094, 0.0
 %% Find specific band
 bandIndex = find(strcmpi(bandNames, band));
 if isempty(bandIndex)
-    error("Rectangular waveguide band '%s' not found.", band);
+    error(strcat("Rectangular waveguide band '%s' not found. Must ", ...
+        "match one of the following (case insensitive): {'%s'}."), band, ...
+        strjoin(bandNames, "', '"));
 end
 
 %% Set dimensions

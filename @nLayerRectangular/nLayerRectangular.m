@@ -107,8 +107,8 @@ classdef nLayerRectangular < nLayerForward
         gam = calculate(O, f, er, ur, thk, options);
         
         [modes] = setModes(O, maxM, maxN);
-        [a, b] = setWaveguideBand(O, band);
-        setWaveguideDimensions(O, a, b, options);
+        [a, b] = setWaveguideBand(O, band, options);
+        setWaveguideDimensions(O, a, b);
         recomputeInterpolants(O);
     end
     

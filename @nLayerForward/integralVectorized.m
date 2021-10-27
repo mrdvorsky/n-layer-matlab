@@ -27,7 +27,7 @@ function [q] = integralVectorized(fun, a, b, options)
 %
 % The size of the output Q will be the same as FUN((A + B)/2).
 %
-% Optional Arguments:
+% Named Options:
 %   RelTol (1e-6): Relative function tolerance constraint. See above.
 %   AbsTol (1e-8): Absolute function tolerance constraint. See above.
 %   Verbosity (0): Set to 1 or higher for console output upon convergence.

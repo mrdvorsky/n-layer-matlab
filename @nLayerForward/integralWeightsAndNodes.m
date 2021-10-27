@@ -25,7 +25,7 @@ function [q, nodes_out, weights_out] = integralWeightsAndNodes(fun, a, b, option
 % The output parameters nodes_out and weights_out are the final nodes and
 % weights used. In other words, q = sum(fun(nodes) .* weights);
 %
-% Optional Arguments:
+% Named Options:
 %   RelTol (1e-6): Relative function tolerance constraint. See above.
 %   AbsTol (1e-8): Absolute function tolerance constraint. See above.
 %   Verbosity (0): Set to 1 or higher for console output upon convergence.

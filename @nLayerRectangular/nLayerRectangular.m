@@ -123,7 +123,7 @@ classdef nLayerRectangular < nLayerForward
     
     %% Private static function definitions (implemented in separate files)
     methods (Static, Access = public)
-        [specE, specH] = multilayerSpectrumRect(tau, k0, er, ur, thk);
+        [specE, specH] = multilayerSpectrumEH(tau, k0, er, ur, thk);
     end
     
     %% Class constructor

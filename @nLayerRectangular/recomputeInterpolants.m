@@ -26,8 +26,8 @@ function [] = recomputeInterpolants(O)
 % that the "integrandA1" function can use that fact to determine when the
 % first pass occurs. See "integrandA1" for more details.
 if mod(O.integralInitialSegmentCount, 2) == 0 % Check if even
-    error("Parameter 'integralInitialSegmentCount' must be an odd integer (current value: %d).", ...
-        O.integralInitialSegmentCount);
+    error(strcat("Parameter 'integralInitialSegmentCount' must be an ", ...
+        "odd integer (current value: %d)."), O.integralInitialSegmentCount);
 end
 
 %% Update TM Modes

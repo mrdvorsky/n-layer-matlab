@@ -51,9 +51,9 @@ k0(1, 1, 1, :) = 2*pi .* f(:) ./ O.c;
 %% Initialize A1 and specE, specH
 A1 = zeros(1, O.numModes, O.numModes, length(k0));
 
-% multilayerSpectrumRect expects er and ur to be
+% multilayerSpectrumEH expects er and ur to be
 % 1-by-numLayers-by-1-by-length(k0).
-[specE, specH] = O.multilayerSpectrumRect(O.fixed_tau, k0, ...
+[specE, specH] = O.multilayerSpectrumEH(O.fixed_tau, k0, ...
     permute(er, [3, 2, 4, 1]), permute(ur, [3, 2, 4, 1]), thk);
 
 %% Check Error in A1 When Using Fixed-Point Integration

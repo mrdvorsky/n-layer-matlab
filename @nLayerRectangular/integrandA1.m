@@ -50,14 +50,14 @@ function [A1_tauP] = integrandA1(O, tauP, k0, er, ur, thk)
 % The values of O.init_tau, O.init_A1_E, and O.init_A1_E are computed
 % in the "recomputeInterpolants" member function.
 if numel(tauP) == numel(O.init_tau)
-    [specE, specH] = O.multilayerSpectrumRect(O.init_tau, k0, er, ur, thk);
+    [specE, specH] = O.multilayerSpectrumEH(O.init_tau, k0, er, ur, thk);
     A1_tauP = specE .* O.init_A1_E + specH .* O.init_A1_H;
     return;
 end
 
 %% General Case (Linear Interpolation)
 tau = O.integralScaleFactor * (1 - tauP) ./ tauP;
-[specE, specH] = O.multilayerSpectrumRect(tau, k0, er, ur, thk);
+[specE, specH] = O.multilayerSpectrumEH(tau, k0, er, ur, thk);
 
 % Get indices and mixing factors for linear interpolation
 fracInd = tauP * (O.interpolationPointsTau - 1) + 1;

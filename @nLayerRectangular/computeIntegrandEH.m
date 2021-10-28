@@ -1,8 +1,8 @@
 function [integrandE, integrandH] = computeIntegrandEH(O, tauP)
-%computeIntegrandEH Compute the partial integrand for I(m, n, p, q).
+%computeIntegrandH Compute the partial integrand for I(n, q).
 % This function can be used to compute I^(e)_ii(m, n, p, q) and 
 % I^(h)_ii(m, n, p, q) by integrating the product of this function and
-% the output of the "multilayerSpectrumRect" function over the interval 
+% the output of the "multilayerSpectrumEH" function over the interval 
 % from 0 to 1. This integral can then be used with the
 % "constructMatrixEquation" function to construct the matrix equation 
 % required to find to solve for the reflection coefficient. See
@@ -13,7 +13,7 @@ function [integrandE, integrandH] = computeIntegrandEH(O, tauP)
 % The variable tau is related to tauP by the following equation.
 %       tau = O.integralScaleFactor * (1 - tauP) ./ tauP;
 %
-% Note that the "multilayerSpectrumRect" function uses tau as its
+% Note that the "multilayerSpectrumEH" function uses tau as its
 % integration varable, while this function uses tauP. The following
 % example shows the calculation of the integrals I^(e)_ii(...) and
 % I^(h)_ii(...).
@@ -21,7 +21,7 @@ function [integrandE, integrandH] = computeIntegrandEH(O, tauP)
 % Example:
 %   function y = f(tauP)
 %       tau = O.integralScaleFactor * (1 - tauP) ./ tauP;
-%       [specE, specH] = multilayerSpectrumRect(tau, k0, er, ur, thk);
+%       [specE, specH] = multilayerSpectrumEH(tau, k0, er, ur, thk);
 %       [integrandE, integrandH] = O.computeIntegrandEH(tauP);
 %       y = specE.*integrandE + specH.*integrandH;
 %   end

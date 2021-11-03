@@ -37,9 +37,9 @@ convergenceTol = 1e-3;              % Tolerance for convergence (-60 dB)
 % directly or using the waveguide band identifier. See documentation for
 % nLayerRectangular for more details.
 
-NL = nLayerRectangular(maxM, maxN, band=wgBand);        % Create nLayer object.
+NL = nLayerRectangular(maxM, maxN, Band=wgBand);        % Create nLayer object.
 % NL = load("nLayer_xBand").NL;                           % Optionally load nLayer object from file.
-% NL = nLayerRectangular(maxM, maxN, a=22.86, b=10.16);   % Alternative way to specify waveguide dimensions.
+% NL = nLayerRectangular(maxM, maxN, A=22.86, B=10.16);   % Alternative way to specify waveguide dimensions.
 
 NL.convergenceAbsTol = convergenceTol;  % Optionally specify tolerance for convergence.
 NL.verbosity = 1;                       % Leave at 0 for no command line output.

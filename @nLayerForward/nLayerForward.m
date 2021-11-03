@@ -1,4 +1,4 @@
-classdef nLayerForward < handle
+classdef (Abstract) nLayerForward < handle
     %NLAYERFORWARD Interface class for nLayer forward calculators.
     % This class serves as an interface definition for all nLayer forward
     % calculator objects. These objects take in a multilayer structure
@@ -46,8 +46,8 @@ classdef nLayerForward < handle
         checkStructureValues = true;
     end
     
-    %% Public member function definitions (virtual, not implemented)
-    methods (Access = public)
+    %% Virtual Public member function definitions
+    methods (Abstract, Access = public)
         gam = calculate(O, f, er, ur, thk);
     end
     

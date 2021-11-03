@@ -4,11 +4,11 @@ classdef nLayerRectangular < nLayerForward
     % by a rectangular waveguide looking into a multilayer structure.
     %
     % Example Usage:
-    %   NL = nLayerRectangular(maxM, maxN, a=7.112, b=3.556);
-    %   NL = nLayerRectangular(maxM, maxN, band="x");
-    %   NL = nLayerRectangular(maxM, maxN, band="ka", verbosity=1);
-    %   NL = nLayerRectangular(maxM, maxN, band="v", ...
-    %           convergenceAbsTol=1e-4, integralPointsTauFixed=500);
+    %   NL = nLayerRectangular(maxM, maxN, A=7.112, B=3.556);
+    %   NL = nLayerRectangular(maxM, maxN, Band="x");
+    %   NL = nLayerRectangular(maxM, maxN, Band="ka", Verbosity=1);
+    %   NL = nLayerRectangular(maxM, maxN, Band="v", ...
+    %           ConvergenceAbsTol=1e-4, IntegralPointsTauFixed=500);
     %   NL = nLayerRectangular(maxM, maxN, band="x", prop=val, ...);
     %
     %   gam = NL.calculate(f, er, ur, thk);
@@ -41,7 +41,7 @@ classdef nLayerRectangular < nLayerForward
     % the member function "recomputeInterpolants()" must be called. This
     % function is automatically called upon construction of the object.
     % For Example:
-    %   NL = nLayerRectangular(maxM, maxN, band="x");
+    %   NL = nLayerRectangular(maxM, maxN, Band="x");
     %   NL.modesTE = [1, 0; 1, 2; 3, 0; 3, 2];
     %   NL.integralPointsTauFixed = 100;
     %   NL.recomputeInterpolants();     % This line is necessary.
@@ -58,7 +58,7 @@ classdef nLayerRectangular < nLayerForward
     %   integralInitialSegmentCount;
     %
     % Any of the above properties can also be directly specified in the
-    % class constructor: NL = nLayerRectangular(..., prop=val, ...).
+    % class constructor: NL = nLayerRectangular(..., Prop=val, ...).
     % Constructing using this method avoids the requirement of having to
     % call recomputeInterpolants() manually.
     %
@@ -131,72 +131,72 @@ classdef nLayerRectangular < nLayerForward
         function O = nLayerRectangular(maxM, maxN, options)
             %NLAYERRECTANGULAR Construct an instance of this class.
             % Example Usage:
-            %   NL = nLayerRectangular(maxM, maxN, a=7.112, b=3.556);
-            %   NL = nLayerRectangular(maxM, maxN, band="x");
-            %   NL = nLayerRectangular(maxM, maxN, band="x", verbosity=1);
-            %   NL = nLayerRectangular(maxM, maxN, band="x", ...
-            %       convergenceAbsTol=1e-4, integralPointsTauFixed=500);
-            %   NL = nLayerRectangular(maxM, maxN, band="x", prop=val, ...);
+            %   NL = nLayerRectangular(maxM, maxN, A=7.112, B=3.556);
+            %   NL = nLayerRectangular(maxM, maxN, Band="x");
+            %   NL = nLayerRectangular(maxM, maxN, Band="x", Verbosity=1);
+            %   NL = nLayerRectangular(maxM, maxN, Band="x", ...
+            %       ConvergenceAbsTol=1e-4, IntegralPointsTauFixed=500);
+            %   NL = nLayerRectangular(maxM, maxN, Band="x", Prop=val, ...);
             %
             % Inputs:
             %   maxM - Highest index m of TEmn and TMmn modes to consider.
             %   maxN - Highest index n of TEmn and TMmn modes to consider.
             % Named Options:
-            %   a (1) - Waveguide broad dimension (mm).
-            %   b (0.5) - Waveguide narrow dimension (mm).
-            %   band - Case-insensitive waveguide band to use. Either
+            %   A (1) - Waveguide broad dimension (mm).
+            %   B (0.5) - Waveguide narrow dimension (mm).
+            %   Band - Case-insensitive waveguide band to use. Either
             %       specify this or the dimensions (a and b) directly.
-            %   modesTE - List of modes to use in rows of [m, n].
+            %   ModesTE - List of modes to use in rows of [m, n].
             %       If specified, this will be used instead of maxM and
             %       maxN. The first row must be [1, 0].
-            %   verbosity - Verbosity level. Set to 1 for basic command line
+            %   Verbosity - Verbosity level. Set to 1 for basic command line
             %       output. Set to 2 for a per-frequency output.
-            %   convergenceAbsTol (0.001) - Default tolerance for
+            %   ConvergenceAbsTol (0.001) - Default tolerance for
             %       reflection coefficient calculations.
-            %   integralPointsTauFixed (300) - Number of points to use for
+            %   IntegralPointsTauFixed (300) - Number of points to use for
             %       fixed-point integration along tau.
-            %   interpolationPointsTau (2^12) - Number of points to use for the
+            %   InterpolationPointsTau (2^12) - Number of points to use for the
             %       interpolation function along tau.
-            %   integralPointsPsi (50) - Number of points to use to
+            %   IntegralPointsPsi (50) - Number of points to use to
             %       integrate along psi.
-            %   integralInitialSegmentCount (9) - Initial number of
+            %   IntegralInitialSegmentCount (9) - Initial number of
             %       segments along tau used in the adaptive integration
             %       routine. Must be an odd integer.
             
             arguments
                 maxM(1, 1) {mustBeInteger, mustBePositive};
                 maxN(1, 1) {mustBeInteger, mustBeNonnegative};
-                options.a(1, 1) {mustBeNumeric, mustBePositive} = 1;
-                options.b(1, 1) {mustBeNumeric, mustBePositive} = 0.5;
-                options.band {mustBeTextScalar};
-                options.modesTE(:, 2) {mustBeInteger, mustBeNonnegative};
-                options.verbosity(1, 1) {mustBeNumeric, mustBeNonnegative} = 0;
-                options.convergenceAbsTol(1, 1) {mustBeNumeric, mustBePositive} = 0.001;
-                options.integralPointsPsi(1, 1) {mustBeInteger, mustBePositive} = 50;
-                options.integralPointsTauFixed(1, 1) {mustBeInteger, mustBePositive} = 300;
-                options.interpolationPointsTau(1, 1) {mustBeInteger, mustBePositive} = 2^12;
-                options.integralInitialSegmentCount(1, 1) {mustBeInteger, mustBePositive} = 9;
+                options.A(1, 1) {mustBeNumeric, mustBePositive} = 1;
+                options.B(1, 1) {mustBeNumeric, mustBePositive} = 0.5;
+                options.Band {mustBeTextScalar};
+                options.ModesTE(:, 2) {mustBeInteger, mustBeNonnegative};
+                options.Verbosity(1, 1) {mustBeNumeric, mustBeNonnegative} = 0;
+                options.ConvergenceAbsTol(1, 1) {mustBeNumeric, mustBePositive} = 0.001;
+                options.IntegralPointsPsi(1, 1) {mustBeInteger, mustBePositive} = 50;
+                options.IntegralPointsTauFixed(1, 1) {mustBeInteger, mustBePositive} = 300;
+                options.InterpolationPointsTau(1, 1) {mustBeInteger, mustBePositive} = 2^12;
+                options.IntegralInitialSegmentCount(1, 1) {mustBeInteger, mustBePositive} = 9;
             end
             
             %% Set Class Parameter Values
-            if isfield(options, "modesTE")
-                O.modesTE = options.modesTE;
+            if isfield(options, "ModesTE")
+                O.modesTE = options.ModesTE;
             else
                 O.setModes(maxM, maxN);
             end
             
-            if isfield(options, "band")
-                O.setWaveguideBand(options.band);
+            if isfield(options, "Band")
+                O.setWaveguideBand(options.Band);
             else
-                O.setWaveguideDimensions(options.a, options.b);
+                O.setWaveguideDimensions(options.A, options.B);
             end
             
-            O.verbosity = options.verbosity;
-            O.convergenceAbsTol = options.convergenceAbsTol;
-            O.integralPointsPsi = options.integralPointsPsi;
-            O.integralPointsTauFixed = options.integralPointsTauFixed;
-            O.interpolationPointsTau = options.interpolationPointsTau;
-            O.integralInitialSegmentCount = options.integralInitialSegmentCount;
+            O.verbosity = options.Verbosity;
+            O.convergenceAbsTol = options.ConvergenceAbsTol;
+            O.integralPointsPsi = options.IntegralPointsPsi;
+            O.integralPointsTauFixed = options.IntegralPointsTauFixed;
+            O.interpolationPointsTau = options.InterpolationPointsTau;
+            O.integralInitialSegmentCount = options.IntegralInitialSegmentCount;
             
             O.recomputeInterpolants();
         end

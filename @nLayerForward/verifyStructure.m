@@ -25,10 +25,10 @@ function [f, er, ur, thk] = verifyStructure(f, er, ur, thk, options)
 % Author: Matt Dvorsky
 
 arguments
-    f(:, 1);
+    f(:, 1) {mustBeNonempty};
     er(:, :);
     ur(:, :);
-    thk(1, :);
+    thk(1, :) {mustBeNonempty};
     options.CheckStructureValues {mustBeNumericOrLogical} = true;
 end
 

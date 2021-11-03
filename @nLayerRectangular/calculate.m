@@ -38,7 +38,8 @@ arguments
 end
 
 %% Check Values and Sizes of f, er, ur, and thk
-[f, er, ur, thk] = O.verifyStructure(f, er, ur, thk);
+[f, er, ur, thk] = O.verifyStructure(f, er, ur, thk, ...
+    CheckStructureValues=O.checkStructureValues);
 
 %% Compute A1 and b1
 % This is the computationally intensive part of this algorithm

@@ -53,7 +53,7 @@ classdef (Abstract) nLayerForward < handle
     
     %% Public member function definitions (implemented in separate files)
     methods (Access = public)
-        [f, er, ur, thk] = verifyStructure(O, f, er, ur, thk);
+        gam = calculateWithConductivity(O, f, er, ur, thk, sigma, varargin);
     end
     
     %% Public static function definitions (implemented in separate files)
@@ -62,6 +62,9 @@ classdef (Abstract) nLayerForward < handle
         [nodes, weights, errorWeights] = fejer2(orderN, a, b);
         [q] = integralVectorized(fun, a, b, options);
         [q, nodes_out, weights_out] = integralWeightsAndNodes(fun, a, b, options);
+        
+        [f, er, ur, thk] = verifyStructure(f, er, ur, thk, options);
+        [er, ur, thk] = changeStructureConductivity(f, er, ur, thk, sigma);
     end
 
 end

@@ -1,4 +1,4 @@
-function [f, er, ur, thk] = verifyStructure(O, f, er, ur, thk)
+function [f, er, ur, thk] = verifyStructure(f, er, ur, thk, options)
 %VERIFYSTRUCTURE Check the multilayer structure and correct any issues.
 % This function can be used to verify proper dimensions and values of the
 % inputs f, er, ur, thk.
@@ -25,11 +25,11 @@ function [f, er, ur, thk] = verifyStructure(O, f, er, ur, thk)
 % Author: Matt Dvorsky
 
 arguments
-    O;
     f(:, 1);
     er(:, :);
     ur(:, :);
     thk(1, :);
+    options.CheckStructureValues {mustBeNumericOrLogical} = true;
 end
 
 %% Check for Empty er and ur
@@ -42,7 +42,7 @@ if isempty(ur)
 end
 
 %% Check Values of er, ur, and thk
-if O.checkStructureValues
+if options.CheckStructureValues
     if ~all(real(er) >= 1, "all") || ~all(real(ur) >= 1, "all")
         error("The real parts of er and ur must be greater than 1.");
     end

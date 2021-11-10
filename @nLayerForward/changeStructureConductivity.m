@@ -48,7 +48,7 @@ erp = sigma ./ ((pi .* 8.854e-3) * f);
 %% Add or Change Last Layer
 if isfinite(thk(end))
     er = [er, 1 - 1j*erp];
-    ur = [ur, 1 + 0*ur];
+    ur = [ur, ones(size(ur, 1), 1)];
     thk = [thk, inf];
 else
     er(:, end) = 1 - 1j*erp;

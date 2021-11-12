@@ -35,11 +35,10 @@ zetaPrev = sqrt(k.^2 - tau.^2);
 zetaPrev = complex(real(zetaPrev), -abs(imag(zetaPrev)));
 
 if isfinite(thk(end))
-    Ce = exp(-2j .* zetaPrev .* thk(end));
+    Ch = -exp(-2j .* zetaPrev .* thk(end));
 else
-    Ce = 0;
+    Ch = 0;
 end
-Ch = -Ce;
 
 %% Calculate Structure Reflection Coefficient
 % Loop over layers starting with second to last
@@ -48,11 +47,8 @@ for ii = (length(thk) - 1):-1:1
     zeta = sqrt(k.^2 - tau.^2);
     zeta = complex(real(zeta), -abs(imag(zeta)));
     
-    Be = er(1, ii + 1, :, :) ./ er(1, ii, :, :) .* zeta ./ zetaPrev;
     Bh = ur(1, ii + 1, :, :) ./ ur(1, ii, :, :) .* zeta ./ zetaPrev;
     
-    Ce = exp(-2j .* zeta .* thk(ii)) .* (Ce .* (1 + Be) - (1 - Be)) ...
-        ./ (-Ce .* (1 - Be) + (1 + Be));
     Ch = exp(-2j .* zeta .* thk(ii)) .* (Ch .* (1 + Bh) - (1 - Bh)) ...
         ./ (-Ch .* (1 - Bh) + (1 + Bh));
     
@@ -60,7 +56,6 @@ for ii = (length(thk) - 1):-1:1
 end
 
 %% Calculate Output
-% specE = k .* (1 + Ce) ./ (1 - Ce) ./ zetaPrev;
 specH = zetaPrev .* (1 - Ch) ./ (1 + Ch);
 
 end

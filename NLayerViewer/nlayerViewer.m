@@ -1,5 +1,60 @@
-function nlayerViewer(er, thk, NL, f, options)
-
+function [varargout] = nLayerViewer(er, thk, NL, f, options)
+%NLAYERVIEWER Function to open NLayer Viewer in a new figure window.
+% This function allows users to compute multiple NLayer solvers and
+% plot them to be viewed and compared. The sliders update in real-time
+% allowing for a quick visual analysis of a material structure.
+%
+% nLayerViewer Properties:
+%   MainFigDim ([100, 100, 1000, 600]) - Main figure dimension
+%       (pixels). The array elements are [left, bottom, width, height].
+%   PlotPanelSize (0.6) - Relative size of the plot panel to the main 
+%       figure window.
+%   Legend - Array of strings that can be displayed along with the
+%       various plots of different NLayer solvers.
+%   SliderXPos (0.15) - Position of sliders on the X-axis relative to
+%       the size of the parent panel.
+%   SliderYPos (0.15) - Position of sliders on the Y-axis relative to
+%       the size of the parent panel.
+%   SliderLength (0.6) - Length of the  sliders relative to the size of
+%       the parent panel.
+%   SliderWidth (0.12) - Width of the sliders relative to the size of
+%       the parent panel   
+%   ErBounds ([1, 10]) - Bounds of the dielectric constant (er). The 
+%       size of the variable is dependent on the number of layers
+%       defined.
+%   ErpBounds [-2, 1]) - Bounds of the dielectric loss (erp). The value
+%       is defined as the integer power to 10. The size of the variable
+%       is dependent on the number of layers defined.
+%   ThkBounds [-1, 2]) - Bounds of the thickness (thk). The value
+%       is defined as the integer power to 10. The size of the variable
+%       is dependent on the number of layers defined.
+%   GamInterp (10) - The number of points the calculated reflection
+%       coefficients is interpolated to.
+%   PlotLineWidth (1.5) - The width of the plotted lines.
+%
+% Example Usage:
+%   nlayerViewer(er, thk, NL, f);
+%   nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
+%   handles = nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
+%   handles = nlayerViewer(er, thk, NL1, f1, ..., legend=["1", ...]);
+%
+% Inputs:
+%   er - Complex dielectric constant. Consists of the real part (er) which
+%       must be greater than 1 and the imaginary part (erp) which is always
+%       negative.
+%   thk - Thickness of a material structure (mm).
+%   NL - NLayer solver object. Defined using nLayerRectangular. Can be
+%       defined multiple times to compute multiple solvers at the time.
+%   f - Frequency vector.
+%   options - Optional input to change certain parameters and variables
+%       within the function.
+%
+% Outputs:
+%   handles - Optional output to return the handles containing data that is
+%       stored within the UI figure.
+%
+% Author: Si Yuan Sim
+    
 arguments
     er
     thk
@@ -11,43 +66,43 @@ arguments (Repeating)
 end
 
 arguments
-    options.mainFigDim      (1,4) {mustBeNumeric} = [100, 100, 1000, 600] 
-    options.legend
-    options.plotPanelSize   (1,1) {mustBeNumeric} = 0.6
-    options.panelFontSize   (1,1) {mustBeNumeric} = 10;
+    options.MainFigDim      (1,4) {mustBeNumeric} = [100, 100, 1000, 600] 
+    options.Legend
+    options.PlotPanelSize   (1,1) {mustBeNumeric} = 0.6
+    options.PanelFontSize   (1,1) {mustBeNumeric} = 10;
     
     % Slider parameters
-    options.sliderXPos      (1,1) {mustBeNumeric} = 0.15
-    options.sliderYPos      (1,1) {mustBeNumeric} = 0.15
-    options.sliderLength    (1,1) {mustBeNumeric} = 0.6
-    options.sliderWidth     (1,1) {mustBeNumeric} = 0.12
+    options.SliderXPos      (1,1) {mustBeNumeric} = 0.15
+    options.SliderYPos      (1,1) {mustBeNumeric} = 0.15
+    options.SliderLength    (1,1) {mustBeNumeric} = 0.6
+    options.SliderWidth     (1,1) {mustBeNumeric} = 0.12
     
     % Electrical property bounds
-    options.erBounds        (:,2) {mustBeNumeric} = [1, 10]
-    options.erpBounds       (:,2) {mustBeNumeric} = [-2, 1]
-    options.thkBounds       (:,2) {mustBeNumeric} = [-1, 2]
+    options.ErBounds        (:,2) {mustBeNumeric} = [1, 10]
+    options.ErpBounds       (:,2) {mustBeNumeric} = [-2, 1]
+    options.ThkBounds       (:,2) {mustBeNumeric} = [-1, 2]
     
     % NLayer settings
-    options.gamInterp       (1,1) {mustBeNumeric} = 10
+    options.GamInterp       (1,1) {mustBeNumeric} = 10
     
     % Plot settings
-    options.plotLineWidth   (1,1) {mustBeNumeric} = 1.5
+    options.PlotLineWidth   (1,1) {mustBeNumeric} = 1.5
 end
 
 %% Create main figure and panels
 fig = figure('Name', 'nLayer Viewer', ...
-    'Position', options.mainFigDim);
+    'Position', options.MainFigDim);
 
-plotPanel = uipanel(fig, 'Position', [0, 0, options.plotPanelSize, 1]);
-sliderPanel = uipanel(fig, 'Position', [options.plotPanelSize, 0, 1-options.plotPanelSize, 1]);
+plotPanel = uipanel(fig, 'Position', [0, 0, options.PlotPanelSize, 1]);
+sliderPanel = uipanel(fig, 'Position', [options.PlotPanelSize, 0, 1-options.PlotPanelSize, 1]);
 
-erPanel = uipanel(sliderPanel, 'Position', [0, 0.667, 1, 0.333], 'FontSize', options.panelFontSize , 'Tag', 'er');
+erPanel = uipanel(sliderPanel, 'Position', [0, 0.667, 1, 0.333], 'FontSize', options.PanelFontSize , 'Tag', 'er');
 erPanel.Title = "Dielectric Constant (er)";
 
-erpPanel = uipanel(sliderPanel, 'Position', [0, 0.333, 1, 0.333], 'FontSize', options.panelFontSize , 'Tag', 'erp');
+erpPanel = uipanel(sliderPanel, 'Position', [0, 0.333, 1, 0.333], 'FontSize', options.PanelFontSize , 'Tag', 'erp');
 erpPanel.Title = "Dielectric Loss (erp)";
 
-thkPanel = uipanel(sliderPanel, 'Position', [0, 0, 1, 0.333], 'FontSize', options.panelFontSize , 'Tag', 'thk');
+thkPanel = uipanel(sliderPanel, 'Position', [0, 0, 1, 0.333], 'FontSize', options.PanelFontSize , 'Tag', 'thk');
 thkPanel.Title = "Thickness (mm)";
 
 %% Save initial material structure
@@ -58,7 +113,12 @@ numLayers = size(thk, 2);
 
 %% Create plot
 ax = axes(plotPanel);
-plotUnitCircle(ax);
+
+[h1, h2, h3] = zplane([], [], ax);
+h1.HandleVisibility = "off";
+h2.HandleVisibility = "off";
+h3.HandleVisibility = "off";
+
 xlim(ax, [-1.1, 1.1]);
 ylim(ax, [-1.1, 1.1]);
 hold on;
@@ -68,12 +128,12 @@ gamFitPlot = cell(size(NL,2), 1);
 
 % Obtain initial parameters and calculate initial values
 for ii = 1:size(NL, 2)
-    gamPlot{ii} = plot(ax, f{ii}, 0*f{ii}, '.', 'Linewidth', options.plotLineWidth);
+    gamPlot{ii} = plot(ax, f{ii}, 0*f{ii}, '.', 'Linewidth', options.PlotLineWidth);
     gamPlot{ii}.HandleVisibility = 'off';
-    gamFitPlot{ii} = plot(ax, f{ii}, 0*f{ii}, 'Linewidth', options.plotLineWidth);
+    gamFitPlot{ii} = plot(ax, f{ii}, 0*f{ii}, 'Linewidth', options.PlotLineWidth);
 
     gam = NL{ii}.calculate(f{ii}, er, [], thk);
-    gamFit = interp(gam, options.gamInterp);
+    gamFit = interp(gam, options.GamInterp);
     
     gamFitPlot{ii}.XData = real(gamFit);
     gamFitPlot{ii}.YData = imag(gamFit);
@@ -83,7 +143,7 @@ for ii = 1:size(NL, 2)
 end
 
 if isfield(options, 'legend')
-   legend(ax, options.legend); 
+   legend(ax, options.Legend); 
 end
 
 hold off;
@@ -93,15 +153,15 @@ handles.gamFitPlot = gamFitPlot;
 %% Create sliders
 createSlider = @(panel, ind, tag) uicontrol('Parent', panel, ...
     'Style', 'slider', 'Units', 'normalized', ... 
-    'Position', [options.sliderXPos 0.75-options.sliderYPos*(ind-1) options.sliderLength options.sliderWidth],...
+    'Position', [options.SliderXPos 0.75-options.SliderYPos*(ind-1) options.SliderLength options.SliderWidth],...
     'Tag', tag);
  
 uiSliders.erSliders = cell(numLayers, 1);
 uiSliders.erpSliders = cell(numLayers, 1);
 uiSliders.thkSliders = cell(numLayers, 1);
-uiSliders.erRange = options.erBounds + zeros(numLayers);
-uiSliders.erpRange = options.erpBounds + zeros(numLayers);
-uiSliders.thkRange = options.thkBounds + zeros(numLayers);
+uiSliders.erRange = options.ErBounds + zeros(numLayers);
+uiSliders.erpRange = options.ErpBounds + zeros(numLayers);
+uiSliders.thkRange = options.ThkBounds + zeros(numLayers);
 
 for ii = 1:numLayers
     % Create sliders
@@ -152,7 +212,7 @@ createTopLabel = @(panel) uicontrol('Style', 'text', 'String', 'Top Layer', ...
 
 
 createBottomLabel = @(panel) uicontrol('Style', 'text', 'String', 'Bottom Layer', ...
-    'parent', panel, 'Units' , 'normalized', 'Position', [0 0.75-options.sliderYPos*(numLayers) 0.2 0.1], ...
+    'parent', panel, 'Units' , 'normalized', 'Position', [0 0.75-options.SliderYPos*(numLayers) 0.2 0.1], ...
     'HorizontalAlignment', 'left');
 
 createTopLabel(erPanel);
@@ -209,6 +269,11 @@ end
 
 handles.uiSliders = uiSliders;
 handles.options = options;
+
+% Handles is an optional output parameter
+if nargout == 1
+    varargout{1} = handles;
+end
 
 guidata(fig, handles);
 end

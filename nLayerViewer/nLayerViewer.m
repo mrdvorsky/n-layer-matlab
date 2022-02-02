@@ -159,9 +159,9 @@ createSlider = @(panel, ind, tag) uicontrol('Parent', panel, ...
 uiSliders.erSliders = cell(numLayers, 1);
 uiSliders.erpSliders = cell(numLayers, 1);
 uiSliders.thkSliders = cell(numLayers, 1);
-uiSliders.erRange = options.ErBounds + zeros(numLayers);
-uiSliders.erpRange = options.ErpBounds + zeros(numLayers);
-uiSliders.thkRange = options.ThkBounds + zeros(numLayers);
+uiSliders.erRange = options.ErBounds + zeros(numLayers, 2);
+uiSliders.erpRange = options.ErpBounds + zeros(numLayers, 2);
+uiSliders.thkRange = options.ThkBounds + zeros(numLayers, 2);
 
 for ii = 1:numLayers
     % Create sliders
@@ -561,8 +561,9 @@ handles = guidata(hObject);
 
 isInfHalfPlane = handles.isInfHalfPlane.Value;
 
-layer = 2;
+layer = size(handles.uiSliders.thkSliders, 1);
 
+% Disable the last layer's thickness parameters textboxes and slider
 if isInfHalfPlane
     handles.uiSliders.thkSliders{layer}.Enable = 'off';
     handles.uiEditField.thkCV{layer}.Enable = 'off';
@@ -574,6 +575,23 @@ else
     handles.uiEditField.thkLB{layer}.Enable = 'on';
     handles.uiEditField.thkUB{layer}.Enable = 'on';
 end 
+
+[er, erp, thk] = valueExtractor(handles);
+
+panel = extractBefore(hObject.Tag,'-');
+layer = str2num(extractAfter(hObject.Tag,'-'));
+
+switch panel
+    case 'er'        
+            handles.uiEditField.erCV{layer}.String = er(layer);
+    case 'erp'
+            handles.uiEditField.erpCV{layer}.String = erp(layer);
+    case 'thk'
+            handles.uiEditField.thkCV{layer}.String = thk(layer);
+end
+
+handles = plotGam(handles, er, erp, thk);
+
 
 guidata(hObject, handles);
 end

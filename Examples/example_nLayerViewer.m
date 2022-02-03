@@ -14,4 +14,4 @@ thk = [1, 2];
 
 legendCell = ["1", "2", "3"];
 
-nLayerViewer(er, thk, NL1, f1);
+nLayerViewer(er, thk, NL1, f1, NL2, f2);

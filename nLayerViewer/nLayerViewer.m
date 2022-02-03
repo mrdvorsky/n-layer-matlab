@@ -4,6 +4,12 @@ function [varargout] = nLayerViewer(er, thk, NL, f, options)
 % plot them to be viewed and compared. The sliders update in real-time
 % allowing for a quick visual analysis of a material structure.
 %
+% Example Usage:
+%   nlayerViewer(er, thk, NL, f);
+%   nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
+%   handles = nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
+%   handles = nlayerViewer(er, thk, NL1, f1, ..., legend=["1", ...]);
+%
 % nLayerViewer Properties:
 %   MainFigDim ([100, 100, 1000, 600]) - Main figure dimension
 %       (pixels). The array elements are [left, bottom, width, height].
@@ -31,12 +37,6 @@ function [varargout] = nLayerViewer(er, thk, NL, f, options)
 %   GamInterp (10) - The number of points the calculated reflection
 %       coefficients is interpolated to.
 %   PlotLineWidth (1.5) - The width of the plotted lines.
-%
-% Example Usage:
-%   nlayerViewer(er, thk, NL, f);
-%   nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
-%   handles = nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
-%   handles = nlayerViewer(er, thk, NL1, f1, ..., legend=["1", ...]);
 %
 % Inputs:
 %   er - Complex dielectric constant. Consists of the real part (er) which
@@ -125,21 +125,21 @@ hold on;
 
 gamPlot = cell(size(NL,2), 1);
 gamFitPlot = cell(size(NL,2), 1);
+plotNum = 1;
 
 % Obtain initial parameters and calculate initial values
 for ii = 1:size(NL, 2)
-    gamPlot{ii} = plot(ax, f{ii}, 0*f{ii}, '.', 'Linewidth', options.PlotLineWidth);
-    gamPlot{ii}.HandleVisibility = 'off';
-    gamFitPlot{ii} = plot(ax, f{ii}, 0*f{ii}, 'Linewidth', options.PlotLineWidth);
-
     gam = NL{ii}.calculate(f{ii}, er, [], thk);
-    gamFit = interp(gam, options.GamInterp);
     
-    gamFitPlot{ii}.XData = real(gamFit);
-    gamFitPlot{ii}.YData = imag(gamFit);
-    
-    gamPlot{ii}.XData = real(gam);
-    gamPlot{ii}.YData = imag(gam);
+    for jj = 1:size(gam, 2)
+        gamFit = interp(gam(:,jj), options.GamInterp);
+
+        gamPlot{plotNum} = plot(ax, real(gam(:,jj)), imag(gam(:,jj)), '.', 'Linewidth', options.PlotLineWidth);
+        gamPlot{plotNum}.HandleVisibility = 'off';
+        gamFitPlot{plotNum} = plot(ax, real(gamFit), imag(gamFit), 'Linewidth', options.PlotLineWidth);
+        
+        plotNum = plotNum + 1;
+    end
 end
 
 if isfield(options, 'legend')
@@ -209,7 +209,6 @@ handles.isInfHalfPlane.Callback = @halfPlaneValueChange;
 createTopLabel = @(panel) uicontrol('Style', 'text', 'String', 'Top Layer', ...
     'parent', panel, 'Units' , 'normalized', 'Position', [0 0.9 1 0.1], ...
     'HorizontalAlignment', 'left');
-
 
 createBottomLabel = @(panel) uicontrol('Style', 'text', 'String', 'Bottom Layer', ...
     'parent', panel, 'Units' , 'normalized', 'Position', [0 0.75-options.SliderYPos*(numLayers) 0.2 0.1], ...
@@ -626,14 +625,19 @@ if handles.isInfHalfPlane.Value
    thk_in(end) = inf; 
 end
 
+plotNum = 1;
 for ii = 1:size(handles.NL, 2)
     gam = handles.NL{ii}.calculate(handles.f{ii}, er_in.', [], thk_in.');
-    gamFit = interp(gam, 10);
     
-    handles.gamFitPlot{ii}.XData = real(gamFit);
-    handles.gamFitPlot{ii}.YData = imag(gamFit);
-    
-    handles.gamPlot{ii}.XData = real(gam);
-    handles.gamPlot{ii}.YData = imag(gam);
+    for jj = 1:size(gam, 2)
+        gamFit = interp(gam(:, jj), 10);
+
+        handles.gamFitPlot{plotNum}.XData = real(gamFit);
+        handles.gamFitPlot{plotNum}.YData = imag(gamFit);
+        handles.gamPlot{plotNum}.XData = real(gam(:, jj));
+        handles.gamPlot{plotNum}.YData = imag(gam(:, jj));
+        
+        plotNum = plotNum + 1;
+    end
 end
 end

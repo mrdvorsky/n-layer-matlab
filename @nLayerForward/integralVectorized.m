@@ -31,11 +31,11 @@ function [q] = integralVectorized(fun, a, b, options)
 %   RelTol (1e-6): Relative function tolerance constraint. See above.
 %   AbsTol (1e-8): Absolute function tolerance constraint. See above.
 %   Verbosity (0): Set to 1 or higher for console output upon convergence.
-%   InitialIntervalCount (2000): Maximum number of subintervals to attempt
+%   InitialIntervalCount (9): Maximum number of subintervals to attempt
 %       before giving up.
 %   MaxIntervalCount (10000): Maximum number of subintervals to consider
 %       simultaneously before giving up.
-%   MaxFunctionEvaluations (30000): Maximum number of function evaluations
+%   MaxFunctionEvaluations (90000): Maximum number of function evaluations
 %       to attempt before giving up.
 %   ErrInd (1): Indices ii of q(:, ii) to use for error bounds. See above.
 %
@@ -43,16 +43,16 @@ function [q] = integralVectorized(fun, a, b, options)
 
 arguments
     fun;
-    a(1, 1) {mustBeNumeric, mustBeFinite} = -1;
-    b(1, 1) {mustBeNumeric, mustBeFinite} = 1;
+    a(1, 1) {mustBeReal, mustBeFinite} = -1;
+    b(1, 1) {mustBeReal, mustBeFinite} = 1;
     
-    options.RelTol(1, 1) {mustBeNumeric, mustBeFinite} = 1e-6;
-    options.AbsTol(1, 1) {mustBeNumeric, mustBeFinite} = 1e-8;
-    options.Verbosity double {mustBeNumeric, mustBeFinite} = 0;
-    options.InitialIntervalCount {mustBeNumeric, mustBeFinite} = 9;
-    options.MaxIntervalCount {mustBeNumeric} = 2000;
-    options.MaxFunctionEvaluations {mustBeNumeric} = 30000;
-    options.ErrInd(:, 1) = 1;
+    options.RelTol(1, 1) {mustBeNonnegative, mustBeFinite} = 1e-6;
+    options.AbsTol(1, 1) {mustBeNonnegative, mustBeFinite} = 1e-8;
+    options.Verbosity double {mustBeNonnegative, mustBeFinite} = 0;
+    options.InitialIntervalCount {mustBePositive, mustBeFinite} = 9;
+    options.MaxIntervalCount {mustBePositive, mustBeFinite} = 10000;
+    options.MaxFunctionEvaluations {mustBePositive, mustBeFinite} = 90000;
+    options.ErrInd(:, 1) {mustBeInteger, mustBePositive} = 1;
 end
 
 %% Generate Gauss-Kronrod Weights and Nodes

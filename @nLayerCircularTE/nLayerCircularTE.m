@@ -5,11 +5,11 @@ classdef nLayerCircularTE < nLayerForward
     % with a TE01 mode.
     %
     % Example Usage:
-    %   NL = nLayerRectangular(numModes, r=wg_r);
-    %   NL = nLayerRectangular(numModes, r=wg_r, verbosity=1);
-    %   NL = nLayerRectangular(numModes, r=wg_r, ...
+    %   NL = nLayerCircularTE(numModes, R=wg_r);
+    %   NL = nLayerCircularTE(numModes, R=wg_r, verbosity=1);
+    %   NL = nLayerCircularTE(numModes, R=wg_r, ...
     %           convergenceAbsTol=1e-4, integralPointsTauFixed=500);
-    %   NL = nLayerRectangular(numModes, r=wg_r, prop=val, ...);
+    %   NL = nLayerCircularTE(numModes, R=wg_r, prop=val, ...);
     %
     %   gam = NL.calculate(f, er, ur, thk);
     %   gam = NL.calculate(f, er, ur, thk, AbsTol);
@@ -29,7 +29,6 @@ classdef nLayerCircularTE < nLayerForward
     %       above ~0.1. Raise to lower this loss tangent threshold.
     %   interpolationPointsTau (2^12) - Number of points to use for the
     %       interpolation function along tau.
-    %   integralPointsPsi (50) - Number of points to use to integrate along psi.
     %   integralInitialSegmentCount (9) - Initial number of segments along
     %       tau used in the adaptive integration routine. Must be an odd
     %       integer.
@@ -39,7 +38,7 @@ classdef nLayerCircularTE < nLayerForward
     % the member function "recomputeInterpolants()" must be called. This
     % function is automatically called upon construction of the object.
     % For Example:
-    %   NL = nLayerRectangular(maxM, maxN, band="x");
+    %   NL = nLayerCircularTE(maxM, maxN, band="x");
     %   NL.modesTE = [1, 0; 1, 2; 3, 0; 3, 2];
     %   NL.integralPointsTauFixed = 100;
     %   NL.recomputeInterpolants();     % This line is necessary.

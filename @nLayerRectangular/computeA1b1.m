@@ -1,4 +1,4 @@
-function [A1, b1] = computeA1b1(O, f, er, ur, thk, AbsTol)
+function [A1, b1] = computeA1b1(O, f, er, ur, thk)
 %COMPUTEA1B1 Compute the integral of the matrix A1 and b1 over frequency.
 % This function computes the matrices A1 and b1 at each frequency specified
 % by f. The output of this function can along with the outputs of the 
@@ -24,7 +24,6 @@ function [A1, b1] = computeA1b1(O, f, er, ur, thk, AbsTol)
 %   thk - Array of thicknesses for each layer (must have compatible 
 %       dimensions with er and ur). The last element of thk should have a 
 %       value of inf in the infinite halfspace case.
-%   AbsTol - Tolerance with which to compute the matrix A1.
 % Outputs:
 %   A1 - Array of O.numModes by O.numModes matrices for each frequency. The
 %       size of A1 will be O.numModes by O.numModes by numel(f).
@@ -67,7 +66,7 @@ errorA1DomMode = sum(specE .* O.fixed_errA1_E(:, 1, 1) ...
     + specH .* O.fixed_errA1_H(:, 1, 1), 1);
 
 % All frequencies that have a low error bound are "lossy".
-isLossyFrequency = (abs(errorA1DomMode) ./ abs(A1DomMode)) < AbsTol;
+isLossyFrequency = (abs(errorA1DomMode) ./ abs(A1DomMode)) < O.convergenceAbsTol;
 
 %% Compute A1 at Lossy Frequencies Using Fixed Point Integration
 % Use the fixed point integration method to compute the integral at all
@@ -101,7 +100,7 @@ for ff = 1:length(k0)
         
         A1(:, :, :, ff) = O.integralVectorized(...
             @(tauP) O.integrandA1(tauP, k0(ff), er(ff, :), ur(ff, :), thk), ...
-            0, 1, RelTol=AbsTol, Verbosity=(O.verbosity > 1), ...
+            0, 1, RelTol=O.convergenceAbsTol, Verbosity=(O.verbosity > 1), ...
             InitialIntervalCount=O.integralInitialSegmentCount);
     end
 end

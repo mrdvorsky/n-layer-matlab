@@ -32,8 +32,6 @@ classdef (Abstract) nLayerForward < handle
     %       quadrature integration.
     %   integralVectorized: Routine to quickly perform adaptive integration
     %       of vectorized functions.
-    %   integralWeightsAndNodes: Routine to perform integration of
-    %       functions, and return the final weights and nodes used.
     %   verifyStructure: Checks the validity of the multilayer structure
     %       and frequency definitions. This function should be called at
     %       the beginning of calculate.
@@ -61,7 +59,6 @@ classdef (Abstract) nLayerForward < handle
         [nodes, weights, errorWeights] = gaussKronrod(numSegs, a, b);
         [nodes, weights, errorWeights] = fejer2(orderN, a, b);
         [q] = integralVectorized(fun, a, b, options);
-        [q, nodes_out, weights_out] = integralWeightsAndNodes(fun, a, b, options);
         
         [f, er, ur, thk] = verifyStructure(f, er, ur, thk, options);
         [er, ur, thk] = changeStructureConductivity(f, er, ur, thk, sigma);

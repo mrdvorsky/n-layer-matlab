@@ -1,4 +1,4 @@
-function [gam] = calculate(O, f, er, ur, thk, options)
+function [gam] = calculate(O, f, er, ur, thk)
 %CALCULATE Calculate S11 for TE10 mode excitation.
 % Computes the reflection coefficient of the rectangular waveguide TE10
 % mode when looking into a multilayer structure defined by er, ur, thk at
@@ -22,9 +22,6 @@ function [gam] = calculate(O, f, er, ur, thk, options)
 % Outputs:
 %   gam - Column vector of reflection coefficients for the TE10 mode. Same
 %       size as f.
-% Named Options:
-%   AbsTol - Absolute tolerance used to calculate gam. The default value of
-%       this is the member variable convergenceAbsTol.
 %
 % Author: Matt Dvorsky
 
@@ -34,7 +31,6 @@ arguments
     er(:, :);
     ur(:, :);
     thk(1, :);
-    options.AbsTol(1, 1) = O.convergenceAbsTol;
 end
 
 %% Check Values and Sizes of f, er, ur, and thk
@@ -43,7 +39,7 @@ end
 
 %% Compute A1 and b1
 % This is the computationally intensive part of this algorithm
-[A1, b1] = O.computeA1b1(f, er, ur, thk, options.AbsTol);
+[A1, b1] = O.computeA1b1(f, er, ur, thk);
 
 %% Get A2, b2, and etaR1
 % A2 and b2 are precomputed in the "recomputeInterpolants" function.

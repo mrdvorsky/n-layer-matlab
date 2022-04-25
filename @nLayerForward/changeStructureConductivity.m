@@ -43,7 +43,7 @@ end
     CheckStructureValues=false);
 
 %% Calculate Equivalent erPrime for Given sigma
-erp = sigma ./ ((pi .* 8.854e-3) * f);
+erp = sigma ./ ((2*pi .* 8.854e-3) * f);
 
 %% Add or Change Last Layer
 if isfinite(thk(end))

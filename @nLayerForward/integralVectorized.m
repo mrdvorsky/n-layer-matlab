@@ -27,6 +27,12 @@ function [q] = integralVectorized(fun, a, b, options)
 %
 % The size of the output Q will be the same as FUN((A + B)/2).
 %
+% Inputs:
+%   f - Function handle to integrate. Can be array-valued, see above.
+%   a (-1) - Scalar integration lower bound. Must be real and finite.
+%   b (1) - Scalar integration upper bound. Must be real and finite.
+% Outputs:
+%   q - Approximate integral value. Same size as fun((a + b)/2);
 % Named Options:
 %   RelTol (1e-6): Relative function tolerance constraint. See above.
 %   AbsTol (1e-8): Absolute function tolerance constraint. See above.

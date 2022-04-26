@@ -41,11 +41,10 @@ arguments
     er;
     ur;
     thk;
-    AbsTol;
 end
 
 %% Calculate Freespace Wavenumber
-k0(1, 1, 1, :) = 2*pi .* f(:) ./ O.c;
+k0(1, 1, 1, :) = 2*pi .* f(:) ./ O.speedOfLight;
 
 %% Initialize A1 and specE, specH
 A1 = zeros(1, O.numModes, O.numModes, length(k0));

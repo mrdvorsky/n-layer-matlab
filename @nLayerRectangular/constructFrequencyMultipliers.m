@@ -32,7 +32,7 @@ arguments
 end
 
 %% Mode Coefficients
-k0 = 2*pi .* f ./ O.c;
+k0 = 2*pi .* f ./ O.speedOfLight;
 
 am(1, :) = O.modesTE(:, 1) * pi ./ O.a;
 bn(1, :) = O.modesTE(:, 2) * pi ./ O.b;

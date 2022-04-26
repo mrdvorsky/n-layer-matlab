@@ -5,6 +5,8 @@ classdef nLayerRectangular < nLayerForward
     %
     % Example Usage:
     %   NL = nLayerRectangular(maxM, maxN, A=7.112, B=3.556);
+    %   NL = nLayerRectangular(maxM, maxN, A=7.112e-3, B=3.556e-3, ...
+    %       SpeedOfLight=299.79e6);
     %   NL = nLayerRectangular(maxM, maxN, Band="x");
     %   NL = nLayerRectangular(maxM, maxN, Band="ka", Verbosity=1);
     %   NL = nLayerRectangular(maxM, maxN, Band="v", ...
@@ -12,11 +14,14 @@ classdef nLayerRectangular < nLayerForward
     %   NL = nLayerRectangular(maxM, maxN, band="x", prop=val, ...);
     %
     %   gam = NL.calculate(f, er, ur, thk);
-    %   gam = NL.calculate(f, er, ur, thk, AbsTol);
+    %   gam = NL.calculate(f, er, [], thk);
+    %   gam = NL.calculate(f, [], ur, thk);
+    %   gam = NL.calculate(f, er, [], thk, BackingConductivity=1e4);
     %
     % nLayerRectangular Properties:
     %   a - Waveguide broad dimension (mm default units).
     %   b - Waveguide narrow dimension (mm default units).
+    %   speedOfLight - Speed of light (mm/ns default units).
     %   modesTE - List of TE modes to consider (in rows of m, n). First row
     %       must be [1, 0].
     %   modesTM (read-only) - List of TM modes to consider (in rows of m, n).
@@ -44,13 +49,13 @@ classdef nLayerRectangular < nLayerForward
     %   NL = nLayerRectangular(maxM, maxN, Band="x");
     %   NL.modesTE = [1, 0; 1, 2; 3, 0; 3, 2];
     %   NL.integralPointsTauFixed = 100;
-    %   NL.recomputeInterpolants();     % This line is necessary.
+    %   NL.recomputeInterpolants(); % This line is necessary in this case.
     %   [...] = NL.calculate(...);
     %
     % List of the critical parameters referenced above:
     %   a;
     %   b;
-    %   c; (Inherited from nLayerForward)
+    %   speedOfLight; (Inherited from nLayerForward)
     %   modesTE;
     %   interpolationPointsTau;
     %   integralPointsTauFixed;
@@ -62,25 +67,25 @@ classdef nLayerRectangular < nLayerForward
     % Constructing using this method avoids the requirement of having to
     % call recomputeInterpolants() manually.
     %
-    % It should be noted that changing the speed of light ("c") changes
-    % the units used for all calculations, and thus "a" and "b" should be
-    % changed as well.
+    % It should be noted that changing the speed of light ("speedOfLight")
+    % changes the units used for all calculations, and thus "a" and "b"
+    % should be changed as well.
     %
     % Author: Matt Dvorsky
     
     properties (GetAccess = public, SetAccess = public)
-        a;
-        b;
-        modesTE;
-        interpolationPointsTau = 2^12;
-        integralPointsTauFixed = 300;
+        a;                      % Waveguide broad dimension (mm).
+        b;                      % Waveguide narrow dimension (mm).
+        modesTE;                % List of TE modes in rows of [m, n].
+        interpolationPointsTau = 2^12;  % Number of points for lookup table along tau.
+        integralPointsTauFixed = 300;   % Number of points for fixed point integral along tau.
         integralInitialSegmentCount = 9;
-        integralPointsPsi = 50;
-        convergenceAbsTol = 0.001;
+        integralPointsPsi = 50;         % Number of points for fixed point integral along psi.
+        convergenceAbsTol = 0.001;      % Convergence tolerance value (absolute).
     end
     properties (GetAccess = public, SetAccess = private)
-        numModes;
-        modesTM;
+        numModes;               % Number of modes considered (TE + TM).
+        modesTM;                % List of TM modes in rows of [m, n].
     end
     properties (Access = private)
         integralScaleFactor;    % Scale factor for change of varibles from 
@@ -102,9 +107,14 @@ classdef nLayerRectangular < nLayerForward
         b2;             % Mode excitation vector. Equal to A2(:, 1, ...).
     end
     
+    %% Protected member function definitions (implemented in separate files)
+    methods (Access = protected)
+        gam = calculateGamma(O, f, er, ur, thk);
+    end
+    
     %% Public member function definitions (implemented in separate files)
     methods (Access = public)
-        gam = calculate(O, f, er, ur, thk, options);
+        outputLabels = getOutputLabels(O);
         
         [modes] = setModes(O, maxM, maxN);
         [a, b] = setWaveguideBand(O, band, options);
@@ -132,6 +142,8 @@ classdef nLayerRectangular < nLayerForward
             %NLAYERRECTANGULAR Construct an instance of this class.
             % Example Usage:
             %   NL = nLayerRectangular(maxM, maxN, A=7.112, B=3.556);
+            %   NL = nLayerRectangular(maxM, maxN, A=7.112e-3, B=3.556e-3, ...
+            %       SpeedOfLight=299.79e6);
             %   NL = nLayerRectangular(maxM, maxN, Band="x");
             %   NL = nLayerRectangular(maxM, maxN, Band="x", Verbosity=1);
             %   NL = nLayerRectangular(maxM, maxN, Band="x", ...
@@ -143,6 +155,7 @@ classdef nLayerRectangular < nLayerForward
             %   maxN - Highest index n of TEmn and TMmn modes to consider.
             % Named Options:
             %   A (1) - Waveguide broad dimension (mm).
+            %   B (0.5) - Waveguide narrow dimension (mm).
             %   B (0.5) - Waveguide narrow dimension (mm).
             %   Band - Case-insensitive waveguide band to use. Either
             %       specify this or the dimensions (a and b) directly.
@@ -168,6 +181,7 @@ classdef nLayerRectangular < nLayerForward
                 maxN(1, 1) {mustBeInteger, mustBeNonnegative};
                 options.A(1, 1) {mustBeNumeric, mustBePositive} = 1;
                 options.B(1, 1) {mustBeNumeric, mustBePositive} = 0.5;
+                options.SpeedOfLight(1, 1) {mustBeNumeric, mustBePositive} = 299.792458;
                 options.Band {mustBeTextScalar};
                 options.ModesTE(:, 2) {mustBeInteger, mustBeNonnegative};
                 options.Verbosity(1, 1) {mustBeNumeric, mustBeNonnegative} = 0;
@@ -191,6 +205,7 @@ classdef nLayerRectangular < nLayerForward
                 O.setWaveguideDimensions(options.A, options.B);
             end
             
+            O.speedOfLight = options.SpeedOfLight;
             O.verbosity = options.Verbosity;
             O.convergenceAbsTol = options.ConvergenceAbsTol;
             O.integralPointsPsi = options.IntegralPointsPsi;

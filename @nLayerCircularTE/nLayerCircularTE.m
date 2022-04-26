@@ -46,7 +46,7 @@ classdef nLayerCircularTE < nLayerForward
     %
     % List of the critical parameters referenced above:
     %   r;
-    %   c; (Inherited from nLayerForward)
+    %   speedOfLight; (Inherited from nLayerForward)
     %   modesTE;
     %   interpolationPointsTau;
     %   integralPointsTauFixed;

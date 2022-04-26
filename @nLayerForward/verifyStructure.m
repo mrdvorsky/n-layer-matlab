@@ -1,4 +1,4 @@
-function [f, er, ur, thk] = verifyStructure(f, er, ur, thk, options)
+function [er, ur, thk] = verifyStructure(f, er, ur, thk, options)
 %VERIFYSTRUCTURE Check the multilayer structure and correct any issues.
 % This function can be used to verify proper dimensions and values of the
 % inputs f, er, ur, thk.

@@ -1,12 +1,5 @@
 function [modesTE, modesTM] = setModes(O, maxM, maxN)
 %SETMODES Update modes in nLayerRectangular object and return a list of modes.
-% Inputs:
-%   maxM - maximum mode index m for any considered TEmn and TMmn modes.
-%   maxN - maximum mode index n for any considered TEmn and TMmn modes.
-% Outputs:
-%   modesTE - Rows of [m, n] mode index pairs for all considered TE modes.
-%   modesTM - Rows of [m, n] mode index pairs for all considered TM modes.
-%
 % After calling this function, the "recomputeInterpolants" function should
 % be called before calling "calculate".
 %
@@ -15,12 +8,19 @@ function [modesTE, modesTM] = setModes(O, maxM, maxN)
 %   [modesTE, modesTM] = NL.setModes(3, 2);     % 6 modes considered.
 %   NL.recomputeInterpolants();
 %
+% Inputs:
+%   maxM - maximum mode index m for any considered TEmn and TMmn modes.
+%   maxN - maximum mode index n for any considered TEmn and TMmn modes.
+% Outputs:
+%   modesTE - Rows of [m, n] mode index pairs for all considered TE modes.
+%   modesTM - Rows of [m, n] mode index pairs for all considered TM modes.
+%
 % Author: Matt Dvorsky
 
 arguments
     O;
-    maxM(1, 1) = 1;
-    maxN(1, 1) = 0;
+    maxM(1, 1) {mustBeInteger, mustBePositive} = 1;
+    maxN(1, 1) {mustBeInteger, mustBeNonnegative} = 0;
 end
 
 %% Generate List of Modes

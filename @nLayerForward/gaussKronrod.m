@@ -33,7 +33,7 @@ function [nodes, weights, errorWeights] = gaussKronrod(numSegs, a, b)
 % Author: Matt Dvorsky
 
 arguments
-    numSegs(1, 1) {mustBeInteger, mustBePositive, mustBeFinite} = 10;
+    numSegs(1, 1) {mustBeInteger, mustBePositive} = 10;
     a(1, 1) {mustBeReal, mustBeFinite} = -1;
     b(1, 1) {mustBeReal, mustBeFinite} = 1;
 end

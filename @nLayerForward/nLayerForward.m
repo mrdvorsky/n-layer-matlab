@@ -48,7 +48,7 @@ classdef (Abstract) nLayerForward < handle
     %
     % Author: Matt Dvorsky
     
-    properties (GetAccess = public, SetAccess = public)       
+    properties (GetAccess = public, SetAccess = public)
         speedOfLight = 299.792458;      % Speed of light (mm/ns).
         verbosity = 0;                  % Verbosity level. Zero for no console output.
         checkStructureValues = true;    % Whether to check ranges of er, ur, and thk.
@@ -56,17 +56,17 @@ classdef (Abstract) nLayerForward < handle
     
     %% Virtual Protected member function definitions
     methods (Abstract, Access = protected)
-        gam = calculateGamma(O, f, er, ur, thk);
+        [gam] = calculateGamma(O, f, er, ur, thk);
     end
     
     %% Virtual Public member function definitions
     methods (Abstract, Access = public)
-        outputLabels = getOutputLabels(O);
+        [outputLabels] = getOutputLabels(O);
     end
     
     %% Public member function definitions (implemented in separate files)
     methods (Access = public)
-        gam = calculate(O, f, er, ur, thk);
+        [gam] = calculate(O, f, er, ur, thk);
         [er, ur, thk] = changeStructureConductivity(f, er, ur, thk, sigma);
     end
     

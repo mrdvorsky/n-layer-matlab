@@ -46,11 +46,10 @@ tauP(:, 1) = linspace(0, 1, O.interpolationPointsTau);
 % Construct matrix equation from integrands. Note that a permutation is
 % first performed, as "constructMatrixEquation" expects the first 3
 % dimensions to be m, n, and i.
-% Note that A2 and b2 do not depend on I_i^(e) or I_i^(h), and thus are
-% only computed once. Also note that b1 is ignored since it is always equal
-% to the negative of the first column of A1.
-[A1_E, A2, ~, b2] = O.constructMatrixEquation(permute(integrandE, [2, 3, 4, 1]));
-[A1_H, ~, ~, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
+% Note that A2 does not depend on I_i^(e) or I_i^(h), and thus is only
+% computed once.
+[A1_E, A2] = O.constructMatrixEquation(permute(integrandE, [2, 3, 4, 1]));
+[A1_H, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
 
 % Combine A1_E and A1_H into one array for faster interpolation.
 % Also, undo the previous permutation.
@@ -59,7 +58,6 @@ A1_EH = ipermute(cat(3, A1_E, A1_H), [2, 3, 4, 1]);
 % Store computed matrices
 O.A1_EH = A1_EH;
 O.A2 = A2;
-O.b2 = b2;
 
 %% Fixed Point Integration Weights and Nodes
 % For lossy structures, generally no adaptive meshing is needed. In those
@@ -72,8 +70,8 @@ O.b2 = b2;
 % except there is no need to recompute A2 and b2, and A1_E and A2_E are
 % kept separate.
 [integrandE, integrandH] = O.computeIntegrandEH(tauP);
-[A1_E, ~, ~, ~] = O.constructMatrixEquation(permute(integrandE, [2, 3, 4, 1]));
-[A1_H, ~, ~, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
+[A1_E, ~] = O.constructMatrixEquation(permute(integrandE, [2, 3, 4, 1]));
+[A1_H, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
 
 A1_E = ipermute(A1_E, [2, 3, 4, 1]);
 A1_H = ipermute(A1_H, [2, 3, 4, 1]);
@@ -95,8 +93,8 @@ O.fixed_errA1_H = A1_H .* errWeights;
 
 % The procedure here is the same as in the previous section.
 [integrandE, integrandH] = O.computeIntegrandEH(tauP);
-[A1_E, ~, ~, ~] = O.constructMatrixEquation(permute(integrandE, [2, 3, 4, 1]));
-[A1_H, ~, ~, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
+[A1_E, ~] = O.constructMatrixEquation(permute(integrandE, [2, 3, 4, 1]));
+[A1_H, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
 
 A1_E = ipermute(A1_E, [2, 3, 4, 1]);
 A1_H = ipermute(A1_H, [2, 3, 4, 1]);

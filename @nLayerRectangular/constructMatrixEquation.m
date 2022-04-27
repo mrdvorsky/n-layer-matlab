@@ -1,7 +1,7 @@
-function [A1, A2, b1, b2] = constructMatrixEquation(O, nLayerInt)
-%CONSTRUCTMATRIXEQUATION Computes the matrices A1, A2, b1, b2
-% Computes the matrices A1, A2, b1, b2, used to solve the rectangular 
-% waveguide equation for multilayer structures.
+function [A1, A2] = constructMatrixEquation(O, nLayerInt)
+%CONSTRUCTMATRIXEQUATION Computes the matrices A1 and A2
+% Computes the matrices A1 and A2 used to solve the rectangular waveguide
+% equation for multilayer structures.
 %
 % Inputs:
 %   nLayerInt - The values of the integrals I_ii(m, n, p, q). The size of
@@ -11,9 +11,9 @@ function [A1, A2, b1, b2] = constructMatrixEquation(O, nLayerInt)
 %       [p, q] = modesTE(ll, :). The 4th dimensions onward can be any size
 %       and will be preserved in the outputs.
 % Outputs:
-%   A1, A2, b1, b2 - Matrices used to compute S11. See usage below. The
-%       4th dimensions and onward of the outputs will match the dimensions
-%       of the input nLayerInt.
+%   A1, A2 - Matrices used to compute S11. See usage below. The 4th
+%       dimensions and onward of the outputs will match the dimensions of
+%       the input nLayerInt.
 %
 % The outputs of this function can be used along with the outputs of the
 % constructFrequencyMultipliers(...) function to calculate S11 for a
@@ -21,20 +21,19 @@ function [A1, A2, b1, b2] = constructMatrixEquation(O, nLayerInt)
 %
 % Example Usage 1:
 %   [k_A1, k_A2, k_b1, k_b2] = O.constructFrequencyMultipliers(f);
-%   [A1, A2, b1, b2] = O.constructMatrixEquation(nLayerInt);
-%   sqrt(ur(1) ./ er(1));
+%   [A1, A2] = O.constructMatrixEquation(nLayerInt);
+%   etaR1 = sqrt(ur(1) ./ er(1));
 %   x = (A1.*k_A1 + etaR1.*A2.*k_A2) ...
-%        \ (b1.*k_b1 + etaR1.*b2.*k_b2);
+%        \ (-A1(:, 1).*k_b1 + etaR1.*A2(:, 1).*k_b2);
 %   S11 = x(1);
 %
 % Alternatively, this function can be used with no arguments to compute
-% only A2 and b2, and A1 and b1 can be computed using the "computeA1b1"
-% function.
+% only A2, and A1 can be computed using the "computeA1b1" function.
 %
 % Example Usage 2:
 %   ...
-%   [~, A2, ~, b2] = O.constructMatrixEquation();
-%   [A1, b1] = computeA1b1(f, er, ur, thk, AbsTol);
+%   [~, A2] = O.constructMatrixEquation();
+%   A1 = computeA1(f, er, ur, thk);
 %   ...
 %
 % The input parameter nLayerInt can be calculated by making use of the
@@ -87,16 +86,6 @@ A2_ME(:, indTM) = diag(bq(indTM, 1) .* (1 + (ap(indTM, 1) == 0)));
 
 A2 = [A2_EE, A2_EM; ...
     A2_ME, A2_MM] .* (0.25 * O.a * O.b);
-
-% b1: Dependent on I(m, n, p, q) values
-b1_E = ap(1) .* nLayerInt(indTE, 1, 2, :);
-b1_M = ap(1) .* nLayerInt(indTM, 1, 4, :);
-
-b1 = [b1_E; b1_M];
-
-% b2: Independent of I(m, n, p, q) values. Defines exitation mode
-b2 = zeros(length(indTE) + length(indTM), 1);
-b2(1) = b2(1) - 2*ap(1) .* (0.25 * O.a * O.b);
 
 end
 

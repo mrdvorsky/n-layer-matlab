@@ -54,10 +54,10 @@ arguments
     
     options.RelTol(1, 1) {mustBeNonnegative, mustBeFinite} = 1e-6;
     options.AbsTol(1, 1) {mustBeNonnegative, mustBeFinite} = 1e-8;
-    options.Verbosity double {mustBeNonnegative, mustBeFinite} = 0;
-    options.InitialIntervalCount {mustBePositive, mustBeFinite} = 9;
-    options.MaxIntervalCount {mustBePositive, mustBeFinite} = 10000;
-    options.MaxFunctionEvaluations {mustBePositive, mustBeFinite} = 90000;
+    options.Verbosity double {mustBeInteger, mustBeNonnegative} = 0;
+    options.InitialIntervalCount {mustBeInteger, mustBePositive} = 9;
+    options.MaxIntervalCount {mustBeInteger, mustBePositive} = 10000;
+    options.MaxFunctionEvaluations {mustBeInteger, mustBePositive} = 90000;
     options.ErrInd(:, 1) {mustBeInteger, mustBePositive} = 1;
 end
 

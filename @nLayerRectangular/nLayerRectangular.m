@@ -21,7 +21,7 @@ classdef nLayerRectangular < nLayerForward
     % nLayerRectangular Properties:
     %   a - Waveguide broad dimension (mm default units).
     %   b - Waveguide narrow dimension (mm default units).
-    %   speedOfLight - Speed of light (mm/ns default units).
+    %   speedOfLight (299.792458) - Speed of light (mm/ns default units).
     %   modesTE - List of TE modes to consider (in rows of m, n). First row
     %       must be [1, 0].
     %   modesTM (read-only) - List of TM modes to consider (in rows of m, n).
@@ -104,7 +104,6 @@ classdef nLayerRectangular < nLayerForward
         init_A1_H;      % First pass preinterpolated A1_H(tauP).
                 
         A2;             % Mode excitation matrix.
-        b2;             % Mode excitation vector. Equal to A2(:, 1, ...).
     end
     
     %% Protected member function definitions (implemented in separate files)
@@ -114,7 +113,7 @@ classdef nLayerRectangular < nLayerForward
     
     %% Public member function definitions (implemented in separate files)
     methods (Access = public)
-        outputLabels = getOutputLabels(O);
+        [outputLabels] = getOutputLabels(O);
         
         [modes] = setModes(O, maxM, maxN);
         [a, b] = setWaveguideBand(O, band, options);
@@ -124,7 +123,7 @@ classdef nLayerRectangular < nLayerForward
     
     %% Private member function definitions (implemented in separate files)
     methods (Access = private)
-        [A1, b1] = computeA1b1(O, f, er, ur, thk, AbsTol);
+        [A1] = computeA1(O, f, er, ur, thk);
         [k_A1, k_A2, k_b1, k_b2] = constructFrequencyMultipliers(O, f);
         [A1_EH] = integrandA1(O, tauP, k0, er, ur, thk);
         [integrandE, integrandH] = computeIntegrandEH(O, tauP);
@@ -179,13 +178,13 @@ classdef nLayerRectangular < nLayerForward
             arguments
                 maxM(1, 1) {mustBeInteger, mustBePositive};
                 maxN(1, 1) {mustBeInteger, mustBeNonnegative};
-                options.A(1, 1) {mustBeNumeric, mustBePositive} = 1;
-                options.B(1, 1) {mustBeNumeric, mustBePositive} = 0.5;
-                options.SpeedOfLight(1, 1) {mustBeNumeric, mustBePositive} = 299.792458;
+                options.A(1, 1) {mustBeReal, mustBePositive} = 1;
+                options.B(1, 1) {mustBeReal, mustBePositive} = 0.5;
+                options.SpeedOfLight(1, 1) {mustBeReal, mustBePositive} = 299.792458;
                 options.Band {mustBeTextScalar};
                 options.ModesTE(:, 2) {mustBeInteger, mustBeNonnegative};
-                options.Verbosity(1, 1) {mustBeNumeric, mustBeNonnegative} = 0;
-                options.ConvergenceAbsTol(1, 1) {mustBeNumeric, mustBePositive} = 0.001;
+                options.Verbosity(1, 1) {mustBeInteger, mustBeNonnegative} = 0;
+                options.ConvergenceAbsTol(1, 1) {mustBeReal, mustBePositive} = 0.001;
                 options.IntegralPointsPsi(1, 1) {mustBeInteger, mustBePositive} = 50;
                 options.IntegralPointsTauFixed(1, 1) {mustBeInteger, mustBePositive} = 300;
                 options.InterpolationPointsTau(1, 1) {mustBeInteger, mustBePositive} = 2^12;

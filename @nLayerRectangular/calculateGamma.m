@@ -35,12 +35,11 @@ end
 
 %% Compute A1 and b1
 % This is the computationally intensive part of this algorithm
-[A1, b1] = O.computeA1b1(f, er, ur, thk);
+A1 = O.computeA1(f, er, ur, thk);
 
 %% Get A2, b2, and etaR1
-% A2 and b2 are precomputed in the "recomputeInterpolants" function.
+% A2 is precomputed in the "recomputeInterpolants" function.
 A2 = O.A2;
-b2 = O.b2;
 
 etaR1 = sqrt(ur(:, 1) ./ er(:, 1));
 
@@ -50,8 +49,8 @@ etaR1 = sqrt(ur(:, 1) ./ er(:, 1));
 %% Calculate Reflection Coefficient at each Frequency
 gam = zeros(length(f), 1);
 for ff = 1:length(f)
-    x = (A1(:, :, ff).*k_A1(:, :, ff) + etaR1(ff).*A2.*k_A2(:, :, ff)) ...
-        \ (b1(:, :, ff).*k_b1(:, :, ff) + etaR1(ff).*b2.*k_b2(:, :, ff));
+    x = (A1(:, :, ff).*k_A1(:, :, ff) + etaR1(ff).*A2(:, :).*k_A2(:, :, ff)) ...
+        \ (-A1(:, 1, ff).*k_b1(:, :, ff) + etaR1(ff).*A2(:, 1).*k_b2(:, :, ff));
     gam(ff) = x(1);
 end
 

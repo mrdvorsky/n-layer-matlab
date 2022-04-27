@@ -298,7 +298,7 @@ handles = guidata(hObject);
 [er_slider, erp_slider, thk_slider] = valueExtractor(handles);
 
 panel = extractBefore(hObject.Tag, "-");
-layer = str2num(extractAfter(hObject.Tag, "-"));
+layer = str2double(extractAfter(hObject.Tag, "-"));
 
 % Update the value being changed in the appropriate edit field
 switch panel
@@ -342,13 +342,13 @@ function LBFieldChanged(hObject, eventdata)
 handles = guidata(hObject);
 
 panel = hObject.Parent.Tag;
-layer = str2num(hObject.Tag);
+layer = str2double(hObject.Tag);
 lowerBound = str2double(hObject.String);
 
 if ~isnan(lowerBound)
     switch panel
         case "er"
-            currentValue = str2num(handles.uiEditField.erCV{layer}.String);
+            currentValue = str2double(handles.uiEditField.erCV{layer}.String);
             if lowerBound < 1
                 hObject.String = num2str(1);
                 handles.uiSliders.erRange(layer,1) = 1;
@@ -360,7 +360,7 @@ if ~isnan(lowerBound)
             end
             guidata(hObject, handles);
         case "erp"
-            currentValue = str2num(handles.uiEditField.erpCV{layer}.String);
+            currentValue = str2double(handles.uiEditField.erpCV{layer}.String);
             if lowerBound <= currentValue
                 handles.uiSliders.erpRange(layer,1) = log10(lowerBound);
             else
@@ -369,7 +369,7 @@ if ~isnan(lowerBound)
             end
             guidata(hObject, handles);
         case "thk"
-            currentValue = str2num(handles.uiEditField.thkCV{layer}.String);
+            currentValue = str2double(handles.uiEditField.thkCV{layer}.String);
             if lowerBound <= currentValue
                 handles.uiSliders.thkRange(layer,1) = log10(lowerBound);
             else
@@ -412,13 +412,13 @@ function UBFieldChanged(hObject, eventdata)
 handles = guidata(hObject);
 
 panel = hObject.Parent.Tag;
-layer = str2num(hObject.Tag);
+layer = str2double(hObject.Tag);
 upperBound = str2double(hObject.String);
 
 if ~isnan(upperBound)
     switch panel
         case "er"
-            currentValue = str2num(handles.uiEditField.erCV{layer}.String);
+            currentValue = str2double(handles.uiEditField.erCV{layer}.String);
             
             if upperBound >= currentValue
                 handles.uiSliders.erRange(layer,2) = upperBound;
@@ -430,7 +430,7 @@ if ~isnan(upperBound)
             guidata(hObject, handles);
             handles.uiSliders.erSliders{layer}.Value = in_lerp(currentValue, handles.uiSliders.erRange(layer,:));
         case "erp"
-            currentValue = str2num(handles.uiEditField.erpCV{layer}.String);
+            currentValue = str2double(handles.uiEditField.erpCV{layer}.String);
             
             if upperBound >= currentValue
                 handles.uiSliders.erpRange(layer,2) = log10(upperBound);
@@ -442,7 +442,7 @@ if ~isnan(upperBound)
             guidata(hObject, handles);
             handles.uiSliders.erpSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.erpRange(layer,:));
         case "thk"
-            currentValue = str2num(handles.uiEditField.thkCV{layer}.String);
+            currentValue = str2double(handles.uiEditField.thkCV{layer}.String);
             
             if upperBound >= currentValue
                 handles.uiSliders.thkRange(layer,2) = log10(upperBound);
@@ -489,7 +489,7 @@ handles = guidata(hObject);
 uiSliders = handles.uiSliders;
 
 panel = hObject.Parent.Tag;
-layer = str2num(hObject.Tag);
+layer = str2double(hObject.Tag);
 currentValue = str2double(hObject.String);
 isOutsideBounds = 0;
 
@@ -599,7 +599,7 @@ end
 [er, erp, thk] = valueExtractor(handles);
 
 panel = extractBefore(hObject.Tag,'-');
-layer = str2num(extractAfter(hObject.Tag,'-'));
+layer = str2double(extractAfter(hObject.Tag,'-'));
 
 switch panel
     case "er"
@@ -646,9 +646,9 @@ erp_str = cellfun(valueRead, handles.uiEditField.erpCV, UniformOutput=false);
 thk_str = cellfun(valueRead, handles.uiEditField.thkCV, UniformOutput=false);
 
 % Convert string to number
-er = cellfun(@str2num, er_str);
-erp = cellfun(@str2num, erp_str);
-thk = cellfun(@str2num, thk_str);
+er = cellfun(@str2double, er_str);
+erp = cellfun(@str2double, erp_str);
+thk = cellfun(@str2double, thk_str);
 end
 
 %% Calculate and plot S-Parameters

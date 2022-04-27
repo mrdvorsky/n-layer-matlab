@@ -16,17 +16,18 @@ function [a, b] = setWaveguideBand(O, band, options)
 %
 % Inputs:
 %   band - Case-Insensitive waveguide band designator.
-%   UnitScaleFactor (optional) - Multiplier for O.a and O.b
 % Outputs:
-%   a - New value of O.a (waveguide broad dimension), in mm.
-%   b - New value of O.b (waveguide narrow dimension), in mm.
+%   a - New value of O.a (waveguide broad dimension).
+%   b - New value of O.b (waveguide narrow dimension).
+% Named Arguments:
+%   UnitScaleFactor (1) - Multiplier for O.a and O.b.
 %
 % Author: Matt Dvorsky
 
 arguments
     O;
     band {mustBeTextScalar};
-    options.UnitScaleFactor(1, 1) {mustBeNumeric} = 1;
+    options.UnitScaleFactor(1, 1) {mustBeReal, mustBePositive} = 1;
 end
 
 %% List of rectangular waveguide bands and dimensions in inches

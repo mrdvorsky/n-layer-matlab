@@ -1,5 +1,5 @@
 function [integrandE, integrandH] = computeIntegrandEH(O, tauP)
-%computeIntegrandH Compute the partial integrand for I(n, q).
+%computeIntegrandEH Compute the partial integrand for I(m, n, p, q).
 % This function can be used to compute I^(e)_ii(m, n, p, q) and 
 % I^(h)_ii(m, n, p, q) by integrating the product of this function and
 % the output of the "multilayerSpectrumEH" function over the interval 
@@ -45,7 +45,7 @@ arguments
 end
 
 %% Compute Interpolating Coordinates
-% The integral needs to be evaulated from tau = [0, inf). However, a change
+% The integral needs to be evaluated from tau = [0, inf). However, a change
 % of variables tau = L(1 - tauP)/tauP is used here so that the interpolant
 % can be uniform in (0, 1].
 L = O.integralScaleFactor;

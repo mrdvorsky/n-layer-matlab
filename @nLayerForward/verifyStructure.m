@@ -1,4 +1,4 @@
-function [f, er, ur, thk] = verifyStructure(O, f, er, ur, thk)
+function [er, ur, thk] = verifyStructure(f, er, ur, thk, options)
 %VERIFYSTRUCTURE Check the multilayer structure and correct any issues.
 % This function can be used to verify proper dimensions and values of the
 % inputs f, er, ur, thk.
@@ -14,7 +14,6 @@ function [f, er, ur, thk] = verifyStructure(O, f, er, ur, thk)
 %       should be the same as the number of columns in er and ur. Last
 %       element can be inf to represent an infinite half-space.
 % Outputs:
-%   f - Column vector of frequencies (GHz).
 %   er - Array of complex relative permittivities for each layer. Every row
 %       er(ff, :) will contain the permittivity of each layer at the
 %       frequency f(ff).
@@ -25,11 +24,11 @@ function [f, er, ur, thk] = verifyStructure(O, f, er, ur, thk)
 % Author: Matt Dvorsky
 
 arguments
-    O;
-    f(:, 1);
+    f(:, 1) {mustBeNonempty};
     er(:, :);
     ur(:, :);
-    thk(1, :);
+    thk(1, :) {mustBeNonempty};
+    options.CheckStructureValues {mustBeNumericOrLogical} = true;
 end
 
 %% Check for Empty er and ur
@@ -42,7 +41,7 @@ if isempty(ur)
 end
 
 %% Check Values of er, ur, and thk
-if O.checkStructureValues
+if options.CheckStructureValues
     if ~all(real(er) >= 1, "all") || ~all(real(ur) >= 1, "all")
         error("The real parts of er and ur must be greater than 1.");
     end

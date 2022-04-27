@@ -22,8 +22,8 @@ function [nodes, weights, errorWeights] = gaussKronrod(numSegs, a, b)
 %
 % Inputs:
 %   numSegs - Number of uniformly-sized segments to subdivide [a, b].
-%   a - Scalar integration lower bound. Must be finite.
-%   b - Scalar integration upper bound. Must be finite.
+%   a - Scalar integration lower bound. Must be real and finite.
+%   b - Scalar integration upper bound. Must be real and finite.
 % Outputs:
 %   nodes - Column vector of coordinates at which to evaluate function.
 %   weights - Column vector of weights to perform weighted sum.
@@ -33,9 +33,9 @@ function [nodes, weights, errorWeights] = gaussKronrod(numSegs, a, b)
 % Author: Matt Dvorsky
 
 arguments
-    numSegs(1, 1) = 10;
-    a(1, 1) = -1;
-    b(1, 1) = 1;
+    numSegs(1, 1) {mustBeInteger, mustBePositive} = 10;
+    a(1, 1) {mustBeReal, mustBeFinite} = -1;
+    b(1, 1) {mustBeReal, mustBeFinite} = 1;
 end
 
 %% Generate Gauss-Kronrod Weights and Nodes

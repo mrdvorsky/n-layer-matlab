@@ -14,10 +14,10 @@ function [k_A1, k_A2, k_b1, k_b2] = constructFrequencyMultipliers(O, f)
 %
 % Example Usage:
 %   [k_A1, k_A2, k_b1, k_b2] = O.constructFrequencyMultipliers(f);
-%   [A1, A2, b1, b2] = O.constructMatrixEquation(nLayerInt);
-%   sqrt(ur(1) ./ er(1));
+%   [A1, A2] = O.constructMatrixEquation(nLayerInt);
+%   etaR1 = sqrt(ur(1) ./ er(1));
 %   x = (A1.*k_A1 + etaR1.*A2.*k_A2) ...
-%        \ (b1.*k_b1 + etaR1.*b2.*k_b2);
+%        \ (-A1(:, 1).*k_b1 + etaR1.*A2(:, 1).*k_b2);
 %   S11 = x(1);
 %
 % Although the example above shows usage with a scalar value for "f", the
@@ -32,7 +32,7 @@ arguments
 end
 
 %% Mode Coefficients
-k0 = 2*pi .* f ./ O.c;
+k0 = 2*pi .* f ./ O.speedOfLight;
 
 am(1, :) = O.modesTE(:, 1) * pi ./ O.a;
 bn(1, :) = O.modesTE(:, 2) * pi ./ O.b;

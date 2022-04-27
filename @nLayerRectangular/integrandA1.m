@@ -10,7 +10,7 @@ function [A1_tauP] = integrandA1(O, tauP, k0, er, ur, thk)
 % After integrating this function over [0, 1], the output can be used 
 % along with the outputs of the constructFrequencyMultipliers(...) function
 % and the constructMatrixEquation(...) function to calculate S11 for a 
-% rectangular waveguide. See the documentation of "computeA1b1" for more
+% rectangular waveguide. See the documentation of "computeA1" for more
 % details.
 %
 % This function is meant to be used inside of an adaptive integration
@@ -31,7 +31,7 @@ function [A1_tauP] = integrandA1(O, tauP, k0, er, ur, thk)
 %       dimensions with er and ur). The last element of thk should have a 
 %       value of inf in the infinite halfspace case.
 % Output:
-%   A1_tauP: A1(tauP) calculate for each tauP and k0. The dimensions of
+%   A1_tauP - A1(tauP) calculated for each tauP and k0. The dimensions of
 %       A1_tauP will be numel(tauP) by O.numModes by O.numModes by ...,
 %       where the last dimensions are based on k0.
 %
@@ -47,7 +47,7 @@ function [A1_tauP] = integrandA1(O, tauP, k0, er, ur, thk)
 % pass of an adaptive integration routine can have an odd value for the
 % size of tauP. Thus, there is no need to check the values of tauP.
 %
-% The values of O.init_tau, O.init_A1_E, and O.init_A1_E are computed
+% The values of O.init_tau, O.init_A1_E, and O.init_A1_H are computed
 % in the "recomputeInterpolants" member function.
 if numel(tauP) == numel(O.init_tau)
     [specE, specH] = O.multilayerSpectrumEH(O.init_tau, k0, er, ur, thk);

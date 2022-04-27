@@ -11,7 +11,7 @@
 % 2, respectively. Also, f is a column vector of frequencies, and er, ur,
 % and thk are row vectors of complex permittivity and permeability and
 % thickness for each layer. Optionally, er and ur can be matrices where
-% each row corresponds to a particalar frequency.
+% each row corresponds to a particular frequency.
 %
 % Author: Matt Dvorsky
 
@@ -57,7 +57,6 @@ tic;
 % reflection coefficient will be calculated within the tolerance specified
 % earlier. Optionally, a custom tolerance can be specified (second line).
 gam1 = NL.calculate(f, er1, ur1, thk1);
-% gam1 = NL.calculate(f, er, ur, thk, AbsTol=1e-4);
 fprintf("Two-layer low loss conductor backed: ");
 toc;
 
@@ -160,6 +159,5 @@ plot(gam5, ".", "Linewidth", 1.5);
 title("Case 5");
 zplane([]);
 grid on;
-
 
 

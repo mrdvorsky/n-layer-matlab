@@ -1,17 +1,15 @@
-classdef nLayerRectangular < nLayerForward
-    %NLAYERRECTANGULAR Implementation of nLayerForward for rectangular waveguides.
+classdef nLayerCircularTE < nLayerForward
+    %NLAYERCIRCULARTE Implementation of nLayerForward for circular waveguides TE0n modes.
     % This class can be used to calculate the reflection coefficient seen
-    % by a rectangular waveguide looking into a multilayer structure.
+    % by a circular waveguide looking into a multilayer structure excited
+    % with a TE01 mode.
     %
     % Example Usage:
-    %   NL = nLayerRectangular(maxM, maxN, A=7.112, B=3.556);
-    %   NL = nLayerRectangular(maxM, maxN, A=7.112e-3, B=3.556e-3, ...
-    %       SpeedOfLight=299.79e6);
-    %   NL = nLayerRectangular(maxM, maxN, Band="x");
-    %   NL = nLayerRectangular(maxM, maxN, Band="ka", Verbosity=1);
-    %   NL = nLayerRectangular(maxM, maxN, Band="v", ...
+    %   NL = nLayerCircularTE(numModes, R=wg_r);
+    %   NL = nLayerCircularTE(numModes, R=wg_r, Verbosity=1);
+    %   NL = nLayerCircularTE(numModes, R=wg_r, ...
     %           ConvergenceAbsTol=1e-4, IntegralPointsTauFixed=500);
-    %   NL = nLayerRectangular(maxM, maxN, band="x", Prop=val, ...);
+    %   NL = nLayerCircularTE(numModes, R=wg_r, Prop=val, ...);
     %
     %   gam = NL.calculate(f, er, ur, thk);
     %   gam = NL.calculate(f, er, [], thk);
@@ -19,12 +17,9 @@ classdef nLayerRectangular < nLayerForward
     %   gam = NL.calculate(f, er, [], thk, BackingConductivity=sigma);
     %
     % nLayerRectangular Properties:
-    %   a - Waveguide broad dimension (mm default units).
-    %   b - Waveguide narrow dimension (mm default units).
-    %   speedOfLight (299.792458) - Speed of light (mm/ns default units).
+    %   r - Waveguide radius (mm default units).
     %   modesTE - List of TE modes to consider (in rows of m, n). First row
     %       must be [1, 0].
-    %   modesTM (read-only) - List of TM modes to consider (in rows of m, n).
     %   numModes (read-only) - Number of modes (numTE + numTM) to consider.
     %   verbosity - Verbosity level. Set to 1 for basic command line
     %       output. Set to 2 for a per-frequency output.
@@ -36,7 +31,6 @@ classdef nLayerRectangular < nLayerForward
     %       above ~0.1. Raise to lower this loss tangent threshold.
     %   interpolationPointsTau (2^12) - Number of points to use for the
     %       interpolation function along tau.
-    %   integralPointsPsi (50) - Number of points to use to integrate along psi.
     %   integralInitialSegmentCount (9) - Initial number of segments along
     %       tau used in the adaptive integration routine. Must be an odd
     %       integer.
@@ -46,15 +40,14 @@ classdef nLayerRectangular < nLayerForward
     % the member function "recomputeInterpolants()" must be called. This
     % function is automatically called upon construction of the object.
     % For Example:
-    %   NL = nLayerRectangular(maxM, maxN, Band="x");
+    %   NL = nLayerCircularTE(numModes, R=wgR);
     %   NL.modesTE = [1, 0; 1, 2; 3, 0; 3, 2];
     %   NL.integralPointsTauFixed = 100;
-    %   NL.recomputeInterpolants(); % This line is necessary in this case.
+    %   NL.recomputeInterpolants();     % Necessary in this case.
     %   [...] = NL.calculate(...);
     %
     % List of the critical parameters referenced above:
-    %   a;
-    %   b;
+    %   r;
     %   speedOfLight; (Inherited from nLayerForward)
     %   modesTE;
     %   interpolationPointsTau;
@@ -68,15 +61,14 @@ classdef nLayerRectangular < nLayerForward
     % call recomputeInterpolants() manually.
     %
     % It should be noted that changing the speed of light ("speedOfLight")
-    % changes the units used for all calculations, and thus "a" and "b"
-    % should be changed as well.
+    % changes the units used for all calculations, and thus "r" should be
+    % changed as well.
     %
     % Author: Matt Dvorsky
     
     properties (GetAccess = public, SetAccess = public)
-        a;                      % Waveguide broad dimension (mm).
-        b;                      % Waveguide narrow dimension (mm).
-        modesTE;                % List of TE modes in rows of [m, n].
+        r;                              % Waveguide radius (mm).
+        modesTE;                        % List of TE0n modes (vector of n).
         interpolationPointsTau = 2^12;  % Number of points for lookup table along tau.
         integralPointsTauFixed = 300;   % Number of points for fixed point integral along tau.
         integralInitialSegmentCount = 9;    % Number of segments to start with in adaptive integral.
@@ -84,25 +76,22 @@ classdef nLayerRectangular < nLayerForward
         convergenceAbsTol = 0.001;      % Convergence tolerance value (absolute).
     end
     properties (GetAccess = public, SetAccess = private)
-        numModes;               % Number of modes considered (TE + TM).
-        modesTM;                % List of TM modes in rows of [m, n].
+        numModes;           % Number of modes considered (of form TE0n).
+        modeCutoffs;        % Cutoff wavenumbers of TE0n modes.
     end
     properties (Access = private)
         integralScaleFactor;    % Scale factor for change of varibles from 
                                 % tau [0, inf) to tauP [0, 1].
         
-        A1_EH;  % Interpolation functions for A1_E(tauP) and A1_H(tauP).
+        A1_H;           % Interpolation functions for A1_H(tauP).
         
         fixed_tau;      % Fixed-point integral coordindates tau.
-        fixed_A1_E;     % Fixed-point integral weights for A1_E(tauP).
         fixed_A1_H;     % Fixed-point integral weights for A1_H(tauP).
-        fixed_errA1_E;  % Fixed-point error weights for A1_E(tauP).
         fixed_errA1_H;  % Fixed-point error weights for A1_H(tauP).
         
         init_tau;       % First pass integral coordindates tau.
-        init_A1_E;      % First pass preinterpolated A1_E(tauP).
         init_A1_H;      % First pass preinterpolated A1_H(tauP).
-                
+        
         A2;             % Mode excitation matrix.
     end
     
@@ -115,9 +104,7 @@ classdef nLayerRectangular < nLayerForward
     methods (Access = public)
         [outputLabels] = getOutputLabels(O);
         
-        [modes] = setModes(O, maxM, maxN);
-        [a, b] = setWaveguideBand(O, band, options);
-        setWaveguideDimensions(O, a, b);
+        setWaveguideDimensions(O, r);
         recomputeInterpolants(O);
     end
     
@@ -125,66 +112,55 @@ classdef nLayerRectangular < nLayerForward
     methods (Access = private)
         [A1] = computeA1(O, f, er, ur, thk);
         [k_A1, k_A2, k_b1, k_b2] = constructFrequencyMultipliers(O, f);
-        [A1_EH] = integrandA1(O, tauP, k0, er, ur, thk);
-        [integrandE, integrandH] = computeIntegrandEH(O, tauP);
-        [A1, A2, b1, b2] = constructMatrixEquation(O, nLayerInt);
+        [A1_H] = integrandA1(O, tauP, k0, er, ur, thk);
+        [integrandH] = computeIntegrandH(O, tauP);
+        [A1, A2] = constructMatrixEquation(O, nLayerInt);
     end
     
     %% Private static function definitions (implemented in separate files)
     methods (Static, Access = public)
-        [specE, specH] = multilayerSpectrumEH(tau, k0, er, ur, thk);
+        [specH] = multilayerSpectrumH(tau, k0, er, ur, thk);
     end
     
     %% Class constructor
     methods
-        function O = nLayerRectangular(maxM, maxN, options)
-            %NLAYERRECTANGULAR Construct an instance of this class.
+        function O = nLayerCircularTE(numModes, options)
+            %NLAYERCIRCULARTE Construct an instance of this class.
             % Example Usage:
-            %   NL = nLayerRectangular(maxM, maxN, A=7.112, B=3.556);
-            %   NL = nLayerRectangular(maxM, maxN, A=7.112e-3, B=3.556e-3, ...
-            %       SpeedOfLight=299.79e6);
-            %   NL = nLayerRectangular(maxM, maxN, Band="x");
-            %   NL = nLayerRectangular(maxM, maxN, Band="x", Verbosity=1);
-            %   NL = nLayerRectangular(maxM, maxN, Band="x", ...
-            %       ConvergenceAbsTol=1e-4, IntegralPointsTauFixed=500);
-            %   NL = nLayerRectangular(maxM, maxN, Band="x", Prop=val, ...);
+            %   NL = nLayerCircularTE(numModes, R=wg_r);
+            %   NL = nLayerCircularTE(numModes, R=wg_r, Verbosity=1);
+            %   NL = nLayerCircularTE(numModes, R=wg_r, ...
+            %           ConvergenceAbsTol=1e-4, IntegralPointsTauFixed=500);
+            %   NL = nLayerCircularTE(numModes, R=wg_r, Prop=val, ...);
             %
             % Inputs:
-            %   maxM - Highest index m of TEmn and TMmn modes to consider.
-            %   maxN - Highest index n of TEmn and TMmn modes to consider.
+            %   numModes - Number of TE0n modes to consider.
             % Named Arguments:
-            %   A (1) - Waveguide broad dimension (mm).
-            %   B (0.5) - Waveguide narrow dimension (mm).
-            %   SpeedOfLight (299.792458) - Speed of light (mm/ns).
-            %   Band - Case-insensitive waveguide band to use. Either
-            %       specify this or the dimensions (a and b) directly.
-            %   ModesTE - List of modes to use in rows of [m, n].
-            %       If specified, this will be used instead of maxM and
-            %       maxN. The first row must be [1, 0].
+            %   R (1) - Waveguide radius (mm).
+            %   ModesTE - List of TE0n mode indices to use (vector of n).
+            %       If specified, this will be used instead of numModes.
+            %       The first value must be 1.
             %   Verbosity - Verbosity level. Set to 1 for basic command line
             %       output. Set to 2 for a per-frequency output.
-            %   ConvergenceAbsTol (0.001) - Default tolerance for
-            %       reflection coefficient calculations.
             %   IntegralPointsTauFixed (300) - Number of points to use for
             %       fixed-point integration along tau.
             %   InterpolationPointsTau (2^12) - Number of points to use for the
             %       interpolation function along tau.
-            %   IntegralPointsPsi (50) - Number of points to use to
-            %       integrate along psi.
             %   IntegralInitialSegmentCount (9) - Initial number of
             %       segments along tau used in the adaptive integration
             %       routine. Must be an odd integer.
+            %   IntegralPointsPsi (50) - Number of points to use to
+            %       integrate along psi.
+            %   ConvergenceAbsTol (0.001) - Default tolerance for
+            %       reflection coefficient calculations.
             
             arguments
-                maxM(1, 1) {mustBeInteger, mustBePositive};
-                maxN(1, 1) {mustBeInteger, mustBeNonnegative};
-                options.A(1, 1) {mustBeReal, mustBePositive} = 1;
-                options.B(1, 1) {mustBeReal, mustBePositive} = 0.5;
+                numModes(1, 1) {mustBeInteger, mustBePositive};
+                options.R(1, 1) {mustBeNumeric, mustBePositive} = 1;
+                options.ModesTE(:, 2) {mustBeInteger, mustPositive};
                 options.SpeedOfLight(1, 1) {mustBeReal, mustBePositive} = 299.792458;
-                options.Band {mustBeTextScalar};
-                options.ModesTE(:, 2) {mustBeInteger, mustBeNonnegative};
-                options.Verbosity(1, 1) {mustBeInteger, mustBeNonnegative} = 0;
-                options.ConvergenceAbsTol(1, 1) {mustBeReal, mustBePositive} = 0.001;
+                options.Verbosity(1, 1) {mustBeNumeric, mustBeNonnegative} = 0;
+                options.ConvergenceAbsTol(1, 1) {mustBeNumeric, mustBePositive} = 0.001;
                 options.IntegralPointsPsi(1, 1) {mustBeInteger, mustBePositive} = 50;
                 options.IntegralPointsTauFixed(1, 1) {mustBeInteger, mustBePositive} = 300;
                 options.InterpolationPointsTau(1, 1) {mustBeInteger, mustBePositive} = 2^12;
@@ -192,18 +168,13 @@ classdef nLayerRectangular < nLayerForward
             end
             
             %% Set Class Parameter Values
-            if isfield(options, "ModesTE")
-                O.modesTE = options.ModesTE;
+            if isfield(options, "modesTE")
+                O.modesTE = options.modesTE;
             else
-                O.setModes(maxM, maxN);
+                O.modesTE = 1:numModes;
             end
             
-            if isfield(options, "Band")
-                O.setWaveguideBand(options.Band);
-            else
-                O.setWaveguideDimensions(options.A, options.B);
-            end
-            
+            O.r = options.R;
             O.speedOfLight = options.SpeedOfLight;
             O.verbosity = options.Verbosity;
             O.convergenceAbsTol = options.ConvergenceAbsTol;

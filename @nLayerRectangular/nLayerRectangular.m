@@ -11,12 +11,12 @@ classdef nLayerRectangular < nLayerForward
     %   NL = nLayerRectangular(maxM, maxN, Band="ka", Verbosity=1);
     %   NL = nLayerRectangular(maxM, maxN, Band="v", ...
     %           ConvergenceAbsTol=1e-4, IntegralPointsTauFixed=500);
-    %   NL = nLayerRectangular(maxM, maxN, band="x", prop=val, ...);
+    %   NL = nLayerRectangular(maxM, maxN, band="x", Prop=val, ...);
     %
     %   gam = NL.calculate(f, er, ur, thk);
     %   gam = NL.calculate(f, er, [], thk);
     %   gam = NL.calculate(f, [], ur, thk);
-    %   gam = NL.calculate(f, er, [], thk, BackingConductivity=1e4);
+    %   gam = NL.calculate(f, er, [], thk, BackingConductivity=sigma);
     %
     % nLayerRectangular Properties:
     %   a - Waveguide broad dimension (mm default units).
@@ -59,8 +59,8 @@ classdef nLayerRectangular < nLayerForward
     %   modesTE;
     %   interpolationPointsTau;
     %   integralPointsTauFixed;
-    %   integralPointsPsi;
     %   integralInitialSegmentCount;
+    %   integralPointsPsi;
     %
     % Any of the above properties can also be directly specified in the
     % class constructor: NL = nLayerRectangular(..., Prop=val, ...).
@@ -79,7 +79,7 @@ classdef nLayerRectangular < nLayerForward
         modesTE;                % List of TE modes in rows of [m, n].
         interpolationPointsTau = 2^12;  % Number of points for lookup table along tau.
         integralPointsTauFixed = 300;   % Number of points for fixed point integral along tau.
-        integralInitialSegmentCount = 9;
+        integralInitialSegmentCount = 9;    % Number of segments to start with in adaptive integral.
         integralPointsPsi = 50;         % Number of points for fixed point integral along psi.
         convergenceAbsTol = 0.001;      % Convergence tolerance value (absolute).
     end
@@ -152,10 +152,10 @@ classdef nLayerRectangular < nLayerForward
             % Inputs:
             %   maxM - Highest index m of TEmn and TMmn modes to consider.
             %   maxN - Highest index n of TEmn and TMmn modes to consider.
-            % Named Options:
+            % Named Arguments:
             %   A (1) - Waveguide broad dimension (mm).
             %   B (0.5) - Waveguide narrow dimension (mm).
-            %   B (0.5) - Waveguide narrow dimension (mm).
+            %   SpeedOfLight (299.792458) - Speed of light (mm/ns).
             %   Band - Case-insensitive waveguide band to use. Either
             %       specify this or the dimensions (a and b) directly.
             %   ModesTE - List of modes to use in rows of [m, n].

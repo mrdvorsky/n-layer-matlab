@@ -7,12 +7,12 @@ function [] = recomputeInterpolants(O)
 % List of critical parameters:
 %   a;
 %   b;
-%   c; (Inherited from nLayerForward)
+%   speedOfLight; (Inherited from nLayerForward)
 %   modesTE;
 %   interpolationPointsTau;
 %   integralPointsTauFixed;
-%   integralPointsPsi;
 %   integralInitialSegmentCount;
+%   integralPointsPsi;
 %
 % Example Usage:
 %   NL = nLayerRectangular(...);
@@ -87,7 +87,7 @@ O.fixed_errA1_H = A1_H .* errWeights;
 % The initial pass of the adaptive integral algorithm always uses the same
 % nodes (i.e., the same evaluation coordinates of tau). Thus, we can 
 % precompute the values of the integrand for A1 at those coordinates.
-% These are used in ...
+% These are used in the "integrandA1" function.
 [tauP, ~, ~] = O.gaussKronrod(...
     O.integralInitialSegmentCount, 0, 1);
 

@@ -1,5 +1,5 @@
 function [A1] = computeA1(O, f, er, ur, thk)
-%COMPUTEA1B1 Compute the integral of the matrix A1 over frequency.
+%COMPUTEA1 Compute the integral of the matrix A1 over frequency.
 % This function computes the matrices A1 at each frequency specified by f.
 % The output of this function can along with the outputs of the
 % constructFrequencyMultipliers(...) function and the 
@@ -99,7 +99,7 @@ for ff = 1:length(k0)
     end
 end
 
-%% Format Outputs
+%% Format Output
 A1 = reshape(A1, O.numModes, O.numModes, length(k0));
 
 end

@@ -161,10 +161,10 @@ handles.gamPlot = gamPlot;
 handles.gamFitPlot = gamFitPlot;
 
 %% Create sliders
-createSlider = @(panel, ind, tag) uicontrol('Parent', panel, ...
-    'Style', 'slider', 'Units', 'normalized', ...
-    'Position', [options.SliderXPos 0.75-options.SliderYPos*(ind-1) options.SliderLength options.SliderWidth],...
-    'Tag', tag);
+createSlider = @(panel, ind, tag) uicontrol(Parent=panel, ...
+    Style="slider", Units="normalized", ...
+    Position=[options.SliderXPos, 0.75 - options.SliderYPos*(ind - 1), ...
+    options.SliderLength, options.SliderWidth], Tag=tag);
 
 uiSliders.erSliders = cell(numLayers, 1);
 uiSliders.erpSliders = cell(numLayers, 1);
@@ -175,12 +175,12 @@ uiSliders.thkRange = options.ThkBounds + zeros(numLayers, 2);
 
 for ii = 1:numLayers
     % Create sliders
-    uiSliders.erSliders{ii} = createSlider(erPanel, ii, sprintf('er-%d',ii));
-    uiSliders.erpSliders{ii} = createSlider(erpPanel, ii, sprintf('erp-%d',ii));
-    uiSliders.thkSliders{ii} = createSlider(thkPanel, ii, sprintf('thk-%d',ii));
+    uiSliders.erSliders{ii} = createSlider(erPanel, ii, sprintf("er-%d", ii));
+    uiSliders.erpSliders{ii} = createSlider(erpPanel, ii, sprintf("erp-%d", ii));
+    uiSliders.thkSliders{ii} = createSlider(thkPanel, ii, sprintf("thk-%d", ii));
     
     % Preset initial values
-    erSliderLoc = in_lerp(real(er(ii)), uiSliders.erRange(ii,:));
+    erSliderLoc = in_lerp(real(er(ii)), uiSliders.erRange(ii, :));
     if erSliderLoc > 1
         uiSliders.erSliders{ii}.Value = 1;
     elseif erSliderLoc < 0
@@ -209,21 +209,20 @@ for ii = 1:numLayers
 end
 
 % Create checkbox for infinite half plane in thk panel
-handles.isInfHalfPlane = uicontrol('Style', 'checkbox', 'Parent', thkPanel, ...
-    'String', 'Infinite Half-Plane (Bottom Layer)', 'Units', 'normalized', ...
-    'Position', [0 0.75-0.15*(numLayers) 0.5 0.1], ...
-    'FontSize', 8, 'HorizontalAlignment', 'right');
-handles.isInfHalfPlane.Callback = @halfPlaneValueChange;
+handles.isInfHalfPlane = uicontrol(Style="checkbox", Parent=thkPanel, ...
+    String="Infinite Half-Plane (Bottom Layer)", Units="normalized", ...
+    Position=[0, 0.75 - 0.15*numLayers, 0.5, 0.1], ...
+    FontSize=8, HorizontalAlignment="right", CallBack=@halfPlaneValueChange);
 
 %% Create slider labels
-createTopLabel = @(panel) uicontrol('Style', 'text', 'String', 'Top Layer', ...
-    'parent', panel, 'Units' , 'normalized', 'Position', [0 0.9 1 0.1], ...
-    'HorizontalAlignment', 'left');
+createTopLabel = @(panel) uicontrol(Style="text", String="Top Layer", ...
+    Parent=panel, Units="normalized", Position=[0, 0.9, 1, 0.1], ...
+    HorizontalAlignment="left");
 
-
-createBottomLabel = @(panel) uicontrol('Style', 'text', 'String', 'Bottom Layer', ...
-    'parent', panel, 'Units' , 'normalized', 'Position', [0 0.75-options.SliderYPos*(numLayers) 0.2 0.1], ...
-    'HorizontalAlignment', 'left');
+createBottomLabel = @(panel) uicontrol(Style="text", String="Bottom Layer", ...
+    Parent=panel, Units="normalized", ...
+    Position=[0, 0.75 - options.SliderYPos*numLayers, 0.2, 0.1], ...
+    HorizontalAlignment="left");
 
 createTopLabel(erPanel);
 createBottomLabel(erPanel);
@@ -269,9 +268,12 @@ for ii = 1:numLayers
     uiSliders.thkSliders{ii}.Callback = valueChange;
     
     % Set listeners
-    addlistener(uiSliders.erSliders{ii}, 'Value', 'PostSet', @(~, eventdata) sliderValueChanged(eventdata.AffectedObject, eventdata));
-    addlistener(uiSliders.erpSliders{ii}, 'Value', 'PostSet', @(~, eventdata) sliderValueChanged(eventdata.AffectedObject, eventdata));
-    addlistener(uiSliders.thkSliders{ii}, 'Value', 'PostSet', @(~, eventdata) sliderValueChanged(eventdata.AffectedObject, eventdata));
+    addlistener(uiSliders.erSliders{ii}, "Value", "PostSet", ...
+        @(~, eventdata) sliderValueChanged(eventdata.AffectedObject, eventdata));
+    addlistener(uiSliders.erpSliders{ii}, "Value", "PostSet", ...
+        @(~, eventdata) sliderValueChanged(eventdata.AffectedObject, eventdata));
+    addlistener(uiSliders.thkSliders{ii}, "Value", "PostSet", ...
+        @(~, eventdata) sliderValueChanged(eventdata.AffectedObject, eventdata));
 end
 
 handles.uiSliders = uiSliders;
@@ -282,7 +284,9 @@ if nargout == 1
     varargout{1} = handles;
 end
 
+% Store data into figure
 guidata(fig, handles);
+
 end
 
 %% Slider value change function
@@ -293,37 +297,40 @@ handles = guidata(hObject);
 [er, erp, thk] = valueReader(handles);
 [er_slider, erp_slider, thk_slider] = valueExtractor(handles);
 
-panel = extractBefore(hObject.Tag,'-');
-layer = str2num(extractAfter(hObject.Tag,'-'));
+panel = extractBefore(hObject.Tag, "-");
+layer = str2num(extractAfter(hObject.Tag, "-"));
 
 % Update the value being changed in the appropriate edit field
 switch panel
-    case 'er'
+    case "er"
         handles.uiEditField.erCV{layer}.String = er_slider(layer);
         er(layer) = er_slider(layer);
-    case 'erp'
+    case "erp"
         handles.uiEditField.erpCV{layer}.String = erp_slider(layer);
         erp(layer) = erp_slider(layer);
-    case 'thk'
+    case "thk"
         handles.uiEditField.thkCV{layer}.String = thk_slider(layer);
         thk(layer) = thk_slider(layer);
 end
 
 handles = plotGam(handles, er, erp, thk);
 
+% Store data into figure
 guidata(hObject, handles);
 
+% Force redraw axes
 drawnow;
+
 end
 
 %% Lower bound edit field creation
 function LBField = LBValueField(panel, ind, initVal)
-LBField = uicontrol('Style', 'edit', 'Parent', panel);
+LBField = uicontrol(Style="edit", Parent= panel);
 uicontrol(LBField);
 
-pos = [0.05 0.75-0.15*(ind-1) 0.1 0.12];
+pos = [0.05, 0.75 - 0.15*(ind - 1), 0.1, 0.12];
 
-LBField.Units = 'Normalized';
+LBField.Units = "Normalized";
 LBField.Position = pos;
 LBField.Callback = @LBFieldChanged;
 LBField.Tag = num2str(ind);
@@ -340,9 +347,8 @@ lowerBound = str2double(hObject.String);
 
 if ~isnan(lowerBound)
     switch panel
-        case 'er'
+        case "er"
             currentValue = str2num(handles.uiEditField.erCV{layer}.String);
-            
             if lowerBound < 1
                 hObject.String = num2str(1);
                 handles.uiSliders.erRange(layer,1) = 1;
@@ -352,46 +358,40 @@ if ~isnan(lowerBound)
                 hObject.String = num2str(currentValue);
                 handles.uiSliders.erRange(layer,1) = currentValue;
             end
-            
             guidata(hObject, handles);
-            %             handles.uiSliders.erSliders{layer}.Value = in_lerp(currentValue, handles.uiSliders.erRange(layer,:));
-        case 'erp'
+        case "erp"
             currentValue = str2num(handles.uiEditField.erpCV{layer}.String);
-            
             if lowerBound <= currentValue
                 handles.uiSliders.erpRange(layer,1) = log10(lowerBound);
             else
                 hObject.String = num2str(currentValue);
                 handles.uiSliders.erpRange(layer,1) = log10(currentValue);
             end
-            
             guidata(hObject, handles);
-            %             handles.uiSliders.erpSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.erpRange(layer,:));
-        case 'thk'
+        case "thk"
             currentValue = str2num(handles.uiEditField.thkCV{layer}.String);
-            
             if lowerBound <= currentValue
                 handles.uiSliders.thkRange(layer,1) = log10(lowerBound);
             else
                 hObject.String = num2str(currentValue);
                 handles.uiSliders.thkRange(layer,1) = log10(currentValue);
             end
-            
             guidata(hObject, handles);
-            %             handles.uiSliders.thkSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.thkRange(layer,:));
     end
 else
     switch panel
-        case 'er'
+        case "er"
             hObject.String = num2str(handles.uiSliders.erRange(layer,1));
-        case 'erp'
+        case "erp"
             hObject.String = num2str(10.^(handles.uiSliders.erpRange(layer,1)));
-        case 'thk'
+        case "thk"
             hObject.String = num2str(10.^(handles.uiSliders.thkRange(layer,1)));
     end
 end
 
+% Store data into figure
 guidata(hObject, handles)
+
 end
 
 %% Upper bound edit field and callback
@@ -417,7 +417,7 @@ upperBound = str2double(hObject.String);
 
 if ~isnan(upperBound)
     switch panel
-        case 'er'
+        case "er"
             currentValue = str2num(handles.uiEditField.erCV{layer}.String);
             
             if upperBound >= currentValue
@@ -429,7 +429,7 @@ if ~isnan(upperBound)
             
             guidata(hObject, handles);
             handles.uiSliders.erSliders{layer}.Value = in_lerp(currentValue, handles.uiSliders.erRange(layer,:));
-        case 'erp'
+        case "erp"
             currentValue = str2num(handles.uiEditField.erpCV{layer}.String);
             
             if upperBound >= currentValue
@@ -441,7 +441,7 @@ if ~isnan(upperBound)
             
             guidata(hObject, handles);
             handles.uiSliders.erpSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.erpRange(layer,:));
-        case 'thk'
+        case "thk"
             currentValue = str2num(handles.uiEditField.thkCV{layer}.String);
             
             if upperBound >= currentValue
@@ -456,11 +456,11 @@ if ~isnan(upperBound)
     end
 else
     switch panel
-        case 'er'
+        case "er"
             hObject.String = num2str(handles.uiSliders.erRange(layer,2));
-        case 'erp'
+        case "erp"
             hObject.String = num2str(10.^(handles.uiSliders.erpRange(layer,2)));
-        case 'thk'
+        case "thk"
             hObject.String = num2str(10.^(handles.uiSliders.thkRange(layer,2)));
     end
 end
@@ -498,7 +498,7 @@ if ~isnan(currentValue) || isreal(currentValue)
     numLayers = size(thk, 2);
     
     switch panel
-        case 'er'
+        case "er"
             if currentValue < 1
                 hObject.String = num2str(lerp(uiSliders.erSliders{layer}.Value, uiSliders.erRange(layer,:)));
             end
@@ -516,7 +516,7 @@ if ~isnan(currentValue) || isreal(currentValue)
             else
                 hObject.String = num2str(lerp(uiSliders.erSliders{layer}.Value, uiSliders.erRange(layer,:)));
             end
-        case 'erp'
+        case "erp"
             sliderValue = in_lerp(log10(currentValue)/log10(10), uiSliders.erpRange(layer,:));
             
             if sliderValue >= 0 && sliderValue <= 1
@@ -530,7 +530,7 @@ if ~isnan(currentValue) || isreal(currentValue)
             else
                 hObject.String = num2str(lerp(uiSliders.erpSliders{layer}.Value, uiSliders.erpRange(layer,:)));
             end
-        case 'thk'
+        case "thk"
             sliderValue = in_lerp(log10(currentValue)/log10(10), uiSliders.thkRange(layer,:));
             
             if sliderValue >= 0 && sliderValue <= 1
@@ -547,22 +547,22 @@ if ~isnan(currentValue) || isreal(currentValue)
     end
 else
     switch panel
-        case 'er'
+        case "er"
             hObject.String = num2str(lerp(uiSliders.erSliders{layer}.Value, uiSliders.erRange(layer,:)));
-        case 'erp'
+        case "erp"
             hObject.String = num2str(10.^lerp(uiSliders.erpSliders{layer}.Value, uiSliders.erpRange(layer,:)));
-        case 'thk'
+        case "thk"
             hObject.String = num2str(10.^lerp(uiSliders.thkSliders{layer}.Value, uiSliders.thkRange(layer,:)));
     end
 end
 
 if isOutsideBounds
     switch panel
-        case 'er'
+        case "er"
             er(layer) = currentValue;
-        case 'erp'
+        case "erp"
             erp(layer) = currentValue;
-        case 'thk'
+        case "thk"
             thk(layer) = currentValue;
     end
     hObject.String = currentValue;
@@ -602,11 +602,11 @@ panel = extractBefore(hObject.Tag,'-');
 layer = str2num(extractAfter(hObject.Tag,'-'));
 
 switch panel
-    case 'er'
+    case "er"
         handles.uiEditField.erCV{layer}.String = er(layer);
-    case 'erp'
+    case "erp"
         handles.uiEditField.erpCV{layer}.String = erp(layer);
-    case 'thk'
+    case "thk"
         handles.uiEditField.thkCV{layer}.String = thk(layer);
 end
 

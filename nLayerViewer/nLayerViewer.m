@@ -390,7 +390,7 @@ else
 end
 
 % Store data into figure
-guidata(hObject, handles)
+guidata(hObject, handles);
 
 end
 
@@ -465,7 +465,9 @@ else
     end
 end
 
-guidata(hObject, handles)
+% Store data into figure
+guidata(hObject, handles);
+
 end
 
 %% Current value edit field creation
@@ -473,7 +475,7 @@ function CVField = CVValueField(panel, ind, initVal)
 CVField = uicontrol('Style', 'edit', 'Parent', panel);
 uicontrol(CVField);
 
-pos = [0.87 0.75-0.15*(ind-1) 0.1 0.12];
+pos = [0.87, 0.75 - 0.15*(ind - 1), 0.1, 0.12];
 
 CVField.Units = 'Normalized';
 CVField.Position = pos;
@@ -495,15 +497,14 @@ isOutsideBounds = 0;
 
 if ~isnan(currentValue) || isreal(currentValue)
     [er, erp, thk] = valueReader(handles);
-    numLayers = size(thk, 2);
     
     switch panel
         case "er"
             if currentValue < 1
-                hObject.String = num2str(lerp(uiSliders.erSliders{layer}.Value, uiSliders.erRange(layer,:)));
+                hObject.String = num2str(lerp(uiSliders.erSliders{layer}.Value, uiSliders.erRange(layer, :)));
             end
             
-            sliderValue = in_lerp(currentValue, uiSliders.erRange(layer,:));
+            sliderValue = in_lerp(currentValue, uiSliders.erRange(layer, :));
             
             if sliderValue >= 0 && sliderValue <= 1
                 uiSliders.erSliders{layer}.Value = sliderValue;
@@ -514,10 +515,10 @@ if ~isnan(currentValue) || isreal(currentValue)
                 uiSliders.erSliders{layer}.Value = 1;
                 isOutsideBounds = 1;
             else
-                hObject.String = num2str(lerp(uiSliders.erSliders{layer}.Value, uiSliders.erRange(layer,:)));
+                hObject.String = num2str(lerp(uiSliders.erSliders{layer}.Value, uiSliders.erRange(layer, :)));
             end
         case "erp"
-            sliderValue = in_lerp(log10(currentValue)/log10(10), uiSliders.erpRange(layer,:));
+            sliderValue = in_lerp(log10(currentValue), uiSliders.erpRange(layer, :));
             
             if sliderValue >= 0 && sliderValue <= 1
                 uiSliders.erpSliders{layer}.Value = sliderValue;
@@ -572,7 +573,9 @@ handles = plotGam(handles, er, erp, thk);
 
 handles.uiSliders = uiSliders;
 
+% Store data into figure
 guidata(hObject, handles);
+
 end
 
 %% Infinite half plane checkbox value change callback
@@ -585,21 +588,21 @@ layer = size(handles.uiSliders.thkSliders, 1);
 
 % Disable the last layer's thickness parameters textboxes and slider
 if isInfHalfPlane
-    handles.uiSliders.thkSliders{layer}.Enable = 'off';
-    handles.uiEditField.thkCV{layer}.Enable = 'off';
-    handles.uiEditField.thkLB{layer}.Enable = 'off';
-    handles.uiEditField.thkUB{layer}.Enable = 'off';
+    handles.uiSliders.thkSliders{layer}.Enable = "off";
+    handles.uiEditField.thkCV{layer}.Enable = "off";
+    handles.uiEditField.thkLB{layer}.Enable = "off";
+    handles.uiEditField.thkUB{layer}.Enable = "off";
 else
-    handles.uiSliders.thkSliders{layer}.Enable = 'on';
-    handles.uiEditField.thkCV{layer}.Enable = 'on';
-    handles.uiEditField.thkLB{layer}.Enable = 'on';
-    handles.uiEditField.thkUB{layer}.Enable = 'on';
+    handles.uiSliders.thkSliders{layer}.Enable = "on";
+    handles.uiEditField.thkCV{layer}.Enable = "on";
+    handles.uiEditField.thkLB{layer}.Enable = "on";
+    handles.uiEditField.thkUB{layer}.Enable = "on";
 end
 
 [er, erp, thk] = valueExtractor(handles);
 
-panel = extractBefore(hObject.Tag,'-');
-layer = str2double(extractAfter(hObject.Tag,'-'));
+panel = extractBefore(hObject.Tag, "-");
+layer = str2double(extractAfter(hObject.Tag, "-"));
 
 switch panel
     case "er"
@@ -612,8 +615,9 @@ end
 
 handles = plotGam(handles, er, erp, thk);
 
-
+% Store data into figure
 guidata(hObject, handles);
+
 end
 
 %% Interpolate and inverse interpolation of values
@@ -670,4 +674,5 @@ for ii = 1:size(handles.NL, 2)
     handles.gamPlot{ii}.XData = real(gam);
     handles.gamPlot{ii}.YData = imag(gam);
 end
+
 end

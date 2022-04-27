@@ -4,22 +4,30 @@ function [varargout] = nLayerViewer(er, thk, NL, f, options)
 % plot them to be viewed and compared. The sliders update in real-time
 % allowing for a quick visual analysis of a material structure.
 %
-% nLayerViewer Properties:
-%   MainFigDim ([100, 100, 1000, 600]) - Main figure dimension
-%       (pixels). The array elements are [left, bottom, width, height].
-%   PlotPanelSize (0.6) - Relative size of the plot panel to the main 
-%       figure window.
+% Example Usage:
+%   figure;
+%   nlayerViewer(er, thk, NL, f);
+%   nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
+%   handles = nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
+%   handles = nlayerViewer(er, thk, NL1, f1, ..., Legend=["1", ...]);
+%
+% Inputs:
+%   er - Vector of default complex permittivities for each layer. These are
+%       default values displayed for each layer.
+%   thk - Vector of default layer thicknesses. Must have the same lenth as
+%       er. Last value should be inf for infinite half-space.
+%   NL - The nLayerForward solver object to use. This value is repeating
+%       along with f.
+%   f - Vector of frequencies. This value is repeating along with NL.
+%
+% Outputs:
+%   handles - Optional output to return the handles containing data that is
+%       stored within the UI figure.
+%
+% Named Arguments:
 %   Legend - Array of strings that can be displayed along with the
 %       various plots of different NLayer solvers.
-%   SliderXPos (0.15) - Position of sliders on the X-axis relative to
-%       the size of the parent panel.
-%   SliderYPos (0.15) - Position of sliders on the Y-axis relative to
-%       the size of the parent panel.
-%   SliderLength (0.6) - Length of the  sliders relative to the size of
-%       the parent panel.
-%   SliderWidth (0.12) - Width of the sliders relative to the size of
-%       the parent panel   
-%   ErBounds ([1, 10]) - Bounds of the dielectric constant (er). The 
+%   ErBounds ([1, 10]) - Bounds of the dielectric constant (er). The
 %       size of the variable is dependent on the number of layers
 %       defined.
 %   ErpBounds [-2, 1]) - Bounds of the dielectric loss (erp). The value
@@ -31,79 +39,81 @@ function [varargout] = nLayerViewer(er, thk, NL, f, options)
 %   GamInterp (10) - The number of points the calculated reflection
 %       coefficients is interpolated to.
 %   PlotLineWidth (1.5) - The width of the plotted lines.
+%   PlotDotWidth (1.5) - The width of the plotted dots.
+%   FigureHandle (optional) - Handle of a figure to use. If not specified,
+%       will use current active figure or create a new figure.
+%   MainFigDim ([100, 100, 1000, 600]) - Main figure dimensions (pixels).
+%       The array elements are [left, bottom, width, height].
+%   PlotPanelSize (0.6) - Relative size of the plot panel to the main
+%       figure window.
+%   SliderXPos (0.15) - Position of sliders on the X-axis relative to
+%       the size of the parent panel.
+%   SliderYPos (0.15) - Position of sliders on the Y-axis relative to
+%       the size of the parent panel.
+%   SliderLength (0.6) - Length of the  sliders relative to the size of
+%       the parent panel.
+%   SliderWidth (0.12) - Width of the sliders relative to the size of
+%       the parent panel.
 %
-% Example Usage:
-%   nlayerViewer(er, thk, NL, f);
-%   nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
-%   handles = nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
-%   handles = nlayerViewer(er, thk, NL1, f1, ..., legend=["1", ...]);
-%
-% Inputs:
-%   er - Complex dielectric constant. Consists of the real part (er) which
-%       must be greater than 1 and the imaginary part (erp) which is always
-%       negative.
-%   thk - Thickness of a material structure (mm).
-%   NL - NLayer solver object. Defined using nLayerRectangular. Can be
-%       defined multiple times to compute multiple solvers at the time.
-%   f - Frequency vector.
-%   options - Optional input to change certain parameters and variables
-%       within the function.
-%
-% Outputs:
-%   handles - Optional output to return the handles containing data that is
-%       stored within the UI figure.
-%
-% Author: Si Yuan Sim
-    
+% Author: Si Yuan Sim + Matt Dvorsky
+
 arguments
-    er
-    thk
+    er  (1, :);
+    thk (1, :);
 end
 
 arguments (Repeating)
-    NL  (1,1)
-    f   (:,1)
+    NL (1, 1);
+    f  (:, 1);
 end
 
 arguments
-    options.MainFigDim      (1,4) {mustBeNumeric} = [100, 100, 1000, 600] 
-    options.Legend
-    options.PlotPanelSize   (1,1) {mustBeNumeric} = 0.6
-    options.PanelFontSize   (1,1) {mustBeNumeric} = 10;
+    % Figure options
+    options.FigureHandle    (1, 1);
+    options.MainFigDim      (1, 4) {mustBeNumeric} = [100, 100, 1000, 600];
+    options.Legend          (:, 1) {mustBeText};
+    options.PlotPanelSize   (1, 1) {mustBeNumeric} = 0.6;
+    options.PanelFontSize   (1, 1) {mustBeNumeric} = 10;
     
     % Slider parameters
-    options.SliderXPos      (1,1) {mustBeNumeric} = 0.15
-    options.SliderYPos      (1,1) {mustBeNumeric} = 0.15
-    options.SliderLength    (1,1) {mustBeNumeric} = 0.6
-    options.SliderWidth     (1,1) {mustBeNumeric} = 0.12
+    options.SliderXPos      (1, 1) {mustBeNumeric} = 0.15;
+    options.SliderYPos      (1, 1) {mustBeNumeric} = 0.15;
+    options.SliderLength    (1, 1) {mustBeNumeric} = 0.6;
+    options.SliderWidth     (1, 1) {mustBeNumeric} = 0.12;
     
     % Electrical property bounds
-    options.ErBounds        (:,2) {mustBeNumeric} = [1, 10]
-    options.ErpBounds       (:,2) {mustBeNumeric} = [-2, 1]
-    options.ThkBounds       (:,2) {mustBeNumeric} = [-1, 2]
+    options.ErBounds        (:, 2) {mustBeNumeric} = [1, 10];
+    options.ErpBounds       (:, 2) {mustBeNumeric} = [-2, 1];
+    options.ThkBounds       (:, 2) {mustBeNumeric} = [-1, 2];
     
     % NLayer settings
-    options.GamInterp       (1,1) {mustBeNumeric} = 10
+    options.GamInterp       (1, 1) {mustBeInteger, mustBePositive} = 10;
     
     % Plot settings
-    options.PlotLineWidth   (1,1) {mustBeNumeric} = 1.5
+    options.PlotLineWidth   (1, 1) {mustBeReal} = 1.5;
+    options.PlotDotWidth    (1, 1) {mustBeReal} = 1.5;
 end
 
 %% Create main figure and panels
-fig = figure('Name', 'nLayer Viewer', ...
-    'Position', options.MainFigDim);
+if isfield(options, "FigureHandle")
+    fig = options.FigureHandle;
+else
+    fig = gcf;
+end
+clf(fig);
+fig.Position = options.MainFigDim;
 
-plotPanel = uipanel(fig, 'Position', [0, 0, options.PlotPanelSize, 1]);
-sliderPanel = uipanel(fig, 'Position', [options.PlotPanelSize, 0, 1-options.PlotPanelSize, 1]);
+plotPanel = uipanel(fig, Position=[0, 0, options.PlotPanelSize, 1]);
+sliderPanel = uipanel(fig, Position=[options.PlotPanelSize, 0, 1 - options.PlotPanelSize, 1]);
 
-erPanel = uipanel(sliderPanel, 'Position', [0, 0.667, 1, 0.333], 'FontSize', options.PanelFontSize , 'Tag', 'er');
-erPanel.Title = "Dielectric Constant (er)";
+erPanel = uipanel(sliderPanel, Position=[0, 0.667, 1, 0.333], Tag="er", ...
+    FontSize=options.PanelFontSize, Title="Dielectric Constant (er)");
 
-erpPanel = uipanel(sliderPanel, 'Position', [0, 0.333, 1, 0.333], 'FontSize', options.PanelFontSize , 'Tag', 'erp');
-erpPanel.Title = "Dielectric Loss (erp)";
+erpPanel = uipanel(sliderPanel, Position=[0, 0.333, 1, 0.333], Tag="erp", ...
+    FontSize=options.PanelFontSize, Title="Dielectric Loss (erp)");
 
-thkPanel = uipanel(sliderPanel, 'Position', [0, 0, 1, 0.333], 'FontSize', options.PanelFontSize , 'Tag', 'thk');
-thkPanel.Title = "Thickness (mm)";
+thkPanel = uipanel(sliderPanel, Position=[0, 0, 1, 0.333], Tag="thk", ...
+    FontSize=options.PanelFontSize, Title="Thickness (mm)");
 
 %% Save initial material structure
 handles.f = f;
@@ -121,17 +131,17 @@ h3.HandleVisibility = "off";
 
 xlim(ax, [-1.1, 1.1]);
 ylim(ax, [-1.1, 1.1]);
-hold on;
+hold(ax, "on");
 
 gamPlot = cell(size(NL,2), 1);
 gamFitPlot = cell(size(NL,2), 1);
 
 % Obtain initial parameters and calculate initial values
 for ii = 1:size(NL, 2)
-    gamPlot{ii} = plot(ax, f{ii}, 0*f{ii}, '.', 'Linewidth', options.PlotLineWidth);
-    gamPlot{ii}.HandleVisibility = 'off';
-    gamFitPlot{ii} = plot(ax, f{ii}, 0*f{ii}, 'Linewidth', options.PlotLineWidth);
-
+    gamPlot{ii} = plot(ax, f{ii}, 0*f{ii}, ".", ...
+        Linewidth=options.PlotLineWidth, HandleVisibility="off");
+    gamFitPlot{ii} = plot(ax, f{ii}, 0*f{ii}, Linewidth=options.PlotLineWidth);
+    
     gam = NL{ii}.calculate(f{ii}, er, [], thk);
     gamFit = interp(gam, options.GamInterp);
     
@@ -142,20 +152,20 @@ for ii = 1:size(NL, 2)
     gamPlot{ii}.YData = imag(gam);
 end
 
-if isfield(options, 'legend')
-   legend(ax, options.Legend); 
+if isfield(options, "Legend")
+    legend(ax, options.Legend);
 end
 
-hold off;
+hold(ax, "off");
 handles.gamPlot = gamPlot;
 handles.gamFitPlot = gamFitPlot;
 
 %% Create sliders
 createSlider = @(panel, ind, tag) uicontrol('Parent', panel, ...
-    'Style', 'slider', 'Units', 'normalized', ... 
+    'Style', 'slider', 'Units', 'normalized', ...
     'Position', [options.SliderXPos 0.75-options.SliderYPos*(ind-1) options.SliderLength options.SliderWidth],...
     'Tag', tag);
- 
+
 uiSliders.erSliders = cell(numLayers, 1);
 uiSliders.erpSliders = cell(numLayers, 1);
 uiSliders.thkSliders = cell(numLayers, 1);
@@ -168,7 +178,7 @@ for ii = 1:numLayers
     uiSliders.erSliders{ii} = createSlider(erPanel, ii, sprintf('er-%d',ii));
     uiSliders.erpSliders{ii} = createSlider(erpPanel, ii, sprintf('erp-%d',ii));
     uiSliders.thkSliders{ii} = createSlider(thkPanel, ii, sprintf('thk-%d',ii));
-
+    
     % Preset initial values
     erSliderLoc = in_lerp(real(er(ii)), uiSliders.erRange(ii,:));
     if erSliderLoc > 1
@@ -288,15 +298,15 @@ layer = str2num(extractAfter(hObject.Tag,'-'));
 
 % Update the value being changed in the appropriate edit field
 switch panel
-    case 'er'        
-            handles.uiEditField.erCV{layer}.String = er_slider(layer);
-            er(layer) = er_slider(layer);
+    case 'er'
+        handles.uiEditField.erCV{layer}.String = er_slider(layer);
+        er(layer) = er_slider(layer);
     case 'erp'
-            handles.uiEditField.erpCV{layer}.String = erp_slider(layer);
-            erp(layer) = erp_slider(layer);
+        handles.uiEditField.erpCV{layer}.String = erp_slider(layer);
+        erp(layer) = erp_slider(layer);
     case 'thk'
-            handles.uiEditField.thkCV{layer}.String = thk_slider(layer);
-            thk(layer) = thk_slider(layer);
+        handles.uiEditField.thkCV{layer}.String = thk_slider(layer);
+        thk(layer) = thk_slider(layer);
 end
 
 handles = plotGam(handles, er, erp, thk);
@@ -344,7 +354,7 @@ if ~isnan(lowerBound)
             end
             
             guidata(hObject, handles);
-%             handles.uiSliders.erSliders{layer}.Value = in_lerp(currentValue, handles.uiSliders.erRange(layer,:));
+            %             handles.uiSliders.erSliders{layer}.Value = in_lerp(currentValue, handles.uiSliders.erRange(layer,:));
         case 'erp'
             currentValue = str2num(handles.uiEditField.erpCV{layer}.String);
             
@@ -354,9 +364,9 @@ if ~isnan(lowerBound)
                 hObject.String = num2str(currentValue);
                 handles.uiSliders.erpRange(layer,1) = log10(currentValue);
             end
-                
+            
             guidata(hObject, handles);
-%             handles.uiSliders.erpSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.erpRange(layer,:));
+            %             handles.uiSliders.erpSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.erpRange(layer,:));
         case 'thk'
             currentValue = str2num(handles.uiEditField.thkCV{layer}.String);
             
@@ -368,7 +378,7 @@ if ~isnan(lowerBound)
             end
             
             guidata(hObject, handles);
-%             handles.uiSliders.thkSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.thkRange(layer,:));  
+            %             handles.uiSliders.thkSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.thkRange(layer,:));
     end
 else
     switch panel
@@ -422,13 +432,13 @@ if ~isnan(upperBound)
         case 'erp'
             currentValue = str2num(handles.uiEditField.erpCV{layer}.String);
             
-            if upperBound >= currentValue 
+            if upperBound >= currentValue
                 handles.uiSliders.erpRange(layer,2) = log10(upperBound);
             else
                 hObject.String = num2str(currentValue);
                 handles.uiSliders.erpRange(layer,2) = log10(currentValue);
             end
-                
+            
             guidata(hObject, handles);
             handles.uiSliders.erpSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.erpRange(layer,:));
         case 'thk'
@@ -442,7 +452,7 @@ if ~isnan(upperBound)
             end
             
             guidata(hObject, handles);
-            handles.uiSliders.thkSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.thkRange(layer,:));  
+            handles.uiSliders.thkSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.thkRange(layer,:));
     end
 else
     switch panel
@@ -488,7 +498,7 @@ if ~isnan(currentValue) || isreal(currentValue)
     numLayers = size(thk, 2);
     
     switch panel
-        case 'er'                        
+        case 'er'
             if currentValue < 1
                 hObject.String = num2str(lerp(uiSliders.erSliders{layer}.Value, uiSliders.erRange(layer,:)));
             end
@@ -521,10 +531,10 @@ if ~isnan(currentValue) || isreal(currentValue)
                 hObject.String = num2str(lerp(uiSliders.erpSliders{layer}.Value, uiSliders.erpRange(layer,:)));
             end
         case 'thk'
-            sliderValue = in_lerp(log10(currentValue)/log10(10), uiSliders.thkRange(layer,:)); 
+            sliderValue = in_lerp(log10(currentValue)/log10(10), uiSliders.thkRange(layer,:));
             
             if sliderValue >= 0 && sliderValue <= 1
-                uiSliders.thkSliders{layer}.Value = sliderValue;  
+                uiSliders.thkSliders{layer}.Value = sliderValue;
             elseif sliderValue < 0
                 uiSliders.thkSliders{layer}.Value = 0;
                 isOutsideBounds = 1;
@@ -584,7 +594,7 @@ else
     handles.uiEditField.thkCV{layer}.Enable = 'on';
     handles.uiEditField.thkLB{layer}.Enable = 'on';
     handles.uiEditField.thkUB{layer}.Enable = 'on';
-end 
+end
 
 [er, erp, thk] = valueExtractor(handles);
 
@@ -592,12 +602,12 @@ panel = extractBefore(hObject.Tag,'-');
 layer = str2num(extractAfter(hObject.Tag,'-'));
 
 switch panel
-    case 'er'        
-            handles.uiEditField.erCV{layer}.String = er(layer);
+    case 'er'
+        handles.uiEditField.erCV{layer}.String = er(layer);
     case 'erp'
-            handles.uiEditField.erpCV{layer}.String = erp(layer);
+        handles.uiEditField.erpCV{layer}.String = erp(layer);
     case 'thk'
-            handles.uiEditField.thkCV{layer}.String = thk(layer);
+        handles.uiEditField.thkCV{layer}.String = thk(layer);
 end
 
 handles = plotGam(handles, er, erp, thk);
@@ -647,7 +657,7 @@ er_in = er - 1j*erp;
 thk_in = thk;
 
 if handles.isInfHalfPlane.Value
-   thk_in(end) = inf; 
+    thk_in(end) = inf;
 end
 
 for ii = 1:size(handles.NL, 2)

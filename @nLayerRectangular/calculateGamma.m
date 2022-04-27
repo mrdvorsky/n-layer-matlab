@@ -7,7 +7,7 @@ function [gam] = calculateGamma(O, f, er, ur, thk)
 % Example Usage:
 %   NL = nLayerRectangular(maxM, maxN, band=wgBand);
 %   gam = NL.calculate(f, er, ur, thk);
-%   gam = NL.calculate(f, er, [], thk, AbsTol=1e-4);
+%   gam = NL.calculate(f, er, [], thk);
 %   gam = NL.calculate(f, [], ur, thk);
 %
 % Inputs:

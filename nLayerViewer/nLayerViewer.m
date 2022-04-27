@@ -4,12 +4,6 @@ function [varargout] = nLayerViewer(er, thk, NL, f, options)
 % plot them to be viewed and compared. The sliders update in real-time
 % allowing for a quick visual analysis of a material structure.
 %
-% Example Usage:
-%   nlayerViewer(er, thk, NL, f);
-%   nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
-%   handles = nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
-%   handles = nlayerViewer(er, thk, NL1, f1, ..., legend=["1", ...]);
-%
 % nLayerViewer Properties:
 %   MainFigDim ([100, 100, 1000, 600]) - Main figure dimension
 %       (pixels). The array elements are [left, bottom, width, height].
@@ -37,6 +31,12 @@ function [varargout] = nLayerViewer(er, thk, NL, f, options)
 %   GamInterp (10) - The number of points the calculated reflection
 %       coefficients is interpolated to.
 %   PlotLineWidth (1.5) - The width of the plotted lines.
+%
+% Example Usage:
+%   nlayerViewer(er, thk, NL, f);
+%   nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
+%   handles = nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
+%   handles = nlayerViewer(er, thk, NL1, f1, ..., legend=["1", ...]);
 %
 % Inputs:
 %   er - Complex dielectric constant. Consists of the real part (er) which
@@ -125,21 +125,21 @@ hold on;
 
 gamPlot = cell(size(NL,2), 1);
 gamFitPlot = cell(size(NL,2), 1);
-plotNum = 1;
 
 % Obtain initial parameters and calculate initial values
 for ii = 1:size(NL, 2)
-    gam = NL{ii}.calculate(f{ii}, er, [], thk);
-    
-    for jj = 1:size(gam, 2)
-        gamFit = interp(gam(:,jj), options.GamInterp);
+    gamPlot{ii} = plot(ax, f{ii}, 0*f{ii}, '.', 'Linewidth', options.PlotLineWidth);
+    gamPlot{ii}.HandleVisibility = 'off';
+    gamFitPlot{ii} = plot(ax, f{ii}, 0*f{ii}, 'Linewidth', options.PlotLineWidth);
 
-        gamPlot{plotNum} = plot(ax, real(gam(:,jj)), imag(gam(:,jj)), '.', 'Linewidth', options.PlotLineWidth);
-        gamPlot{plotNum}.HandleVisibility = 'off';
-        gamFitPlot{plotNum} = plot(ax, real(gamFit), imag(gamFit), 'Linewidth', options.PlotLineWidth);
-        
-        plotNum = plotNum + 1;
-    end
+    gam = NL{ii}.calculate(f{ii}, er, [], thk);
+    gamFit = interp(gam, options.GamInterp);
+    
+    gamFitPlot{ii}.XData = real(gamFit);
+    gamFitPlot{ii}.YData = imag(gamFit);
+    
+    gamPlot{ii}.XData = real(gam);
+    gamPlot{ii}.YData = imag(gam);
 end
 
 if isfield(options, 'legend')
@@ -210,6 +210,7 @@ createTopLabel = @(panel) uicontrol('Style', 'text', 'String', 'Top Layer', ...
     'parent', panel, 'Units' , 'normalized', 'Position', [0 0.9 1 0.1], ...
     'HorizontalAlignment', 'left');
 
+
 createBottomLabel = @(panel) uicontrol('Style', 'text', 'String', 'Bottom Layer', ...
     'parent', panel, 'Units' , 'normalized', 'Position', [0 0.75-options.SliderYPos*(numLayers) 0.2 0.1], ...
     'HorizontalAlignment', 'left');
@@ -235,17 +236,14 @@ uiEditField.thkCV = cell(numLayers, 1);
 for ii = 1:numLayers
     uiEditField.erLB{ii} = LBValueField(erPanel, ii, lerp(0, uiSliders.erRange(ii,:)));
     uiEditField.erUB{ii} = UBValueField(erPanel, ii, lerp(1, uiSliders.erRange(ii,:)));
-%     uiEditField.erCV{ii} = CVValueField(erPanel, ii, lerp(uiSliders.erSliders{ii}.Value, uiSliders.erRange(ii,:)));
     uiEditField.erCV{ii} = CVValueField(erPanel, ii, real(er(ii)));
     
     uiEditField.erpLB{ii} = LBValueField(erpPanel, ii, 10.^lerp(0, uiSliders.erpRange(ii,:)));
     uiEditField.erpUB{ii} = UBValueField(erpPanel, ii, 10.^lerp(1, uiSliders.erpRange(ii,:)));
-%     uiEditField.erpCV{ii} = CVValueField(erpPanel, ii, 10.^lerp(uiSliders.erpSliders{ii}.Value, uiSliders.erpRange(ii,:)));
     uiEditField.erpCV{ii} = CVValueField(erpPanel, ii, abs(imag(er(ii))));
     
     uiEditField.thkLB{ii} = LBValueField(thkPanel, ii, 10.^lerp(0, uiSliders.thkRange(ii,:)));
     uiEditField.thkUB{ii} = UBValueField(thkPanel, ii, 10.^lerp(1, uiSliders.thkRange(ii,:)));
-%     uiEditField.thkCV{ii} = CVValueField(thkPanel, ii, 10.^lerp(uiSliders.thkSliders{ii}.Value, uiSliders.thkRange(ii,:)));
     uiEditField.thkCV{ii} = CVValueField(thkPanel, ii, thk(ii));
 end
 
@@ -281,18 +279,24 @@ end
 function sliderValueChanged(hObject, eventdata)
 handles = guidata(hObject);
 
-[er, erp, thk] = valueExtractor(handles);
+% Extract value from slider and current value edit field
+[er, erp, thk] = valueReader(handles);
+[er_slider, erp_slider, thk_slider] = valueExtractor(handles);
 
 panel = extractBefore(hObject.Tag,'-');
 layer = str2num(extractAfter(hObject.Tag,'-'));
 
+% Update the value being changed in the appropriate edit field
 switch panel
     case 'er'        
-            handles.uiEditField.erCV{layer}.String = er(layer);
+            handles.uiEditField.erCV{layer}.String = er_slider(layer);
+            er(layer) = er_slider(layer);
     case 'erp'
-            handles.uiEditField.erpCV{layer}.String = erp(layer);
+            handles.uiEditField.erpCV{layer}.String = erp_slider(layer);
+            erp(layer) = erp_slider(layer);
     case 'thk'
-            handles.uiEditField.thkCV{layer}.String = thk(layer);
+            handles.uiEditField.thkCV{layer}.String = thk_slider(layer);
+            thk(layer) = thk_slider(layer);
 end
 
 handles = plotGam(handles, er, erp, thk);
@@ -329,7 +333,10 @@ if ~isnan(lowerBound)
         case 'er'
             currentValue = str2num(handles.uiEditField.erCV{layer}.String);
             
-            if lowerBound <= currentValue
+            if lowerBound < 1
+                hObject.String = num2str(1);
+                handles.uiSliders.erRange(layer,1) = 1;
+            elseif lowerBound <= currentValue
                 handles.uiSliders.erRange(layer,1) = lowerBound;
             else
                 hObject.String = num2str(currentValue);
@@ -337,7 +344,7 @@ if ~isnan(lowerBound)
             end
             
             guidata(hObject, handles);
-            handles.uiSliders.erSliders{layer}.Value = in_lerp(currentValue, handles.uiSliders.erRange(layer,:));
+%             handles.uiSliders.erSliders{layer}.Value = in_lerp(currentValue, handles.uiSliders.erRange(layer,:));
         case 'erp'
             currentValue = str2num(handles.uiEditField.erpCV{layer}.String);
             
@@ -349,7 +356,7 @@ if ~isnan(lowerBound)
             end
                 
             guidata(hObject, handles);
-            handles.uiSliders.erpSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.erpRange(layer,:));
+%             handles.uiSliders.erpSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.erpRange(layer,:));
         case 'thk'
             currentValue = str2num(handles.uiEditField.thkCV{layer}.String);
             
@@ -361,7 +368,7 @@ if ~isnan(lowerBound)
             end
             
             guidata(hObject, handles);
-            handles.uiSliders.thkSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.thkRange(layer,:));  
+%             handles.uiSliders.thkSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.thkRange(layer,:));  
     end
 else
     switch panel
@@ -476,11 +483,16 @@ layer = str2num(hObject.Tag);
 currentValue = str2double(hObject.String);
 isOutsideBounds = 0;
 
-[er, erp, thk] = valueExtractor(handles);
-
-if ~isnan(currentValue)
+if ~isnan(currentValue) || isreal(currentValue)
+    [er, erp, thk] = valueReader(handles);
+    numLayers = size(thk, 2);
+    
     switch panel
-        case 'er'
+        case 'er'                        
+            if currentValue < 1
+                hObject.String = num2str(lerp(uiSliders.erSliders{layer}.Value, uiSliders.erRange(layer,:)));
+            end
+            
             sliderValue = in_lerp(currentValue, uiSliders.erRange(layer,:));
             
             if sliderValue >= 0 && sliderValue <= 1
@@ -538,16 +550,15 @@ if isOutsideBounds
     switch panel
         case 'er'
             er(layer) = currentValue;
-            handles = plotGam(handles, er, erp, thk);
         case 'erp'
             erp(layer) = currentValue;
-            handles = plotGam(handles, er, erp, thk);
         case 'thk'
             thk(layer) = currentValue;
-            handles = plotGam(handles, er, erp, thk);
     end
     hObject.String = currentValue;
 end
+
+handles = plotGam(handles, er, erp, thk);
 
 handles.uiSliders = uiSliders;
 
@@ -616,6 +627,20 @@ erp = 10.^lerp_arr(cellfun(valueExtracted, handles.uiSliders.erpSliders), handle
 thk = 10.^lerp_arr(cellfun(valueExtracted, handles.uiSliders.thkSliders), handles.uiSliders.thkRange);
 end
 
+%% Value reader from current value edit field
+function [er, erp, thk] = valueReader(handles)
+% Read current value from edit field which is string stored in cell array
+valueRead = @(s) s.String;
+er_str = cellfun(valueRead, handles.uiEditField.erCV, UniformOutput=false);
+erp_str = cellfun(valueRead, handles.uiEditField.erpCV, UniformOutput=false);
+thk_str = cellfun(valueRead, handles.uiEditField.thkCV, UniformOutput=false);
+
+% Convert string to number
+er = cellfun(@str2num, er_str);
+erp = cellfun(@str2num, erp_str);
+thk = cellfun(@str2num, thk_str);
+end
+
 %% Calculate and plot S-Parameters
 function handles = plotGam(handles, er, erp, thk)
 er_in = er - 1j*erp;
@@ -625,19 +650,14 @@ if handles.isInfHalfPlane.Value
    thk_in(end) = inf; 
 end
 
-plotNum = 1;
 for ii = 1:size(handles.NL, 2)
     gam = handles.NL{ii}.calculate(handles.f{ii}, er_in.', [], thk_in.');
+    gamFit = interp(gam, 10);
     
-    for jj = 1:size(gam, 2)
-        gamFit = interp(gam(:, jj), 10);
-
-        handles.gamFitPlot{plotNum}.XData = real(gamFit);
-        handles.gamFitPlot{plotNum}.YData = imag(gamFit);
-        handles.gamPlot{plotNum}.XData = real(gam(:, jj));
-        handles.gamPlot{plotNum}.YData = imag(gam(:, jj));
-        
-        plotNum = plotNum + 1;
-    end
+    handles.gamFitPlot{ii}.XData = real(gamFit);
+    handles.gamFitPlot{ii}.YData = imag(gamFit);
+    
+    handles.gamPlot{ii}.XData = real(gam);
+    handles.gamPlot{ii}.YData = imag(gam);
 end
 end

@@ -76,7 +76,7 @@ classdef (Abstract) nLayerForward < handle
         [nodes, weights, errorWeights] = fejer2(orderN, a, b);
         [q] = integralVectorized(fun, a, b, options);
         
-        [f, er, ur, thk] = verifyStructure(f, er, ur, thk, options);
+        [er, ur, thk] = verifyStructure(f, er, ur, thk, options);
     end
 
 end

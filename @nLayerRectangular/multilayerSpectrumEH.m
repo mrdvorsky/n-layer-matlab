@@ -30,8 +30,8 @@ function [specE, specH] = multilayerSpectrumEH(tau, k0, er, ur, thk)
 % Author: Matt Dvorsky
 
 %% Calculate Last Layer
-k = k0 .* sqrt(er(1, end, :, :) .* ur(1, end, :, :));
-zetaPrev = sqrt(k.^2 - tau.^2);
+k2 = k0.^2 .* er(1, end, :, :) .* ur(1, end, :, :);
+zetaPrev = sqrt(k2 - tau.^2);
 zetaPrev = complex(real(zetaPrev), -abs(imag(zetaPrev)));
 
 if isfinite(thk(end))
@@ -44,8 +44,8 @@ Ch = -Ce;
 %% Calculate Structure Reflection Coefficient
 % Loop over layers starting with second to last
 for ii = (length(thk) - 1):-1:1
-    k = k0 .* sqrt(er(1, ii, :, :) .* ur(1, ii, :, :));
-    zeta = sqrt(k.^2 - tau.^2);
+    k2 = k0.^2 .* er(1, ii, :, :) .* ur(1, ii, :, :);
+    zeta = sqrt(k2 - tau.^2);
     zeta = complex(real(zeta), -abs(imag(zeta)));
     
     Be = er(1, ii + 1, :, :) ./ er(1, ii, :, :) .* zeta ./ zetaPrev;
@@ -60,6 +60,7 @@ for ii = (length(thk) - 1):-1:1
 end
 
 %% Calculate Output
+k = sqrt(k2);
 specE = k .* (1 + Ce) ./ (1 - Ce) ./ zetaPrev;
 specH = zetaPrev .* (1 - Ch) ./ (1 + Ch) ./ k;
 

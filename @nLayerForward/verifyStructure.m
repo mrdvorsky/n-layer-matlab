@@ -14,7 +14,6 @@ function [er, ur, thk] = verifyStructure(f, er, ur, thk, options)
 %       should be the same as the number of columns in er and ur. Last
 %       element can be inf to represent an infinite half-space.
 % Outputs:
-%   f - Column vector of frequencies (GHz).
 %   er - Array of complex relative permittivities for each layer. Every row
 %       er(ff, :) will contain the permittivity of each layer at the
 %       frequency f(ff).

@@ -1,5 +1,5 @@
 function [specH] = multilayerSpectrumH(tau, k0, er, ur, thk)
-%MULTILAYERSPECTRUMRECT Calculate reflection coefficient spectrum.
+%MULTILAYERSPECTRUMH Calculate reflection coefficient spectrum.
 % This function computes the spectrum for the multilayer structure
 % reflection coefficient for a rectangular waveguide. Specifically, it
 % computes k_1/(zeta_1*D1^(e)) and zeta_1*D1^(h)/k_1 as a function of tau.
@@ -16,16 +16,13 @@ function [specH] = multilayerSpectrumH(tau, k0, er, ur, thk)
 %       size(er, 2) and size(ur, 2). The last element of thk should have a
 %       value of inf for the infinite halfspace case.
 % Outputs
-%   specE - Calculated spectrum, same size as (tau .* k0)
 %   specH - Calculated spectrum, same size as (tau .* k0)
 %
 % The output of this function can be used along with the output of
-% "computeIntegrandEH" to compute the integrals I^(e)_ii(m, n, p, q) and 
-% I^(h)_ii(m, n, p, q). See documentation for "computeIntegrandEH" for
-% more details.
+% "computeIntegrandH" to compute the integral I(m, n). See documentation
+% for "computeIntegrandH" for more details.
 %
-% The outputs specE and specH are equal to k_1/(zeta_1*D1^(e)) and 
-% zeta_1*D1^(h)/k_1, respectively, as a function of tau.
+% The output specH is equal to zeta_1*D1^(h) as a function of tau.
 %
 % Author: Matt Dvorsky
 

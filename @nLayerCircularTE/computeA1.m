@@ -1,18 +1,15 @@
 function [A1, b1] = computeA1(O, f, er, ur, thk)
-%COMPUTEA1B1 Compute the integral of the matrix A1 and b1 over frequency.
-% This function computes the matrices A1 and b1 at each frequency specified
-% by f. The output of this function can along with the outputs of the 
-% constructFrequencyMultipliers(...) function and the 
-% constructMatrixEquation(...) function to calculate S11 for a rectangular
-% waveguide using the example code.
+%COMPUTEA1 Compute the integral of the matrix A1 over frequency.
+% This function computes the matrix A1 at each frequency specified by f.
+% The output of this function can along with the outputs of the
+% constructFrequencyMultipliers(...) function and the
+% constructMatrixEquation(...) function to calculate S11 for a circular
+% waveguide TE01 mode using the example code.
 %
 % Example Usage:
-%   [k_A1, k_A2, k_b1, k_b2] = O.constructFrequencyMultipliers(f);
-%   [~, A2, ~, b2] = O.constructMatrixEquation();
-%   [A1, b1] = computeA1b1(f, er, ur, thk, AbsTol);
-%   sqrt(ur(1) ./ er(1));
-%   x = (A1.*k_A1 + etaR1.*A2.*k_A2) ...
-%        \ (b1.*k_b1 + etaR1.*b2.*k_b2);
+%   [k_A2, k_b2] = O.constructFrequencyMultipliers(f);
+%   [A1, A2] = O.constructMatrixEquation(nLayerInt);
+%   x = (A1 + ur.*A2.*k_A2) \ (-A1(:, 1) + ur.*A2(:, 1).*k_b2);
 %   S11 = x(1);
 %
 % Inputs
@@ -24,15 +21,9 @@ function [A1, b1] = computeA1(O, f, er, ur, thk)
 %   thk - Array of thicknesses for each layer (must have compatible 
 %       dimensions with er and ur). The last element of thk should have a 
 %       value of inf in the infinite halfspace case.
-%   AbsTol - Tolerance with which to compute the matrix A1.
 % Outputs:
 %   A1 - Array of O.numModes by O.numModes matrices for each frequency. The
 %       size of A1 will be O.numModes by O.numModes by numel(f).
-%   b1 - Array of O.numModes by 1 matrices for each frequency. The size of 
-%       b1 will be O.numModes by 1 by numel(f).
-%
-% Note that the negative of b1 is always equal to the first column of A1.
-% This fact will be utilized here.
 %
 % Author: Matt Dvorsky
 
@@ -102,10 +93,8 @@ for ff = 1:length(k0)
     end
 end
 
-%% Format Outputs
-% Note that (-b1) is always the first column of A1.
+%% Format Output
 A1 = reshape(A1, O.numModes, O.numModes, length(k0));
-b1 = -A1(:, 1, :);
 
 end
 

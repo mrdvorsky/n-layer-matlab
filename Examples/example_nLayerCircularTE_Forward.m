@@ -15,7 +15,7 @@
 % Typically, 3 modes are sufficient. Also, f is a column vector of
 % frequencies, and er, ur, and thk are row vectors of complex permittivity
 % and permeability and thickness for each layer. Optionally, er and ur can
-% be matrices where each row corresponds to a particalar frequency.
+% be matrices where each row corresponds to a particular frequency.
 %
 % Author: Matt Dvorsky
 
@@ -26,7 +26,7 @@ close all;
 
 %% Inputs
 wgR = 5.8;                          % Use ka-band circular waveguide dimensions
-f = linspace(32, 40, 21).';         % Frequencies to calculate (column vector)
+f = linspace(32, 40, 51).';         % Frequencies to calculate (column vector)
 fRes = linspace(32, 40, 2001).';    % Resonant case requires more frequencies
 
 numModes = 3;                       % Number of TE0n modes to consider

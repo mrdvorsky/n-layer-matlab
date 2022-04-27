@@ -11,7 +11,7 @@
 % 2, respectively. Also, f is a column vector of frequencies, and er, ur,
 % and thk are row vectors of complex permittivity and permeability and
 % thickness for each layer. Optionally, er and ur can be matrices where
-% each row corresponds to a particalar frequency.
+% each row corresponds to a particular frequency.
 %
 % Author: Matt Dvorsky
 

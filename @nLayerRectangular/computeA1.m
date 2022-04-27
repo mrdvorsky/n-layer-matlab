@@ -9,7 +9,7 @@ function [A1] = computeA1(O, f, er, ur, thk)
 % Example Usage:
 %   [k_A1, k_A2, k_b1, k_b2] = O.constructFrequencyMultipliers(f);
 %   [~, A2] = O.constructMatrixEquation();
-%   [A1] = computeA1b1(f, er, ur, thk, AbsTol);
+%   [A1] = computeA1(f, er, ur, thk);
 %   etaR1 = sqrt(ur(1) ./ er(1));
 %   x = (A1.*k_A1 + etaR1.*A2.*k_A2) ...
 %        \ (-A1(:, 1).*k_b1 + etaR1.*A2(:, 1).*k_b2);

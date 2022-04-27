@@ -6,12 +6,12 @@ function [] = recomputeInterpolants(O)
 %
 % List of critical parameters:
 %   r;
-%   c; (Inherited from nLayerForward)
+%   speedOfLight; (Inherited from nLayerForward)
 %   modesTE;
 %   interpolationPointsTau;
 %   integralPointsTauFixed;
-%   integralPointsPsi;
 %   integralInitialSegmentCount;
+%   integralPointsPsi;
 %
 % Example Usage:
 %   NL = nLayerCircularTE(...);
@@ -55,7 +55,7 @@ integrandH = O.computeIntegrandH(tauP);
 % Note that A2 and b2 do not depend on I^(h), and thus are only computed
 % once. Also note that b1 is ignored since it is always equal to the
 % negative of the first column of A1.
-[A1_H, A2, ~, b2] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
+[A1_H, A2] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
 
 % Undo the previous permutation.
 A1_H = ipermute(A1_H, [2, 3, 4, 1]);
@@ -63,7 +63,6 @@ A1_H = ipermute(A1_H, [2, 3, 4, 1]);
 % Store computed matrices
 O.A1_H = A1_H;
 O.A2 = A2;
-O.b2 = b2;
 
 %% Fixed Point Integration Weights and Nodes
 % For lossy structures, generally no adaptive meshing is needed. In those
@@ -76,7 +75,7 @@ O.b2 = b2;
 % except there is no need to recompute A2 and b2, and A1_E and A2_E are
 % kept separate.
 integrandH = O.computeIntegrandH(tauP);
-[A1_H, ~, ~, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
+[A1_H, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
 
 A1_H = ipermute(A1_H, [2, 3, 4, 1]);
 
@@ -89,13 +88,13 @@ O.fixed_errA1_H = A1_H .* errWeights;
 % The initial pass of the adaptive integral algorithm always uses the same
 % nodes (i.e., the same evaluation coordinates of tau). Thus, we can 
 % precompute the values of the integrand for A1 at those coordinates.
-% These are used in ...
+% These are used in the "integrandA1" function..
 [tauP, ~, ~] = O.gaussKronrod(...
     O.integralInitialSegmentCount, 0, 1);
 
 % The procedure here is the same as in the previous section.
 integrandH = O.computeIntegrandH(tauP);
-[A1_H, ~, ~, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
+[A1_H, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
 
 A1_H = ipermute(A1_H, [2, 3, 4, 1]);
 

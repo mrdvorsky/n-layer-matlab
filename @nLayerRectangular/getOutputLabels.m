@@ -4,12 +4,12 @@ function [outputLabels] = getOutputLabels(O)
 % set of measurements gam(:, ii).
 %
 % Example Usage:
-%   NL = nLayerRectangular(maxM, maxN, band=wgBand);
+%   NL = nLayerRectangular(maxM, maxN, Band=wgBand);
 %   outputLabels = NL.getOutputLabels();
 %
 % Outputs:
 %   outputLabels - Vector of strings labeling each output channel.
-%       Currently only outputs ["S11"].
+%       Currently only outputs ["S_{TE10,TE10}"].
 %
 % Author: Matt Dvorsky
 
@@ -18,7 +18,7 @@ arguments
 end
 
 %% Return Output Channel List
-outputLabels = "S11";
+outputLabels = "S_{TE10,TE10}";
 
 end
 

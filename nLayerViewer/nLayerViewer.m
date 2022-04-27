@@ -189,7 +189,7 @@ for ii = 1:numLayers
         uiSliders.erSliders{ii}.Value = erSliderLoc;
     end
     
-    erpSliderLoc = in_lerp(log10(abs(imag(er(ii))))/log10(10), uiSliders.erpRange(ii,:));
+    erpSliderLoc = in_lerp(log10(abs(imag(er(ii)))), uiSliders.erpRange(ii,:));
     if erpSliderLoc > 1
         uiSliders.erpSliders{ii}.Value = 1;
     elseif erpSliderLoc < 0
@@ -198,7 +198,7 @@ for ii = 1:numLayers
         uiSliders.erpSliders{ii}.Value = erpSliderLoc;
     end
     
-    thkSliderLoc = in_lerp(log10(thk(ii))/log10(10), uiSliders.thkRange(ii,:));
+    thkSliderLoc = in_lerp(log10(thk(ii)), uiSliders.thkRange(ii,:));
     if thkSliderLoc > 1
         uiSliders.thkSliders{ii}.Value = 1;
     elseif thkSliderLoc < 0
@@ -440,7 +440,7 @@ if ~isnan(upperBound)
             end
             
             guidata(hObject, handles);
-            handles.uiSliders.erpSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.erpRange(layer,:));
+            handles.uiSliders.erpSliders{layer}.Value = in_lerp(log10(currentValue), handles.uiSliders.erpRange(layer,:));
         case "thk"
             currentValue = str2double(handles.uiEditField.thkCV{layer}.String);
             
@@ -452,7 +452,7 @@ if ~isnan(upperBound)
             end
             
             guidata(hObject, handles);
-            handles.uiSliders.thkSliders{layer}.Value = in_lerp(log10(currentValue)/log10(10), handles.uiSliders.thkRange(layer,:));
+            handles.uiSliders.thkSliders{layer}.Value = in_lerp(log10(currentValue), handles.uiSliders.thkRange(layer,:));
     end
 else
     switch panel
@@ -532,7 +532,7 @@ if ~isnan(currentValue) || isreal(currentValue)
                 hObject.String = num2str(lerp(uiSliders.erpSliders{layer}.Value, uiSliders.erpRange(layer,:)));
             end
         case "thk"
-            sliderValue = in_lerp(log10(currentValue)/log10(10), uiSliders.thkRange(layer,:));
+            sliderValue = in_lerp(log10(currentValue), uiSliders.thkRange(layer,:));
             
             if sliderValue >= 0 && sliderValue <= 1
                 uiSliders.thkSliders{layer}.Value = sliderValue;

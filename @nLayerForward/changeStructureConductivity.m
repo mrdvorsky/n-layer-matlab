@@ -1,4 +1,4 @@
-function [er, ur, thk] = changeStructureConductivity(f, er, ur, thk, sigma)
+function [er, ur, thk] = changeStructureConductivity(O, f, er, ur, thk, sigma)
 %CALCULATE Modify multilayer structure with new backing conductivity.
 % Modifies the structure so that it is conductor-backed with conductivity
 % equal to sigma.
@@ -31,6 +31,7 @@ function [er, ur, thk] = changeStructureConductivity(f, er, ur, thk, sigma)
 % Author: Matt Dvorsky
 
 arguments
+    O;
     f(:, 1);
     er(:, :);
     ur(:, :);
@@ -39,7 +40,7 @@ arguments
 end
 
 %% Check Values and Sizes of f, er, ur, and thk
-[f, er, ur, thk] = nLayerForward.verifyStructure(f, er, ur, thk, ...
+[er, ur, thk] = nLayerForward.verifyStructure(f, er, ur, thk, ...
     CheckStructureValues=false);
 
 %% Calculate Equivalent erPrime for Given sigma

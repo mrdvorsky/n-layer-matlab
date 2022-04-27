@@ -81,7 +81,7 @@ classdef nLayerCircularTE < nLayerForward
         integralScaleFactor;    % Scale factor for change of varibles from 
                                 % tau [0, inf) to tauP [0, 1].
         
-        A1_H;  % Interpolation functions for A1_H(tauP).
+        A1_H;           % Interpolation functions for A1_H(tauP).
         
         fixed_tau;      % Fixed-point integral coordindates tau.
         fixed_A1_H;     % Fixed-point integral weights for A1_H(tauP).
@@ -94,9 +94,14 @@ classdef nLayerCircularTE < nLayerForward
         b2;             % Mode excitation vector. Equal to A2(:, 1, ...).
     end
     
+    %% Protected member function definitions (implemented in separate files)
+    methods (Access = protected)
+        [gam] = calculateGamma(O, f, er, ur, thk);
+    end
+    
     %% Public member function definitions (implemented in separate files)
     methods (Access = public)
-        gam = calculate(O, f, er, ur, thk, options);
+        [outputLabels] = getOutputLabels(O);
         
         setWaveguideDimensions(O, r);
         recomputeInterpolants(O);
@@ -104,7 +109,7 @@ classdef nLayerCircularTE < nLayerForward
     
     %% Private member function definitions (implemented in separate files)
     methods (Access = private)
-        [A1, b1] = computeA1b1(O, f, er, ur, thk, AbsTol);
+        [A1, b1] = computeA1(O, f, er, ur, thk);
         [k_A1, k_A2, k_b1, k_b2] = constructFrequencyMultipliers(O, f);
         [A1_H] = integrandA1(O, tauP, k0, er, ur, thk);
         [integrandH] = computeIntegrandH(O, tauP);

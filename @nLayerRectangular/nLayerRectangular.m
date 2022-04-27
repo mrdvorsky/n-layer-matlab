@@ -108,7 +108,7 @@ classdef nLayerRectangular < nLayerForward
     
     %% Protected member function definitions (implemented in separate files)
     methods (Access = protected)
-        gam = calculateGamma(O, f, er, ur, thk);
+        [gam] = calculateGamma(O, f, er, ur, thk);
     end
     
     %% Public member function definitions (implemented in separate files)

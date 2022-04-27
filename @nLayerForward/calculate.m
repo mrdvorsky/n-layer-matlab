@@ -40,13 +40,14 @@ arguments
     options.BackingConductivity(:, 1) = inf;
 end
 
-%% Change Conductivity and Check Values and Sizes of f, er, ur, and thk
+%% Check Values and Sizes of f, er, ur, and thk
+[er, ur, thk] = O.verifyStructure(f, er, ur, thk, ...
+    CheckStructureValues=O.checkStructureValues);
+
+%% Change Backing Conductivity
 if any(isfinite(options.BackingConductivity))
     [er, ur, thk] = O.changeStructureConductivity(f, er, ur, thk, ...
         options.BackingConductivity);
-else
-    [er, ur, thk] = O.verifyStructure(f, er, ur, thk, ...
-        CheckStructureValues=O.checkStructureValues);
 end
 
 %% Calculate Reflection/Transmission Coefficients

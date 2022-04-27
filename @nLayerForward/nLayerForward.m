@@ -67,7 +67,7 @@ classdef (Abstract) nLayerForward < handle
     %% Public member function definitions (implemented in separate files)
     methods (Access = public)
         [gam] = calculate(O, f, er, ur, thk);
-        [er, ur, thk] = changeStructureConductivity(f, er, ur, thk, sigma);
+        [er, ur, thk] = changeStructureConductivity(O, f, er, ur, thk, sigma);
     end
     
     %% Public static function definitions (implemented in separate files)

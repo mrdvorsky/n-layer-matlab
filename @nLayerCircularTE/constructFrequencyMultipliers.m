@@ -32,7 +32,7 @@ arguments
 end
 
 %% Mode Coefficients
-k0 = 2*pi .* f ./ O.c;
+k0 = 2*pi .* f ./ O.speedOfLight;
 
 kc0n(:, 1) = O.modeCutoffs;
 

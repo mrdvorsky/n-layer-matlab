@@ -325,16 +325,11 @@ end
 
 %% Lower bound edit field creation
 function LBField = LBValueField(panel, ind, initVal)
-LBField = uicontrol(Style="edit", Parent= panel);
+LBField = uicontrol(Style="edit", Parent=panel, Units="Normalized", ...
+    CallBack=@LBFieldChanged, Tag=num2str(ind), String=num2str(initVal), ...
+    Position=[0.05, 0.75 - 0.15*(ind - 1), 0.1, 0.12]);
+
 uicontrol(LBField);
-
-pos = [0.05, 0.75 - 0.15*(ind - 1), 0.1, 0.12];
-
-LBField.Units = "Normalized";
-LBField.Position = pos;
-LBField.Callback = @LBFieldChanged;
-LBField.Tag = num2str(ind);
-LBField.String = num2str(initVal);
 end
 
 %% Lower bound edit field callback
@@ -396,16 +391,11 @@ end
 
 %% Upper bound edit field and callback
 function limitField = UBValueField(panel, ind, initVal)
-limitField = uicontrol('Style', 'edit', 'Parent', panel);
+limitField = uicontrol(Style="edit", Parent=panel, Units="Normalized", ...
+    CallBack=@UBFieldChanged, Tag=num2str(ind), String=num2str(initVal), ...
+    Position=[0.745, 0.75 - 0.15*(ind - 1), 0.1, 0.12]);
+
 uicontrol(limitField);
-
-pos = [0.745 0.75-0.15*(ind-1) 0.1 0.12];
-
-limitField.Units = 'Normalized';
-limitField.Position = pos;
-limitField.Callback = @UBFieldChanged;
-limitField.Tag = num2str(ind);
-limitField.String = num2str(initVal);
 end
 
 function UBFieldChanged(hObject, eventdata)
@@ -472,16 +462,11 @@ end
 
 %% Current value edit field creation
 function CVField = CVValueField(panel, ind, initVal)
-CVField = uicontrol('Style', 'edit', 'Parent', panel);
+CVField = uicontrol(Style="edit", Parent=panel, Units="Normalized", ...
+    CallBack=@CVFieldChanged, Tag=num2str(ind), String=num2str(initVal), ...
+    Position=[0.87, 0.75 - 0.15*(ind - 1), 0.1, 0.12]);
+
 uicontrol(CVField);
-
-pos = [0.87, 0.75 - 0.15*(ind - 1), 0.1, 0.12];
-
-CVField.Units = 'Normalized';
-CVField.Position = pos;
-CVField.Callback = @CVFieldChanged;
-CVField.Tag = num2str(ind);
-CVField.String = num2str(initVal);
 end
 
 %% Current value edit field callback

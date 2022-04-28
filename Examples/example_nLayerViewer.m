@@ -31,14 +31,14 @@ nLayerViewer(er1_start, thk1_start, NL1, f1);
 
 %% Example 2: Compare 6 modes to 1 mode
 f2 = linspace(32, 40, 41).';
-er2_start = [4 - 0.05j];
-thk2_start = [0.5];
+er2_start = [4 - 0.05j, 1];
+thk2_start = [0.5, 1];
 
 NL2_1 = nLayerRectangular(3, 2, Band="ka");
 NL2_2 = nLayerRectangular(1, 0, Band="ka");
 
 figure;
-nLayerViewer(er1_start, thk1_start, NL2_1, f2, NL2_2, f2, ...
+nLayerViewer(er2_start, thk2_start, NL2_1, f2, NL2_2, f2, ...
     Legend=["6 modes", "1 mode"]);
 
 

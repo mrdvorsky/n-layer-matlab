@@ -25,8 +25,10 @@ function [varargout] = nLayerViewer(er, thk, NL, f, options)
 %       stored within the UI figure.
 %
 % Named Arguments:
+%   ShowLegend (true) - If true, legend will be enabled.
 %   Legend - Array of strings that can be displayed along with the
-%       various plots of different NLayer solvers.
+%       various plots of different NLayer solvers. If not specified,
+%       default names will be used.
 %   ErBounds ([1, 10]) - Bounds of the dielectric constant (er). The
 %       size of the variable is dependent on the number of layers
 %       defined.
@@ -69,6 +71,7 @@ arguments
     % Figure options
     options.FigureHandle    (1, 1);
     options.MainFigDim      (1, 4) {mustBeNumeric} = [100, 100, 1000, 600];
+    options.ShowLegend      (1, 1) {mustBeNumericOrLogical} = true;
     options.Legend          (:, 1) {mustBeText};
     options.PlotPanelSize   (1, 1) {mustBeNumeric} = 0.6;
     options.PanelFontSize   (1, 1) {mustBeNumeric} = 10;
@@ -80,9 +83,9 @@ arguments
     options.SliderWidth     (1, 1) {mustBeNumeric} = 0.12;
     
     % Electrical property bounds
-    options.ErBounds        (:, 2) {mustBeNumeric} = [1, 10];
-    options.ErpBounds       (:, 2) {mustBeNumeric} = [0.01, 10];
-    options.ThkBounds       (:, 2) {mustBeNumeric} = [0.1, 100];
+    options.ErBounds        (:, 2) {mustBePositive, mustBeFinite} = [1, 10];
+    options.ErpBounds       (:, 2) {mustBePositive, mustBeFinite} = [0.01, 10];
+    options.ThkBounds       (:, 2) {mustBePositive, mustBeFinite} = [0.1, 100];
     
     % NLayer settings
     options.GamInterp       (1, 1) {mustBeInteger, mustBePositive} = 10;
@@ -131,27 +134,26 @@ xlim(ax, [-1.1, 1.1]);
 ylim(ax, [-1.1, 1.1]);
 hold(ax, "on");
 
-gamPlot = cell(size(NL,2), 1);
-gamFitPlot = cell(size(NL,2), 1);
+gamPlot = cell(numel(NL), 1);
+gamFitPlot = cell(numel(NL), 1);
 
 % Obtain initial parameters and calculate initial values
-for ii = 1:size(NL, 2)
-    gamPlot{ii} = plot(ax, f{ii}, 0*f{ii}, ".", ...
-        Linewidth=options.PlotLineWidth, HandleVisibility="off");
-    gamFitPlot{ii} = plot(ax, f{ii}, 0*f{ii}, Linewidth=options.PlotLineWidth);
-    
+for ii = 1:numel(NL)
     gam = NL{ii}.calculate(f{ii}, er, [], thk);
     gamFit = interp(gam, options.GamInterp);
     
-    gamFitPlot{ii}.XData = real(gamFit);
-    gamFitPlot{ii}.YData = imag(gamFit);
-    
-    gamPlot{ii}.XData = real(gam);
-    gamPlot{ii}.YData = imag(gam);
+    gamPlot{ii} = plot(ax, gam, ".", Linewidth=options.PlotLineWidth, ...
+        HandleVisibility="off");
+    gamFitPlot{ii} = plot(ax, gamFit, Linewidth=options.PlotLineWidth, ...
+        DisplayName = NL{ii}.getOutputLabels());
 end
 
-if isfield(options, "Legend")
-    legend(ax, options.Legend);
+if options.ShowLegend
+    if isfield(options, "Legend")
+        legend(ax, options.Legend);
+    else
+        legend(ax);
+    end
 end
 
 hold(ax, "off");

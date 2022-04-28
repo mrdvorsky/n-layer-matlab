@@ -12,6 +12,7 @@ function [gam] = calculate(O, f, er, ur, thk, options)
 %   gam = NL.calculate(f, er, ur, thk);
 %   gam = NL.calculate(f, er, [], thk);
 %   gam = NL.calculate(f, [], ur, thk);
+%   gam = NL.calculate(f, [], ur, thk, BackingConductivity=sigma);
 %
 % Inputs:
 %   f - Column vector of frequencies (GHz).

@@ -118,9 +118,9 @@ thkPanel = uipanel(sliderPanel, Position=[0, 0, 1, 0.333], Tag="thk", ...
 
 %% Save initial material structure
 handles.f = f;
-handles.NL = NL;
+handles.NL = cellfun(@copy, NL, UniformOutput=false);
 
-numLayers = size(thk, 2);
+numLayers = numel(thk);
 
 %% Create plot
 ax = axes(plotPanel);

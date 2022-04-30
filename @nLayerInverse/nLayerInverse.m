@@ -1,0 +1,114 @@
+classdef nLayerInverse < matlab.mixin.Copyable
+    %NLAYERINVERSE Class to perform optimization on nLayerForward objects.
+    % This class serves as an interface definition for all nLayer forward
+    % calculator objects. These objects take in a multilayer structure
+    % definition and output the computed reflection coefficients (or
+    % transmission coefficients). It also contains several useful utility
+    % functions.
+    %
+    % nLayerForward Properties:
+    %   speedOfLight (299.792458) - Speed of light (mm GHz). Must match
+    %       units of distance and frequency used.
+    %   verbosity (0) - A value of 0 should suppress console output.
+    %   checkStructureValues (true) - Flag used in the "verifyStructure"
+    %       function. If true, this function will throw errors if
+    %       non-physical values of er, ur, or thk are passed in.
+    %
+    % Author: Matt Dvorsky
+    
+    properties (GetAccess = public, SetAccess = public)
+        localOptimizerOptions;
+        globalOptimizerOptions;
+        
+        useGlobalOptimizer = false;
+        useLocalOptimizer = true;
+        
+        default_erRange = [1; 1000];
+        default_erpRange = [0.0001; 1000];
+        default_thkRange = [0.0001; 1000];
+    end
+    
+    properties (GetAccess = public, SetAccess = private)
+        verbosity;
+        
+        layerCount;
+        
+        erLayersToSolve;
+        erpLayersToSolve;
+        thkLayersToSolve;
+        
+        erRange;
+        erpRange;
+        thkRange;
+        
+        erGuess;
+        erpGuess;
+        thkGuess;
+    end
+    
+    %% Function Declarations (implemented in separate files)
+    methods (Access = public)
+        [er, ur, thk] = solveStructure(O, NL, f, gam);
+        setLayerCount(O, layerCount);
+        setLayersToSolve(O, options);
+        setInitialGuesses(O, options);
+    end
+    
+    methods (Access = private)
+        [er, ur, thk] = extractStructure(O, x, f);
+        [xGuess, xMin, xMax] = constructGuessesAndRanges(O);
+    end
+    
+    %% Class constructor
+    methods
+        function O = nLayerInverse(numLayers, options)
+            %NLAYERRECTANGULAR Construct an instance of this class.
+            % Example Usage:
+            %   NLsolver = nLayerInverse();
+            %
+            % Inputs:
+            %   maxM - .
+            % Named Arguments:
+            %   LocalOptimizerOptions - .
+            
+            arguments
+                numLayers(1, 1) {mustBeInteger, mustBePositive};
+                options.Verbosity = 0;
+                options.LocalOptimizerOptions;
+                options.GlobalOptimizerOptions;
+            end
+            
+            %% Set Class Parameter Values
+            O.verbosity = options.Verbosity;
+            
+            %% Set Default Optimizer Options
+            if isfield(options, "LocalOptimizerOptions")
+                O.localOptimizerOptions = options.LocalOptimizerOptions;
+            else
+                O.localOptimizerOptions = optimoptions("lsqnonlin", ...
+                    Display="none");
+                if O.verbosity
+                    O.localOptimizerOptions = optimoptions(...
+                        O.localOptimizerOptions, Display="iter");
+                end
+            end
+            
+            if isfield(options, "GlobalOptimizerOptions")
+                O.globalOptimizerOptions = options.GlobalOptimizerOptions;
+            else
+                O.globalOptimizerOptions = optimoptions("particleswarm", ...
+                    Display="none");
+                if O.verbosity
+                    O.globalOptimizerOptions = optimoptions(...
+                        O.globalOptimizerOptions, Display="iter");
+                end
+            end
+            
+            %% Set Number of Layers
+            O.setLayerCount(numLayers);
+            
+        end
+    end
+    
+end
+

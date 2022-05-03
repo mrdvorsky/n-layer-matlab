@@ -17,9 +17,9 @@ O.erRange = O.default_erRange + 0*(1:layerCount);
 O.erpRange = O.default_erpRange + 0*(1:layerCount);
 O.thkRange = O.default_thkRange + 0*(1:layerCount);
 
-O.erGuess = O.erRange(1, :);
-O.erpGuess = O.erpRange(1, :);
-O.thkGuess = O.thkRange(1, :);
+O.erInitialValue = O.erRange(1, :);
+O.erpInitialValue = O.erpRange(1, :);
+O.thkInitialValue = O.thkRange(1, :);
 
 end
 

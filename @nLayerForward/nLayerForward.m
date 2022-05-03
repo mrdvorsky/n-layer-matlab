@@ -43,6 +43,8 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable
     %   verifyStructure - Checks the validity of the multilayer structure
     %       and frequency definitions. This function is called
     %       automatically on inputs passed into calculate(...).
+    %   printStructure - Prints or returns a string to visualize the
+    %       multilayer structure.
     %   changeStructureConductivity - Changes a multilayer structure to be
     %       conductor-backed with a finite conductivity.
     %
@@ -76,7 +78,8 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable
         [nodes, weights, errorWeights] = fejer2(orderN, a, b);
         [q] = integralVectorized(fun, a, b, options);
         
-        [er, ur, thk] = verifyStructure(f, er, ur, thk, options);
+        [er, ur, thk] = validateStructure(f, er, ur, thk, options);
+        [structureString] = printStructure(er, ur, thk, options);
     end
 
 end

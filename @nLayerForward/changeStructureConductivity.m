@@ -40,7 +40,7 @@ arguments
 end
 
 %% Check Values and Sizes of f, er, ur, and thk
-[er, ur, thk] = nLayerForward.verifyStructure(f, er, ur, thk, ...
+[er, ur, thk] = nLayerForward.validateStructure(f, er, ur, thk, ...
     CheckStructureValues=false);
 
 %% Calculate Equivalent erPrime for Given sigma

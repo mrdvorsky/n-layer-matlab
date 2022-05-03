@@ -23,9 +23,9 @@ classdef nLayerInverse < matlab.mixin.Copyable
         useGlobalOptimizer = false;
         useLocalOptimizer = true;
         
-        default_erRange = [1; 1000];
-        default_erpRange = [0.0001; 1000];
-        default_thkRange = [0.0001; 1000];
+        default_erRange = [1; 100];
+        default_erpRange = [0.001; 10];
+        default_thkRange = [0.001; inf];
     end
     
     properties (GetAccess = public, SetAccess = private)
@@ -41,9 +41,9 @@ classdef nLayerInverse < matlab.mixin.Copyable
         erpRange;
         thkRange;
         
-        erGuess;
-        erpGuess;
-        thkGuess;
+        erInitialValue;
+        erpInitialValue;
+        thkInitialValue;
     end
     
     %% Function Declarations (implemented in separate files)
@@ -51,7 +51,8 @@ classdef nLayerInverse < matlab.mixin.Copyable
         [er, ur, thk] = solveStructure(O, NL, f, gam);
         setLayerCount(O, layerCount);
         setLayersToSolve(O, options);
-        setInitialGuesses(O, options);
+        setInitialValues(O, options);
+        printStructureParameters(O, options);
     end
     
     methods (Access = private)

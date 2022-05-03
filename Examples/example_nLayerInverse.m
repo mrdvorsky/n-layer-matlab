@@ -29,17 +29,17 @@ NL1 = nLayerRectangular(3, 2, Band="ka");
 gamActual1 = NL1.calculate(f1, er1, [], thk1);
 gamMeas1 = gamActual1 + noiseStd.*randn(size(f1));
 
-NLsolver = nLayerInverse(2, Verbosity=true);
+NLsolver = nLayerInverse(2, Verbosity=false);
 NLsolver.useGlobalOptimizer = false;
 NLsolver.setLayersToSolve(ErLayers=[2], ErpLayers=[2], ThkLayers=[1]);
-NLsolver.setInitialGuesses(ErGuess=[1, 1], ErpGuess=[0.01, 0.05], ...
-    ThkGuess=[0.01, 0.05]);
+NLsolver.setInitialValues(ErValue=[1, 1], ErpValue=[0.01, 0.05], ...
+    ThkValue=[0.1, 0.5]);
 
-NLsolver.printStructureSetup(ShowLimits=false);
+NLsolver.printStructureParameters(ShowLimits=false);
 
-% tic;
-% [er, ur, thk] = NLsolver.solveStructure(NL1, f1, gamMeas1);
-% toc;
+tic;
+[er, ur, thk] = NLsolver.solveStructure(NL1, f1, gamMeas1);
+toc;
 
 
 

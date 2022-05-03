@@ -23,6 +23,7 @@ close all;
 %% Inputs
 wgBand = "x";                       % Use x-band waveguide dimensions
 f = linspace(8.2, 12.4, 21).';      % Frequencies to calculate (column vector)
+fRes = linspace(8.2, 12.4, 401).';  % Use more points for the resonant case
 
 maxM = 3;                           % Max mode index for broad dimension
 maxN = 2;                           % Max mode index for narrow dimension
@@ -52,6 +53,7 @@ er1 = [1 - 0.0001j, 2 - 0.0001j];   % Row vector
 ur1 = [];                           % Empty vector will be defaulted to all 1's
 thk1 = [1, 5];                      % Row vector
 
+NL.printStructure(er1, ur1, thk1, Title="Case 1");
 tic;
 % Call this function to calculate the reflection coefficient. The
 % reflection coefficient will be calculated within the tolerance specified
@@ -77,6 +79,7 @@ er2 = [1 - 0.0001j, 2 - 0.0001j];
 ur2 = [];
 thk2 = [1, inf];
 
+NL.printStructure(er2, ur2, thk2, Title="Case 2");
 tic;
 gam2 = NL.calculate(f, er2, ur2, thk2);
 fprintf("Two-layer low loss half-space: ");
@@ -98,6 +101,7 @@ er3 = [4 - 1j];
 ur3 = [3 - 0.1j];
 thk3 = [inf];
 
+NL.printStructure(er3, ur3, thk3, Title="Case 3");
 tic;
 gam3 = NL.calculate(f, er3, ur3, thk3);
 fprintf("One-layer lossy half-space: ");
@@ -119,11 +123,9 @@ er4 = [2 - 0.001j];
 ur4 = [];
 thk4 = [10];
 
-% Use more frequency points for this case.
-f4 = linspace(8.2, 12.4, 401).';
-
+NL.printStructure(er4, ur4, thk4, Title="Case 4");
 tic;
-gam4 = NL.calculate(f4, er4, ur4, thk4);
+gam4 = NL.calculate(fRes, er4, ur4, thk4);
 fprintf("One-layer conductor backed resonant: ");
 toc;
 
@@ -146,6 +148,7 @@ er5 = [linspace(1 - 0.0001j, 1 - 1j, length(f)).', ...
 ur5 = [];
 thk5 = [1, 5];
 
+NL.printStructure(er5(1, :), ur5, thk5, Title="Case 5");
 tic;
 gam5 = NL.calculate(f, er5, ur5, thk5);
 fprintf("One-layer conductor backed resonant: ");

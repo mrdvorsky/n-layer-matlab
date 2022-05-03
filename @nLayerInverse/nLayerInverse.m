@@ -57,7 +57,7 @@ classdef nLayerInverse < matlab.mixin.Copyable
     
     methods (Access = private)
         [er, ur, thk] = extractStructure(O, x, f);
-        [xGuess, xMin, xMax] = constructGuessesAndRanges(O);
+        [xGuess, xMin, xMax] = constructInitialValuesAndRanges(O);
     end
     
     %% Class constructor

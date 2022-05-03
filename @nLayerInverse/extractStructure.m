@@ -9,9 +9,9 @@ arguments
 end
 
 %% Create Default Structure
-er = O.erGuess;
-erp = O.erpGuess;
-thk = O.thkGuess;
+er = O.erInitialValue;
+erp = O.erpInitialValue;
+thk = O.thkInitialValue;
 
 %% Fill in Structure
 xInds = cumsum([0, length(O.erLayersToSolve), length(O.erpLayersToSolve), ...

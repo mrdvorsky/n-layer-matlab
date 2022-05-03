@@ -6,27 +6,27 @@ arguments
     O;
 end
 
-%% Check Guess Bounds
-if any(O.erGuess < O.erRange(1, :) | O.erGuess > O.erRange(2, :))
-    error("An element of 'erGuess' is outside the range specified by 'erRange'.");
+%% Check Value Bounds
+if any(O.erInitialValue < O.erRange(1, :) | O.erInitialValue > O.erRange(2, :))
+    error("An element of 'erInitialValue' is outside the range specified by 'erRange'.");
 end
 
-if any(O.erpGuess < O.erpRange(1, :) | O.erpGuess > O.erpRange(2, :))
-    error("An element of 'erpGuess' is outside the range specified by 'erpRange'.");
+if any(O.erpInitialValue < O.erpRange(1, :) | O.erpInitialValue > O.erpRange(2, :))
+    error("An element of 'erpInitialValue' is outside the range specified by 'erpRange'.");
 end
 
-if any(O.thkGuess < O.thkRange(1, :) | O.thkGuess > O.thkRange(2, :))
-    error("An element of 'thkGuess' is outside the range specified by 'thkRange'.");
+if any(O.thkInitialValue < O.thkRange(1, :) | O.thkInitialValue > O.thkRange(2, :))
+    error("An element of 'thkInitialValue' is outside the range specified by 'thkRange'.");
 end
 
-if any(~isfinite(O.thkGuess(O.thkLayersToSolve)))
+if any(~isfinite(O.thkInitialValue(O.thkLayersToSolve)))
     error("Last layer thickness cannot be infinite if it is being solved.");
 end
 
-%% Construct Guesses and Ranges
-erGuess  = O.erGuess( 1, O.erLayersToSolve);
-erpGuess = O.erpGuess(1, O.erpLayersToSolve);
-thkGuess = O.thkGuess(1, O.thkLayersToSolve);
+%% Construct Initial Values and Ranges
+erInitialValue  = O.erInitialValue( 1, O.erLayersToSolve);
+erpInitialValue = O.erpInitialValue(1, O.erpLayersToSolve);
+thkInitialValue = O.thkInitialValue(1, O.thkLayersToSolve);
 
 erMin  = O.erRange( 1, O.erLayersToSolve);
 erpMin = O.erpRange(1, O.erpLayersToSolve);
@@ -37,7 +37,7 @@ erpMax = O.erpRange(2, O.erpLayersToSolve);
 thkMax = O.thkRange(2, O.thkLayersToSolve);
 
 %% Assemble Output
-xInitial = [erGuess, erpGuess, thkGuess].';
+xInitial = [erInitialValue, erpInitialValue, thkInitialValue].';
 xMin   = [erMin,   erpMin,   thkMin].';
 xMax   = [erMax,   erpMax,   thkMax].';
 

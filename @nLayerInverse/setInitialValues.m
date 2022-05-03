@@ -11,7 +11,7 @@ arguments
 end
 
 %% Check Bounds
-if any(~isfinite(options.ThkGuess(1, 1:end - 1)))
+if any(~isfinite(options.ThkValue(1, 1:end - 1)))
     error("Layer thicknesses must be finite (except for last layer).");
 end
 

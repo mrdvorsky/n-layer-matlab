@@ -79,7 +79,7 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable
         [q] = integralVectorized(fun, a, b, options);
         
         [er, ur, thk] = validateStructure(f, er, ur, thk, options);
-        [structureString] = printStructure(er, ur, thk, options);
+        [structureString, figureString] = printStructure(er, ur, thk, options);
     end
 
 end

@@ -23,9 +23,9 @@ classdef nLayerInverse < matlab.mixin.Copyable
         useGlobalOptimizer = false;
         useLocalOptimizer = true;
         
-        default_erRange = [1; 100];
+        default_erRange = [1; 10];
         default_erpRange = [0.001; 10];
-        default_thkRange = [0.001; inf];
+        default_thkRange = [0.001; 1];
     end
     
     properties (GetAccess = public, SetAccess = private)
@@ -48,11 +48,11 @@ classdef nLayerInverse < matlab.mixin.Copyable
     
     %% Function Declarations (implemented in separate files)
     methods (Access = public)
-        [er, ur, thk] = solveStructure(O, NL, f, gam);
+        [er, ur, thk, varargout] = solveStructure(O, NL, f, gam);
         setLayerCount(O, layerCount);
         setLayersToSolve(O, options);
         setInitialValues(O, options);
-        printStructureParameters(O, options);
+        [varargout] = printStructureParameters(O, options);
     end
     
     methods (Access = private)
@@ -88,21 +88,13 @@ classdef nLayerInverse < matlab.mixin.Copyable
             else
                 O.localOptimizerOptions = optimoptions("lsqnonlin", ...
                     Display="none");
-                if O.verbosity
-                    O.localOptimizerOptions = optimoptions(...
-                        O.localOptimizerOptions, Display="iter");
-                end
             end
             
             if isfield(options, "GlobalOptimizerOptions")
                 O.globalOptimizerOptions = options.GlobalOptimizerOptions;
             else
-                O.globalOptimizerOptions = optimoptions("particleswarm", ...
-                    Display="none");
-                if O.verbosity
-                    O.globalOptimizerOptions = optimoptions(...
-                        O.globalOptimizerOptions, Display="iter");
-                end
+                O.globalOptimizerOptions = optimoptions("surrogateopt", ...
+                    Display="none", PlotFcn="");
             end
             
             %% Set Number of Layers

@@ -55,6 +55,9 @@ if options.CheckStructureValues
     if ~all(thk >= 0)
         error("All elements of thk must be nonnegative.");
     end
+    if ~all(isfinite(thk(1:end - 1)))
+        error("All elements of thk except the last must be finite.");
+    end
 end
 
 %% Check Dimensions of f, er, ur, and thk

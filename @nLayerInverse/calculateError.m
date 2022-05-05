@@ -15,14 +15,20 @@ end
 [er, ur, thk] = O.extractStructure(x, f);
 
 %% Calculate Gamma
-gam = NL.calculate(f, er, ur, thk);
+try
+    gam = NL.calculate(f, er, ur, thk);
+catch ex
+    error("Failed to evaluate structure because: %s%s", ex.message, ...
+        O.printStructureParameters(er, ur, thk, Title=""));
+end
 
 %% Calculate Error
 gamErrorComplex = gam(:) - gamActual(:);
-gamError = [real(gamErrorComplex); imag(gamErrorComplex)];
+gamError = [real(gamErrorComplex); imag(gamErrorComplex)] ...
+    ./ sqrt(numel(gamErrorComplex));
 
 if ~options.VectorOutput
-    gamError = rms(gamError);
+    gamError = (sum(gamError.^2));
 end
 
 end

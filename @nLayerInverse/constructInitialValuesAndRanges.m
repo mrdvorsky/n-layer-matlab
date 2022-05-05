@@ -7,11 +7,13 @@ arguments
 end
 
 %% Check Value Bounds
-if any(O.erInitialValue < O.erRange(1, :) | O.erInitialValue > O.erRange(2, :))
+if any(O.erInitialValue(O.erLayersToSolve) < O.erRange(1, :) ...
+        | O.erInitialValue(O.erLayersToSolve) > O.erRange(2, :))
     error("An element of 'erInitialValue' is outside the range specified by 'erRange'.");
 end
 
-if any(O.erpInitialValue < O.erpRange(1, :) | O.erpInitialValue > O.erpRange(2, :))
+if any(O.erpInitialValue(O.erpLayersToSolve) < O.erpRange(1, :) ...
+        | O.erpInitialValue(O.erpLayersToSolve) > O.erpRange(2, :))
     error("An element of 'erpInitialValue' is outside the range specified by 'erpRange'.");
 end
 
@@ -28,16 +30,19 @@ erInitialValue  = O.erInitialValue( 1, O.erLayersToSolve);
 erpInitialValue = O.erpInitialValue(1, O.erpLayersToSolve);
 thkInitialValue = O.thkInitialValue(1, O.thkLayersToSolve);
 
-erMin  = O.erRange( 1, O.erLayersToSolve);
-erpMin = O.erpRange(1, O.erpLayersToSolve);
+erMin  = (O.erRange( 1, O.erLayersToSolve));
+erpMin = (O.erpRange(1, O.erpLayersToSolve));
 thkMin = O.thkRange(1, O.thkLayersToSolve);
 
-erMax  = O.erRange( 2, O.erLayersToSolve);
-erpMax = O.erpRange(2, O.erpLayersToSolve);
+erMax  = (O.erRange( 2, O.erLayersToSolve));
+erpMax = (O.erpRange(2, O.erpLayersToSolve));
 thkMax = O.thkRange(2, O.thkLayersToSolve);
 
 %% Assemble Output
-xInitial = [erInitialValue, erpInitialValue, thkInitialValue].';
+% Transformation of er and erp is done to improve convergence. If this is
+% changed, make sure to make the corresponding change in the
+% "extractStructure" function and the min and max values above.
+xInitial = [(erInitialValue), (erpInitialValue), thkInitialValue].';
 xMin   = [erMin,   erpMin,   thkMin].';
 xMax   = [erMax,   erpMax,   thkMax].';
 

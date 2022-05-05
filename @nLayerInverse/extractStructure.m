@@ -21,8 +21,11 @@ x_er  = x(xInds(1) + 1:xInds(2));
 x_erp = x(xInds(2) + 1:xInds(3));
 x_thk = x(xInds(3) + 1:xInds(4));
 
-er(1, O.erLayersToSolve) = x_er.';
-erp(1, O.erpLayersToSolve) = x_erp.';
+% Transformation of er and erp is done to improve convergence. If this is
+% changed, make sure to make the corresponding change in the
+% "constructInitialValuesAndRanges" function.
+er(1, O.erLayersToSolve) = (x_er).';
+erp(1, O.erpLayersToSolve) = (x_erp).';
 thk(1, O.thkLayersToSolve) = x_thk.';
 
 %% Construct Outputs

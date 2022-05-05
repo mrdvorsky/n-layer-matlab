@@ -4,21 +4,14 @@ function [gam] = calculateGamma(O, f, er, ur, thk)
 % mode when looking into a multilayer structure defined by er, ur, thk at
 % the frequencies defined by f.
 %
-% Example Usage:
-%   NL = nLayerRectangular(maxM, maxN, band=wgBand);
-%   gam = NL.calculate(f, er, ur, thk);
-%   gam = NL.calculate(f, er, [], thk);
-%   gam = NL.calculate(f, [], ur, thk);
-%   gam = NL.calculate(f, er, [], thk, BackingConductivity=sigma);
-%
 % Inputs:
 %   f - Column vector of frequencies (GHz).
 %   er - Array of complex relative permittivities for each layer. Every row
-%       er(ff, :) should contain the permittivity of each layer at the
-%       frequency f(ff). Pass in [] to use default value (1).
+%       er(ff, :) contains the permittivity of each layer at the frequency
+%       f(ff).
 %   ur - Same as er, except for complex relative permeability.
-%   thk - Vector of thicknesses for each layer. The length of thk should be
-%       the same as the number of columns in er and ur. Last element can be
+%   thk - Vector of thicknesses for each layer. The length of thk is the
+%       same as the number of columns in er and ur. Last element can be
 %       inf to represent an infinite half-space.
 % Outputs:
 %   gam - Column vector of reflection coefficients for the TE10 mode. Same
@@ -34,11 +27,17 @@ arguments
     thk(1, :);
 end
 
-%% Compute A1 and b1
+%% Check for Zero Thickness
+if all(thk == 0)
+    gam = complex(-ones(size(f)));
+    return;
+end
+
+%% Compute A1
 % This is the computationally intensive part of this algorithm
 A1 = O.computeA1(f, er, ur, thk);
 
-%% Get A2, b2, and etaR1
+%% Get A2 and etaR1
 % A2 is precomputed in the "recomputeInterpolants" function.
 A2 = O.A2;
 

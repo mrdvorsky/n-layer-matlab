@@ -34,11 +34,17 @@ arguments
     thk(1, :);
 end
 
-%% Compute A1 and b1
+%% Check for Zero Thickness
+if all(thk == 0)
+    gam = complex(-ones(size(f)));
+    return;
+end
+
+%% Compute A1
 % This is the computationally intensive part of this algorithm
 A1 = O.computeA1(f, er, ur, thk);
 
-%% Get A2 and b2
+%% Get A2
 % A2 is precomputed in the "recomputeInterpolants" function.
 A2 = O.A2;
 

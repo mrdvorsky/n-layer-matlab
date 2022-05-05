@@ -163,8 +163,9 @@ while true
     
     % Error if splitting results in too many function evaluations
     if numel(nodesGK)*size(intervals, 2) + numEvaluations > options.MaxFunctionEvaluations
-        error("Maximum number of subintervals reached (%d > %d).", ...
-            size(intervals, 2), options.MaxIntervalCount);
+        error("Maximum number of function evaluations reached (%d > %d).", ...
+            numel(nodesGK)*size(intervals, 2) + numEvaluations, ...
+            options.MaxFunctionEvaluations);
     end
 end
 

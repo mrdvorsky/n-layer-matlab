@@ -20,7 +20,7 @@ clear;
 close all;
 
 %% Example 1: Ka-band rectangular waveguide
-f1 = linspace(32, 40, 41).';
+f1 = linspace(26.5, 40, 41).';
 er1_start = [4 - 0.05j];
 thk1_start = [0.5];
 
@@ -30,7 +30,7 @@ figure;
 nLayerViewer(er1_start, thk1_start, NL1, f1);
 
 %% Example 2: Compare 6 modes to 1 mode
-f2 = linspace(32, 40, 41).';
+f2 = linspace(26.5, 40, 41).';
 er2_start = [4 - 0.05j, 1];
 thk2_start = [0.5, 1];
 

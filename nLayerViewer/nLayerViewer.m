@@ -75,6 +75,7 @@ arguments
     options.Legend          (:, 1) {mustBeText};
     options.PlotPanelSize   (1, 1) {mustBeNumeric} = 0.6;
     options.PanelFontSize   (1, 1) {mustBeNumeric} = 10;
+    options.FigureColor = [0.94, 0.94, 0.94];
     
     % Slider parameters
     options.SliderXPos      (1, 1) {mustBeNumeric} = 0.15;
@@ -103,18 +104,40 @@ else
 end
 clf(fig);
 fig.Position = options.MainFigDim;
+fig.ToolBar = "none";
 
-plotPanel = uipanel(fig, Position=[0, 0, options.PlotPanelSize, 1]);
-sliderPanel = uipanel(fig, Position=[options.PlotPanelSize, 0, 1 - options.PlotPanelSize, 1]);
+plotPanel = uipanel(fig, BackgroundColor=options.FigureColor, ...
+    Position=[0, 0, options.PlotPanelSize, 1]);
+sliderPanel = uipanel(fig, BackgroundColor=options.FigureColor, ...
+    Position=[options.PlotPanelSize, 0, 1 - options.PlotPanelSize, 1]);
 
-erPanel = uipanel(sliderPanel, Position=[0, 0.667, 1, 0.333], Tag="er", ...
+erPanel = uipanel(sliderPanel, Position=[0, 2/3, 1, 1/3], Tag="er", ...
     FontSize=options.PanelFontSize, Title="Dielectric Constant (er)");
 
-erpPanel = uipanel(sliderPanel, Position=[0, 0.333, 1, 0.333], Tag="erp", ...
+erpPanel = uipanel(sliderPanel, Position=[0, 1/3, 1, 1/3], Tag="erp", ...
     FontSize=options.PanelFontSize, Title="Dielectric Loss (erp)");
 
-thkPanel = uipanel(sliderPanel, Position=[0, 0, 1, 0.333], Tag="thk", ...
+thkPanel = uipanel(sliderPanel, Position=[0, 0, 1, 1/3], Tag="thk", ...
     FontSize=options.PanelFontSize, Title="Thickness (mm)");
+
+handles.plotPanel = plotPanel;
+
+%% Add Copy Figure Options to MenuBar
+copyMenu = uimenu(fig, "Text", "Copy/Export Figure");
+
+uimenu(copyMenu, "Text", "Copy Polar Plot", ...
+    MenuSelectedFcn=@copyFigure);
+uimenu(copyMenu, "Text", "Copy Structure Definition", ...
+    MenuSelectedFcn=@copyStructure);
+uimenu(copyMenu, "Text", "Copy Both", ...
+    MenuSelectedFcn=@copyFigureAndStructure);
+
+uimenu(copyMenu, "Text", "Export Polar Plot", ...
+    MenuSelectedFcn=@exportFigure, Separator="on");
+uimenu(copyMenu, "Text", "Export Structure Definition", ...
+    MenuSelectedFcn=@exportStructure);
+uimenu(copyMenu, "Text", "Export Both", ...
+    MenuSelectedFcn=@exportFigureAndStructure);
 
 %% Save initial material structure
 handles.f = f;
@@ -122,17 +145,33 @@ handles.NL = cellfun(@copy, NL, UniformOutput=false);
 
 numLayers = numel(thk);
 
-%% Create plot
-ax = axes(plotPanel);
+%% Create Structure Description
+structureAxis = axes(plotPanel, Position=[0.05, 0.05, 0.9, 0.2], ...
+    TickLength=[0, 0], XTick={}, YTick={}, ...
+    Color="none", XColor="none", YColor="none");
 
-[h1, h2, h3] = zplane([], [], ax);
+[~, structureString] = NL{1}.printStructure(er, [], thk, Title="");
+
+structureText = text(structureAxis, 0.5, 0.5, structureString, ...
+    Units="normalized", HorizontalAlignment="center", ...
+    FontName="Monospaced", FontWeight="bold", FontSize=9);
+
+handles.structureText = structureText;
+handles.structureAxis = structureAxis;
+
+%% Create Polar Plot
+plotAxis = axes(plotPanel, Position=[0.13, 0.31, 0.7750, 0.6150]);
+
+[h1, h2, h3] = zplane([], [], plotAxis);
 h1.HandleVisibility = "off";
 h2.HandleVisibility = "off";
 h3.HandleVisibility = "off";
+xlabel("");
+ylabel("");
 
-xlim(ax, [-1.1, 1.1]);
-ylim(ax, [-1.1, 1.1]);
-hold(ax, "on");
+xlim(plotAxis, [-1.1, 1.1]);
+ylim(plotAxis, [-1.1, 1.1]);
+hold(plotAxis, "on");
 
 gamPlot = cell(numel(NL), 1);
 gamFitPlot = cell(numel(NL), 1);
@@ -142,21 +181,23 @@ for ii = 1:numel(NL)
     gam = NL{ii}.calculate(f{ii}, er, [], thk);
     gamFit = interp(gam, options.GamInterp);
     
-    gamPlot{ii} = plot(ax, gam, ".", Linewidth=options.PlotLineWidth, ...
+    gamPlot{ii} = plot(plotAxis, gam, ".", Linewidth=options.PlotLineWidth, ...
         HandleVisibility="off");
-    gamFitPlot{ii} = plot(ax, gamFit, Linewidth=options.PlotLineWidth, ...
+    gamFitPlot{ii} = plot(plotAxis, gamFit, Linewidth=options.PlotLineWidth, ...
         DisplayName = NL{ii}.getOutputLabels());
 end
 
 if options.ShowLegend
     if isfield(options, "Legend")
-        legend(ax, options.Legend);
+        legend(plotAxis, options.Legend);
     else
-        legend(ax);
+        legend(plotAxis);
     end
 end
 
-hold(ax, "off");
+hold(plotAxis, "off");
+
+handles.plotAxis = plotAxis;
 handles.gamPlot = gamPlot;
 handles.gamFitPlot = gamFitPlot;
 
@@ -290,7 +331,7 @@ guidata(fig, handles);
 end
 
 %% Slider value change function
-function sliderValueChanged(hObject, eventdata)
+function sliderValueChanged(hObject, ~)
 handles = guidata(hObject);
 
 % Extract value from slider and current value edit field
@@ -333,7 +374,7 @@ uicontrol(LBField);
 end
 
 %% Lower bound edit field callback
-function LBFieldChanged(hObject, eventdata)
+function LBFieldChanged(hObject, ~)
 handles = guidata(hObject);
 
 panel = hObject.Parent.Tag;
@@ -398,7 +439,7 @@ limitField = uicontrol(Style="edit", Parent=panel, Units="Normalized", ...
 uicontrol(limitField);
 end
 
-function UBFieldChanged(hObject, eventdata)
+function UBFieldChanged(hObject, ~)
 handles = guidata(hObject);
 
 panel = hObject.Parent.Tag;
@@ -470,7 +511,7 @@ uicontrol(CVField);
 end
 
 %% Current value edit field callback
-function CVFieldChanged(hObject, eventdata)
+function CVFieldChanged(hObject, ~)
 handles = guidata(hObject);
 
 uiSliders = handles.uiSliders;
@@ -564,7 +605,7 @@ guidata(hObject, handles);
 end
 
 %% Infinite half plane checkbox value change callback
-function halfPlaneValueChange(hObject, eventdata)
+function halfPlaneValueChange(hObject, ~)
 handles = guidata(hObject);
 
 isInfHalfPlane = handles.isInfHalfPlane.Value;
@@ -640,6 +681,52 @@ erp = cellfun(@str2double, erp_str);
 thk = cellfun(@str2double, thk_str);
 end
 
+%% Copy Figure Callbacks
+function copyFigure(src, ~)
+handles = guidata(src.Parent.Parent);
+copygraphics(handles.plotAxis);
+end
+
+function copyStructure(src, ~)
+handles = guidata(src.Parent.Parent);
+copygraphics(handles.structureAxis);
+end
+
+function copyFigureAndStructure(src, ~)
+handles = guidata(src.Parent.Parent);
+copygraphics(handles.plotPanel);
+end
+
+%% Export Figure Callbacks
+function exportFigure(src, ~)
+handles = guidata(src.Parent.Parent);
+newFig = figure;
+newPlotAxis = copyobj(handles.plotAxis, newFig);
+newPlotAxis.Position = [0.13, 0.11, 0.775, 0.815];
+
+if isprop(handles.plotAxis, "Legend")
+    legend(newPlotAxis);
+end
+end
+
+function exportStructure(src, ~)
+handles = guidata(src.Parent.Parent);
+newFig = figure();
+newStructureAxis = copyobj(handles.structureAxis, newFig);
+newStructureAxis.Position = [0.1, 0.1, 0.8, 0.8];
+end
+
+function exportFigureAndStructure(src, ~)
+handles = guidata(src.Parent.Parent);
+newFig = figure(Position=[680, 200, 560, 600]);
+newPlotAxis = copyobj(handles.plotAxis, newFig);
+copyobj(handles.structureAxis, newFig);
+
+if isprop(handles.plotAxis, "Legend")
+    legend(newPlotAxis);
+end
+end
+
 %% Calculate and plot S-Parameters
 function handles = plotGam(handles, er, erp, thk)
 er_in = er - 1j*erp;
@@ -659,5 +746,8 @@ for ii = 1:size(handles.NL, 2)
     handles.gamPlot{ii}.XData = real(gam);
     handles.gamPlot{ii}.YData = imag(gam);
 end
+
+[~, handles.structureText.String] = ...
+    handles.NL{1}.printStructure(er_in, [], thk_in, Title="");
 
 end

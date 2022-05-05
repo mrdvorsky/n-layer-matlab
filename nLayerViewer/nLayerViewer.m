@@ -59,29 +59,33 @@ function [varargout] = nLayerViewer(er, thk, NL, f, options)
 
 arguments
     er  (1, :);
-    thk (1, :);
+    thk (1, :) {mustBeNonempty};
 end
 
 arguments (Repeating)
-    NL (1, 1);
-    f  (:, 1);
+    NL (1, 1) nLayerForward;
+    f  (:, 1) {mustBeNonempty};
 end
 
 arguments
     % Figure options
     options.FigureHandle    (1, 1);
-    options.MainFigDim      (1, 4) {mustBeNumeric} = [100, 100, 1000, 600];
+    options.MainFigDim      (1, 4) {mustBeReal} = [100, 100, 1000, 600];
     options.ShowLegend      (1, 1) {mustBeNumericOrLogical} = true;
     options.Legend          (:, 1) {mustBeText};
-    options.PlotPanelSize   (1, 1) {mustBeNumeric} = 0.6;
-    options.PanelFontSize   (1, 1) {mustBeNumeric} = 10;
+    options.PlotPanelSize   (1, 1) {mustBeReal} = 0.6;
+    options.PanelFontSize   (1, 1) {mustBeReal} = 10;
     options.FigureColor = [0.94, 0.94, 0.94];
     
+    % Specific Axis Sizes
+    options.PlotAxisPosition   (1, 4) {mustBeReal} = [0.1, 0.03, 0.85, 0.9];
+    options.StructureAxisSize  (1, 1) {mustBeReal};
+    
     % Slider parameters
-    options.SliderXPos      (1, 1) {mustBeNumeric} = 0.15;
-    options.SliderYPos      (1, 1) {mustBeNumeric} = 0.15;
-    options.SliderLength    (1, 1) {mustBeNumeric} = 0.6;
-    options.SliderWidth     (1, 1) {mustBeNumeric} = 0.12;
+    options.SliderXPos      (1, 1) {mustBeReal} = 0.15;
+    options.SliderYPos      (1, 1) {mustBeReal} = 0.15;
+    options.SliderLength    (1, 1) {mustBeReal} = 0.6;
+    options.SliderWidth     (1, 1) {mustBeReal} = 0.12;
     
     % Electrical property bounds
     options.ErBounds        (:, 2) {mustBePositive, mustBeFinite} = [1, 10];
@@ -94,6 +98,11 @@ arguments
     % Plot settings
     options.PlotLineWidth   (1, 1) {mustBeReal} = 1.5;
     options.PlotDotWidth    (1, 1) {mustBeReal} = 1.5;
+end
+
+%% Check Inputs
+if ~isfield(options, "StructureAxisSize")
+    options.StructureAxisSize = 0.1 + 0.1*length(thk);
 end
 
 %% Create main figure and panels
@@ -146,7 +155,8 @@ handles.NL = cellfun(@copy, NL, UniformOutput=false);
 numLayers = numel(thk);
 
 %% Create Structure Description
-structureAxis = axes(plotPanel, Position=[0.05, 0.05, 0.9, 0.2], ...
+structureAxis = axes(plotPanel, ...
+    Position=[0, 0, 1, options.StructureAxisSize], ...
     TickLength=[0, 0], XTick={}, YTick={}, ...
     Color="none", XColor="none", YColor="none");
 
@@ -160,7 +170,12 @@ handles.structureText = structureText;
 handles.structureAxis = structureAxis;
 
 %% Create Polar Plot
-plotAxis = axes(plotPanel, Position=[0.13, 0.31, 0.7750, 0.6150]);
+plotAxisPosition = options.PlotAxisPosition;
+plotAxisPosition(2) = 1 - (1 - plotAxisPosition(2)) ...
+    .* (1 - options.StructureAxisSize);
+plotAxisPosition(4) = plotAxisPosition(4) ...
+    .* (1 - options.StructureAxisSize);
+plotAxis = axes(plotPanel, Position=plotAxisPosition);
 
 [h1, h2, h3] = zplane([], [], plotAxis);
 h1.HandleVisibility = "off";

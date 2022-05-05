@@ -6,19 +6,27 @@ arguments
     O;
     options.ErValue(1, :) {mustBePositive, mustBeFinite, ...
         mustBeGreaterThanOrEqual(options.ErValue, 1)};
-    options.ErpValue(1, :) {mustBePositive, mustBeFinite};
-    options.ThkValue(1, :) {mustBePositive};
+    options.ErpValue(1, :) {mustBeNonnegative, mustBeFinite};
+    options.ThkValue(1, :) {mustBeNonnegative};
 end
 
 %% Check Bounds
-if any(~isfinite(options.ThkValue(1, 1:end - 1)))
-    error("Layer thicknesses must be finite (except for last layer).");
+if isfield(options, "ThkValue")
+    if ~all(isfinite(options.ThkValue(1, 1:end - 1)))
+        error("Layer thicknesses must be finite (except for last layer).");
+    end
 end
 
 %% Assign Initial Guesses
-O.erInitialValue =  options.ErValue;
-O.erpInitialValue = options.ErpValue;
-O.thkInitialValue = options.ThkValue;
+if isfield(options, "ErValue")
+    O.erInitialValue =  options.ErValue;
+end
+if isfield(options, "ErpValue")
+    O.erpInitialValue = options.ErpValue;
+end
+if isfield(options, "ThkValue")
+    O.thkInitialValue = options.ThkValue;
+end
 
 end
 

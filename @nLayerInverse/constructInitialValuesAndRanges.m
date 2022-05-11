@@ -7,18 +7,25 @@ arguments
 end
 
 %% Check Value Bounds
-if any(O.erInitialValue(O.erLayersToSolve) < O.erRange(1, :) ...
-        | O.erInitialValue(O.erLayersToSolve) > O.erRange(2, :))
-    error("An element of 'erInitialValue' is outside the range specified by 'erRange'.");
+if ~isempty(O.erLayersToSolve)
+    if any(O.erInitialValue(O.erLayersToSolve) < O.erRange(1, :) ...
+            | O.erInitialValue(O.erLayersToSolve) > O.erRange(2, :))
+        error("An element of 'erInitialValue' is outside the range specified by 'erRange'.");
+    end
 end
 
-if any(O.erpInitialValue(O.erpLayersToSolve) < O.erpRange(1, :) ...
-        | O.erpInitialValue(O.erpLayersToSolve) > O.erpRange(2, :))
-    error("An element of 'erpInitialValue' is outside the range specified by 'erpRange'.");
+if ~isempty(O.erpLayersToSolve)
+    if any(O.erpInitialValue(O.erpLayersToSolve) < O.erpRange(1, :) ...
+            | O.erpInitialValue(O.erpLayersToSolve) > O.erpRange(2, :))
+        error("An element of 'erpInitialValue' is outside the range specified by 'erpRange'.");
+    end
 end
 
-if any(O.thkInitialValue < O.thkRange(1, :) | O.thkInitialValue > O.thkRange(2, :))
-    error("An element of 'thkInitialValue' is outside the range specified by 'thkRange'.");
+if ~isempty(O.thkLayersToSolve)
+    if any(O.thkInitialValue(O.thkLayersToSolve) < O.thkRange(1, :) ...
+            | O.thkInitialValue(O.thkLayersToSolve) > O.thkRange(2, :))
+        error("An element of 'thkInitialValue' is outside the range specified by 'thkRange'.");
+    end
 end
 
 if any(~isfinite(O.thkInitialValue(O.thkLayersToSolve)))

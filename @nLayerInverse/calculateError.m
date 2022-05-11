@@ -1,4 +1,4 @@
-function [gamError] = calculateError(O, x, NL, f, gamActual, options)
+function [gamError, gamErrorComplex] = calculateError(O, x, NL, f, gamActual, options)
 %CALCULATEERROR Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -18,8 +18,8 @@ end
 try
     gam = NL.calculate(f, er, ur, thk);
 catch ex
-    error("Failed to evaluate structure because: %s%s", ex.message, ...
-        O.printStructureParameters(er, ur, thk, Title=""));
+    error("Failed to evaluate structure because: %s\n%s", ex.message, ...
+        O.printStructureParameters(er, ur, thk, Title="Falied to Converge"));
 end
 
 %% Calculate Error

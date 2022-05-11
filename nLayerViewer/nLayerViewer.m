@@ -216,6 +216,9 @@ handles.plotAxis = plotAxis;
 handles.gamPlot = gamPlot;
 handles.gamFitPlot = gamFitPlot;
 
+%% Figure Size Change Callback
+fig.SizeChangedFcn = @figureResizeCallback;
+
 %% Create sliders
 createSlider = @(panel, ind, tag) uicontrol(Parent=panel, ...
     Style="slider", Units="normalized", ...
@@ -696,25 +699,32 @@ erp = cellfun(@str2double, erp_str);
 thk = cellfun(@str2double, thk_str);
 end
 
+%% Figure Resize Callback
+function figureResizeCallback(fig, ~)
+handles = guidata(fig);
+figMinRatio = min(fig.Position([3, 4]) ./ [1000, 600]);
+handles.structureText.FontSize = round(9 .* figMinRatio);
+end
+
 %% Copy Figure Callbacks
-function copyFigure(src, ~)
-handles = guidata(src.Parent.Parent);
+function copyFigure(fig, ~)
+handles = guidata(fig.Parent.Parent);
 copygraphics(handles.plotAxis);
 end
 
-function copyStructure(src, ~)
-handles = guidata(src.Parent.Parent);
+function copyStructure(fig, ~)
+handles = guidata(fig.Parent.Parent);
 copygraphics(handles.structureAxis);
 end
 
-function copyFigureAndStructure(src, ~)
-handles = guidata(src.Parent.Parent);
+function copyFigureAndStructure(fig, ~)
+handles = guidata(fig.Parent.Parent);
 copygraphics(handles.plotPanel);
 end
 
 %% Export Figure Callbacks
-function exportFigure(src, ~)
-handles = guidata(src.Parent.Parent);
+function exportFigure(fig, ~)
+handles = guidata(fig.Parent.Parent);
 newFig = figure;
 newPlotAxis = copyobj(handles.plotAxis, newFig);
 newPlotAxis.Position = [0.13, 0.11, 0.775, 0.815];
@@ -724,18 +734,20 @@ if isprop(handles.plotAxis, "Legend")
 end
 end
 
-function exportStructure(src, ~)
-handles = guidata(src.Parent.Parent);
+function exportStructure(fig, ~)
+handles = guidata(fig.Parent.Parent);
 newFig = figure();
 newStructureAxis = copyobj(handles.structureAxis, newFig);
+newStructureAxis.Children(1).FontSize = 9;
 newStructureAxis.Position = [0.1, 0.1, 0.8, 0.8];
 end
 
-function exportFigureAndStructure(src, ~)
-handles = guidata(src.Parent.Parent);
+function exportFigureAndStructure(fig, ~)
+handles = guidata(fig.Parent.Parent);
 newFig = figure(Position=[680, 200, 560, 600]);
 newPlotAxis = copyobj(handles.plotAxis, newFig);
-copyobj(handles.structureAxis, newFig);
+newStructureAxis = copyobj(handles.structureAxis, newFig);
+newStructureAxis.Children(1).FontSize = 9;
 
 if isprop(handles.plotAxis, "Legend")
     legend(newPlotAxis);

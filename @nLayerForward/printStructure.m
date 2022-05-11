@@ -10,6 +10,7 @@ arguments
     thk(1, :) {mustBeNonempty};
     
     options.Title {mustBeTextScalar} = "Multilayer Structure Stackup";
+    options.ShowHyperlinks {mustBeNumericOrLogical} = true;
     options.BackingConductivity {mustBePositive} = inf;
     options.ThkUnitLabel {mustBeTextScalar} = "mm";
     options.ConductivityUnitLabel {mustBeTextScalar} = "S/m";
@@ -104,33 +105,83 @@ outputString = strjoin([titleString, separatorString, ...
     strjoin(layerStrings, strcat("\n", separatorString, "\n")), ...
     backingString], "\n");
 
-% Convert "\n" to newlines
-structureString = sprintf(outputString);
+% Convert all "\n" to newlines.
+structureString = compose(outputString);
+
+%% Set MathText Formatted String
+% figureString = replace(sprintf(outputString), "_ ", "  ");
+figureString = sprintf(outputString);
+figureString = replace(figureString, "_", "\_");
+figureString = replace(figureString, "{", "\{");
+figureString = replace(figureString, "}", "\}");
+
+for ii = 1:length(thk)
+    figureString = replace(figureString, ...
+        sprintf("er%d", ii), sprintf("\\epsilon_{r{%d}}", ii));
+    
+    figureString = replace(figureString, ...
+        sprintf("thk%d", ii), sprintf("thk_{%d}", ii));
+    
+    figureString = replace(figureString, ...
+        sprintf("ur%d", ii), sprintf("\\mu_{r{%d}}", ii));
+end
+
+figureString = strtrim(splitlines(figureString));
+
+% Remove bold from "additional text" lines.
+numAdditionalLines = size(options.AdditionalText, 3);
+indices = 5*(1:numAdditionalLines) + (1:numAdditionalLines).' - 1;
+figureString(indices(:)) = strcat("\rm{", figureString(indices(:)), "}");
+figureString(setdiff(1:length(figureString), indices(:))) = ...
+    strcat("\bf{", figureString(setdiff(1:length(figureString), indices(:))), "}");
+
+% Remove title line if empty.
+if options.Title == ""
+    figureString = figureString(2:end);
+end
+
+%% Add Hyperlink for Copy and Display
+if options.ShowHyperlinks
+    figureStringEscaped = replace(figureString, "\", "\\");
+    hyperlink_base = "<a href=""matlab:%s"">%s</a>";
+    
+    commands_base = [...
+        "hyp_fig = figure(Visible='off');", ...
+        "hyp_ax = axes(hyp_fig, Position=[0, 0, 1, 1], XTick={}, YTick={}, ", ...
+            "Color='none', XColor='none', YColor='none');", ...
+        sprintf("hyp_string = sprintf(string('%s'));", strjoin(figureStringEscaped, "\n")), ...
+        "hyp_text = text(hyp_ax, 0.5, 0.5, hyp_string, Units='normalized', ", ...
+            "HorizontalAlignment='center', FontName='Monospaced', ", ...
+            "FontWeight='bold', FontSize=10);", ...
+        "hyp_fig.Position(3) = 1.01 * hyp_fig.Position(3) .* hyp_text.Extent(3);", ...
+        "hyp_fig.Position(4) = 1.05 * hyp_fig.Position(4) .* hyp_text.Extent(4);", ...
+        ];
+    
+    commands_show = [commands_base, "hyp_fig.Visible = 'on';"];
+    commands_copy = [commands_base, "copygraphics(hyp_ax);", ...
+        "close(hyp_fig);"];
+    
+    hyperlink_show = sprintf(hyperlink_base, strjoin(commands_show), "Show");
+    hyperlink_copy = sprintf(hyperlink_base, strjoin(commands_copy), "Copy");
+    
+    % Change Title Line
+    titleString = sprintf("%s (%s, %s)", ...
+        options.Title, hyperlink_show, hyperlink_copy);
+    
+    structureStringArray = splitlines(structureString);
+    structureStringArray(1) = pad(titleString, options.Width - 8 ...
+        + strlength(hyperlink_show) + strlength(hyperlink_copy), "both");
+    structureString = strjoin(structureStringArray, newline());
+end
+
+%% If Halfspace, Remove Backing Layer for Figure
+if ~isfinite(thk(end))
+    figureString(end) = "";
+end
 
 %% Print Output if Not Returning
 if nargout == 0
-    fprintf(strcat("\n", outputString, "\n\n"));
-end
-
-%% Set MathText Formatted String
-if nargout > 1
-    figureString = replace(sprintf(outputString), "_ ", "  ");
-    figureString = replace(figureString, "_", "\_");
-    figureString = replace(figureString, "{", "\{");
-    figureString = replace(figureString, "}", "\}");
-    
-    for ii = 1:length(thk)
-        figureString = replace(figureString, ...
-            sprintf("er%d", ii), sprintf("\\epsilon_{r{%d}}", ii));
-        
-        figureString = replace(figureString, ...
-            sprintf("thk%d", ii), sprintf("thk_{%d}", ii));
-        
-        figureString = replace(figureString, ...
-            sprintf("ur%d", ii), sprintf("\\mu_{r{%d}}", ii));
-    end
-    
-    figureString = strtrim(splitlines(figureString));
+    disp(strjoin(["", structureString, ""], newline()));
 end
 
 end

@@ -20,7 +20,7 @@ arguments
     options.Width(1, 1) {mustBeInteger, mustBePositive} = 72;
     options.ThkWidth(1, 1) {mustBeInRange(options.ThkWidth, 0, 1)} = 0.3;
     options.ErWidth(1, 1) {mustBeInRange(options.ErWidth, 0, 1)} = 0.4;
-    options.UrWidth(1, 1) {mustBeInRange(options.UrWidth, 0, 1)} = 0.2;
+    options.UrWidth(1, 1) {mustBeInRange(options.UrWidth, 0, 1)} = 0.3;
     options.IndentWidth(1, 1) {mustBeInteger, mustBeNonnegative} = 4;
     options.FormatString(:, :) {mustBeText} = "%.4g";
     options.ConductivityFormatString {mustBeTextScalar} = "%.4g";

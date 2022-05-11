@@ -25,7 +25,7 @@ classdef nLayerInverse < matlab.mixin.Copyable
         
         default_erRange = [1; 10];
         default_erpRange = [0.001; 10];
-        default_thkRange = [0.001; 1];
+        default_thkRange = [0.001; 100];
     end
     
     properties (GetAccess = public, SetAccess = private)
@@ -52,6 +52,7 @@ classdef nLayerInverse < matlab.mixin.Copyable
         setLayerCount(O, layerCount);
         setLayersToSolve(O, options);
         setInitialValues(O, options);
+        [erError, urError, thkError] = computeParameterUncertainty(O, er, ur, thk);
         [varargout] = printStructureParameters(O, options);
     end
     

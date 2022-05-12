@@ -4,16 +4,21 @@ function [xUncertainty] = computeParameterUncertainty(O, NL, f, options)
 
 arguments
     O;
+end
+
+arguments(Repeating)
     NL;
     f(:, 1);
-    
+end
+
+arguments
     options.NoiseStd = 0.001;
 end
 
 %% Construct Linearized Ranges and Initial Guesses
 [xInitial, ~, ~] = O.constructInitialValuesAndRanges();
 
-[~, gam] = O.calculateError(xInitial, NL, f, 0);
+[~, gam] = O.calculateError(xInitial, NL, f, num2cell(zeros(length(NL), 1)));
 
 %% Create Error Function
 errorFunctionVector = @(x) O.calculateError(x, NL, f, gam);

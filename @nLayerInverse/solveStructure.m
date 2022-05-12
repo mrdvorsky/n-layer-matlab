@@ -4,6 +4,9 @@ function [er, ur, thk, varargout] = solveStructure(O, NL, f, gam)
 
 arguments
     O;
+end
+
+arguments(Repeating)
     NL;
     f(:, 1);
     gam;
@@ -79,8 +82,8 @@ end
 [er, ur, thk] = O.extractStructure(x, f);
 
 %% Assign Gamma
-if nargout > 3
-    varargout{1} = NL.calculate(f, er, ur, thk);
+for ii = 1:(nargout - 3)
+    varargout{ii} = NL{ii}.calculate(f{ii}, er, ur, thk);
 end
 
 end

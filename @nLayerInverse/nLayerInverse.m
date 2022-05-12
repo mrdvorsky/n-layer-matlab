@@ -28,7 +28,7 @@ classdef nLayerInverse < matlab.mixin.Copyable
         default_thkRange = [0.001; 100];
     end
     
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = public)
         verbosity;
         
         layerCount;

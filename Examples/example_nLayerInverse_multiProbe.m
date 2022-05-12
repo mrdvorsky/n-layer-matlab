@@ -37,15 +37,16 @@ gamMeas1_2 = NL1_2.calculate(f1, er1, [], thk1) + (sqrt(0.5) .* noiseStd) ...
     .* complex(randn(size(f1)), randn(size(f1)));
 
 %% Solve for Structure
-% Example 1 
+% Example 1
 NLsolver = nLayerInverse(2, Verbosity=1);
 NLsolver.setInitialValues(ErValue=real(er1), ErpValue=-imag(er1), ThkValue=thk1);
-NLsolver.thkInitialValue(1) = [0.1];
+NLsolver.thkInitialValue(1) = [0.5];    % Make this a "guess"
 NLsolver.setLayersToSolve(ErLayers=[2], ErpLayers=[2], ThkLayers=[1]);
 
 NLsolver.printStructureParameters(ShowLimits=true, Title="Case 1: Input");
-[er, ur, thk, gam1_1] = NLsolver.solveStructure(...
-    NL1_1, f1, gamMeas1_1);
+[er, ur, thk, gam1_1, gam1_2] = NLsolver.solveStructure(...
+    NL1_1, f1, gamMeas1_1, ...
+    NL1_2, f1, gamMeas1_2);
 NLsolver.printStructureParameters(er, ur, thk, Title="Case 1: Output");
 
 % NLsolver.computeParameterUncertainty(NL1_1, f1, NoiseStd=noiseStd);
@@ -58,5 +59,5 @@ nLayerViewer(er, thk, NL1_1, f1, NL1_2, f1);
 hold on;
 plot(gamMeas1_1, "", Linewidth=1.5);
 plot(gamMeas1_2, "", Linewidth=1.5);
-legend("Fit1", "Fit2", "Measured1", "Measured2");
+legend("Fit Rectangular", "Fit Circular", "Measured Rect", "Measured Circ");
 

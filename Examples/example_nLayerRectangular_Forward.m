@@ -101,7 +101,9 @@ er3 = [4 - 1j];
 ur3 = [3 - 0.1j];
 thk3 = [inf];
 
+tic;
 NL.printStructure(er3, ur3, thk3, Title="Case 3");
+toc;
 tic;
 gam3 = NL.calculate(f, er3, ur3, thk3);
 fprintf("One-layer lossy half-space: ");

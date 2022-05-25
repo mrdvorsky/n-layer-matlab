@@ -40,7 +40,8 @@ gamMeas1_2 = NL1_2.calculate(f1, er1, [], thk1) + (sqrt(0.5) .* noiseStd) ...
 % Example 1
 NLsolver = nLayerInverse(2, Verbosity=1);
 NLsolver.setInitialValues(ErValue=real(er1), ErpValue=-imag(er1), ThkValue=thk1);
-NLsolver.thkInitialValue(1) = [0.5];    % Make this a "guess"
+NLsolver.setInitialValues(er, ur, thk);
+% NLsolver.thkInitialValue(1) = [0.1];    % Make this a "guess"
 NLsolver.setLayersToSolve(ErLayers=[2], ErpLayers=[2], ThkLayers=[1]);
 
 NLsolver.printStructureParameters(ShowLimits=true, Title="Case 1: Input");
@@ -49,7 +50,7 @@ NLsolver.printStructureParameters(ShowLimits=true, Title="Case 1: Input");
     NL1_2, f1, gamMeas1_2);
 NLsolver.printStructureParameters(er, ur, thk, Title="Case 1: Output");
 
-% NLsolver.computeParameterUncertainty(NL1_1, f1, NoiseStd=noiseStd);
+NLsolver.computeParameterUncertainty(NL1_1, f1, NoiseStd=noiseStd);
 % NLsolver.computeParameterUncertainty(NL1_2, f1, NoiseStd=noiseStd);
 % NLsolver.computeParameterUncertainty(NL1_1, f1, NL1_2, f1, NoiseStd=noiseStd);
 

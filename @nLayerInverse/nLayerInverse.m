@@ -23,7 +23,7 @@ classdef nLayerInverse < matlab.mixin.Copyable
         useGlobalOptimizer = false;
         useLocalOptimizer = true;
         
-        default_erRange = [1; 10];
+        default_erRange = [1; 100];
         default_erpRange = [0.001; 10];
         default_thkRange = [0.001; 100];
     end

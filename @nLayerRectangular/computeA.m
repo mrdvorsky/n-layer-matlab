@@ -46,7 +46,7 @@ A1 = zeros(1, O.numModes, O.numModes, length(k0));
 
 % computeGammaEH expects er and ur to be
 % 1-by-numLayers-by-1-by-length(k0).
-[specE, specH] = O.computeGammaEH(O.fixed_tau, k0, ...
+[GammaH, GammaE] = O.computeGamma0(O.fixed_tau, k0, ...
     permute(er, [3, 2, 4, 1]), permute(ur, [3, 2, 4, 1]), thk);
 
 %% Check Error in A1 When Using Fixed-Point Integration
@@ -54,10 +54,10 @@ A1 = zeros(1, O.numModes, O.numModes, length(k0));
 % the accuracy of the dominant mode coefficient. The fixed point weights
 % and nodes (i.e., fixed_*) are computed in the "recomputeInterpolants"
 % member function.
-A1DomMode = sum(specE .* O.fixed_A1_E(:, 1, 1) ...
-    + specH .* O.fixed_A1_H(:, 1, 1), 1);
-errorA1DomMode = sum(specE .* O.fixed_errA1_E(:, 1, 1) ...
-    + specH .* O.fixed_errA1_H(:, 1, 1), 1);
+A1DomMode = sum(GammaE .* O.fixed_A1_E(:, 1, 1) ...
+    + GammaH .* O.fixed_A1_H(:, 1, 1), 1);
+errorA1DomMode = sum(GammaE .* O.fixed_errA1_E(:, 1, 1) ...
+    + GammaH .* O.fixed_errA1_H(:, 1, 1), 1);
 
 % All frequencies that have a low error bound are "lossy".
 isLossyFrequency = (abs(errorA1DomMode) ./ abs(A1DomMode)) < O.convergenceAbsTol;
@@ -67,8 +67,8 @@ isLossyFrequency = (abs(errorA1DomMode) ./ abs(A1DomMode)) < O.convergenceAbsTol
 % frequencies at which this method is sufficiently accurate (i.e, at
 % "lossy" frequencies).
 A1(:, :, :, isLossyFrequency) = ...
-    sum(specE(:, 1, 1, isLossyFrequency) .* O.fixed_A1_E ...
-    + specH(:, 1, 1, isLossyFrequency) .* O.fixed_A1_H, 1);
+    sum(GammaE(:, 1, 1, isLossyFrequency) .* O.fixed_A1_E ...
+    + GammaH(:, 1, 1, isLossyFrequency) .* O.fixed_A1_H, 1);
 
 % Print message if verbosity flag is 1 or higher
 if O.verbosity > 0

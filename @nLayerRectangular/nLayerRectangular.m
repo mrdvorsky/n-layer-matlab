@@ -132,7 +132,7 @@ classdef nLayerRectangular < nLayerForward
     
     %% Private static function definitions (implemented in separate files)
     methods (Static, Access = public)
-        [specE, specH] = computeGammaEH(tau, k0, er, ur, thk);
+        [GammaH, GammaE] = computeGamma0(tau, k0, er, ur, thk);
     end
     
     %% Class constructor

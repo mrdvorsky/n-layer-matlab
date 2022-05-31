@@ -42,6 +42,7 @@ A = O.computeA(f, er, ur, thk);
 B = O.A2;
 
 etaR1 = sqrt(ur(:, 1) ./ er(:, 1));
+etaR1 = 0*etaR1 + 1;
 
 %% Assemble Frequency Info (kA, kB)
 [kA, kB] = O.computeK(f);

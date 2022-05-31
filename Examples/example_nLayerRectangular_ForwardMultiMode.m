@@ -61,9 +61,9 @@ toc;
 
 % Plot
 figure;
-plot(gam1(:, :), "-", "Linewidth", 1);
+plot(gam1(:, :), "-", Linewidth=1);
 hold on;
-plot(gam1(:, :), ".", "Linewidth", 1.5);
+plot(gam1(:, :), ".", Linewidth=1.5);
 title("Case 1");
 zplane([]);
 grid on;

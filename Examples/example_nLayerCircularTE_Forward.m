@@ -64,7 +64,7 @@ toc;
 
 % Plot
 figure;
-plot(gam1, ".-", "Linewidth", 1);
+plot(gam1, ".-", Linewidth=1);
 hold on;
 title("Case 1");
 zplane([]);
@@ -89,7 +89,7 @@ toc;
 
 % Plot
 figure;
-plot(gam2, ".-", "Linewidth", 1);
+plot(gam2, ".-", Linewidth=1);
 hold on;
 title("Case 2");
 zplane([]);
@@ -114,7 +114,7 @@ toc;
 
 % Plot
 figure;
-plot(gam3, ".-", "Linewidth", 1);
+plot(gam3, ".-", Linewidth=1);
 hold on;
 title("Case 3");
 zplane([]);
@@ -142,7 +142,7 @@ toc;
 
 % Plot
 figure;
-plot(gam4, ".-", "Linewidth", 1);
+plot(gam4, ".-", Linewidth=1);
 hold on;
 title("Case 4");
 zplane([]);

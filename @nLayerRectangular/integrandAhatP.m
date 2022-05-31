@@ -1,4 +1,4 @@
-function [A1_tauP] = integrandA1(O, tauP, k0, er, ur, thk)
+function [Ahat_tauP] = integrandAhat(O, tauP, k0, er, ur, thk)
 %INTEGRANDA1 Integrand for the matrix A1. Integrate over [0, 1].
 % This function computes the integrand used to compute the integral of
 % A1. The matrix A1 can thus be computed using the following example.
@@ -51,7 +51,7 @@ function [A1_tauP] = integrandA1(O, tauP, k0, er, ur, thk)
 % in the "recomputeInterpolants" member function.
 if numel(tauP) == numel(O.init_tau)
     [specE, specH] = O.computeGammaEH(O.init_tau, k0, er, ur, thk);
-    A1_tauP = specE .* O.init_A1_E + specH .* O.init_A1_H;
+    Ahat_tauP = specE .* O.init_A1_E + specH .* O.init_A1_H;
     return;
 end
 
@@ -69,7 +69,7 @@ vLower = O.A1_EH(intInd, :, :, :);
 vHigher = O.A1_EH(intInd + 1, :, :, :);
 interp_A1_EH = vLower + m .* (vHigher - vLower);
 
-A1_tauP = specE.*interp_A1_EH(:, :, :, 1) ...
+Ahat_tauP = specE.*interp_A1_EH(:, :, :, 1) ...
     + specH.*interp_A1_EH(:, :, :, 2);
 
 end

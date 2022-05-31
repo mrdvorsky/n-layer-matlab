@@ -35,23 +35,23 @@ end
 
 %% Compute A1
 % This is the computationally intensive part of this algorithm
-A1 = O.computeA1(f, er, ur, thk);
+A = O.computeA(f, er, ur, thk);
 
 %% Get A2 and etaR1
 % A2 is precomputed in the "recomputeInterpolants" function.
-A2 = O.A2;
+B = O.A2;
 
 etaR1 = sqrt(ur(:, 1) ./ er(:, 1));
 
-%% Assemble Frequency Info (k_A1, k_A2, k_b1, k_b2)
-[k_A1, k_A2, k_b1, k_b2] = O.constructFrequencyMultipliers(f);
+%% Assemble Frequency Info (kA, kB)
+[kA, kB] = O.computeK(f);
 
 %% Calculate Reflection Coefficient at each Frequency
 gam = zeros(length(f), 1);
 for ff = 1:length(f)
-    x = (A1(:, :, ff).*k_A1(:, :, ff) + etaR1(ff).*A2(:, :).*k_A2(:, :, ff)) ...
-        \ (-A1(:, 1, ff).*k_b1(:, :, ff) + etaR1(ff).*A2(:, 1).*k_b2(:, :, ff));
-    gam(ff) = x(1);
+    S = (A(:, :, ff).*kA(:, :, ff) + etaR1(ff).*B(:, :).*kB(:, :, ff)) ...
+        \ (-A(:, 1, ff).*kA(:, :, ff) + etaR1(ff).*B(:, 1).*kB(:, :, ff));
+    gam(ff) = S(1);
 end
 
 end

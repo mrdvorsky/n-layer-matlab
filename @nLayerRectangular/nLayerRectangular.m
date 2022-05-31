@@ -123,9 +123,9 @@ classdef nLayerRectangular < nLayerForward
     
     %% Private member function definitions (implemented in separate files)
     methods (Access = private)
-        [A1] = computeA1(O, f, er, ur, thk);
-        [k_A1, k_A2, k_b1, k_b2] = constructFrequencyMultipliers(O, f);
-        [A1_EH] = integrandA1(O, tauP, k0, er, ur, thk);
+        [A] = computeA(O, f, er, ur, thk);
+        [kA, kB] = computeK(O, f);
+        [Ahat_taup] = integrandAhatP(O, tauP, k0, er, ur, thk);
         [integrandE, integrandH] = computeIntegrandEH(O, tauP);
         [A1, A2, b1, b2] = constructMatrixEquation(O, nLayerInt);
     end

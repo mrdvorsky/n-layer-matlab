@@ -1,4 +1,4 @@
-function [gam] = calculate(O, f, er, ur, thk, options)
+function [gam] = calculate(O, f, er, ur, thk, varargin, options)
 %CALCULATE Calculate reflection/trasnmission coefficient(s) for structure.
 % Computes the reflection/transmission coefficients when looking into a
 % multilayer structure defined by er, ur, and thk at the frequencies
@@ -9,10 +9,10 @@ function [gam] = calculate(O, f, er, ur, thk, options)
 % Example Usage:
 %   NL = nLayerRectangular(maxM, maxN, band=wgBand);
 %   NL = nLayerCircularTE(numModes, R=wgR);
-%   gam = NL.calculate(f, er, ur, thk);
-%   gam = NL.calculate(f, er, [], thk);
-%   gam = NL.calculate(f, [], ur, thk);
-%   gam = NL.calculate(f, [], ur, thk, BackingConductivity=sigma);
+%   gam = NL.calculate(f, er, ur, thk, ...);
+%   gam = NL.calculate(f, er, [], thk, ...);
+%   gam = NL.calculate(f, [], ur, thk, ...);
+%   gam = NL.calculate(f, [], ur, thk, ..., BackingConductivity=sigma);
 %
 % Inputs:
 %   f - Column vector of frequencies (GHz).
@@ -38,6 +38,13 @@ arguments
     er(:, :);
     ur(:, :);
     thk(1, :);
+end
+
+arguments (Repeating)
+    varargin;
+end
+
+arguments
     options.BackingConductivity(:, 1) = inf;
 end
 
@@ -52,7 +59,7 @@ if any(isfinite(options.BackingConductivity))
 end
 
 %% Calculate Reflection/Transmission Coefficients
-gam = O.calculateGamma(f, er, ur, thk);
+gam = O.calculateGamma(f, er, ur, thk, varargin{:});
 
 end
 

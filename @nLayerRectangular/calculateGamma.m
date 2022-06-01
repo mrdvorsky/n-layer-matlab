@@ -33,25 +33,20 @@ if all(thk == 0)
     return;
 end
 
-%% Compute A1
+%% Compute A, B, kA, and kB
 % This is the computationally intensive part of this algorithm
 A = O.computeA(f, er, ur, thk);
 
-%% Get A2 and etaR1
-% A2 is precomputed in the "recomputeInterpolants" function.
+% B is precomputed in the "recomputeInterpolants" function.
 B = O.A2;
 
-etaR1 = sqrt(ur(:, 1) ./ er(:, 1));
-etaR1 = 0*etaR1 + 1;
-
-%% Assemble Frequency Info (kA, kB)
 [kA, kB] = O.computeK(f);
 
 %% Calculate Reflection Coefficient at each Frequency
 gam = zeros(length(f), 1);
 for ff = 1:length(f)
-    S = (A(:, :, ff).*kA(:, :, ff) + etaR1(ff).*B(:, :).*kB(:, :, ff)) ...
-        \ (-A(:, 1, ff).*kA(:, :, ff) + etaR1(ff).*B(:, 1).*kB(:, :, ff));
+    S = (A(:, :, ff).*kA(:, :, ff) + B(:, :).*kB(:, :, ff)) ...
+        \ (-A(:, 1, ff).*kA(:, :, ff) + B(:, 1).*kB(:, :, ff));
     gam(ff) = S(1);
 end
 

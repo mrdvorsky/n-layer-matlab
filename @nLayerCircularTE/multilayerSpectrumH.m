@@ -51,7 +51,7 @@ for ii = (length(thk) - 1):-1:1
 end
 
 %% Calculate Output
-specH = zetaPrev .* (1 - Ch) ./ (1 + Ch);
+specH = zetaPrev .* (1 - Ch) ./ ((1 + Ch) .* ur(1, 1, :, :));
 
 end
 

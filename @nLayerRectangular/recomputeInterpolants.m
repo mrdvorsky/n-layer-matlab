@@ -64,7 +64,7 @@ O.A2 = A2;
 % cases we can use a precomputed set of weights and nodes, instead of
 % computing them on the fly. This is generally 3 to 4 times faster than
 % when using the adaptive integration.
-[kRhoP, weights, errWeights] = O.fejer2(O.integralPointsKrhoFixed, 0, 1);
+[kRhoP, weights, errWeights] = O.fejer2(O.integralPointsTauFixed, 0, 1);
 
 % The procedure here is almost exactly the same as in the previous section,
 % except there is no need to recompute A2 and b2, and A1_E and A2_E are

@@ -57,7 +57,7 @@ NL.printStructure(er1, ur1, thk1, Title="Case 1");
 tic;
 % Call this function to calculate the reflection coefficient. The
 % reflection coefficient will be calculated within the tolerance specified
-% earlier. Optionally, a custom tolerance can be specified (second line).
+% earlier.
 gam1 = NL.calculate(f, er1, ur1, thk1);
 fprintf("Two-layer low loss conductor backed: ");
 toc;
@@ -137,7 +137,6 @@ plot(gam4, ".", Linewidth=1.5);
 title("Case 4");
 zplane([]);
 grid on;
-
 
 %% Calculate structure 5
 % Two-layer conductor backed frequency-variable structure

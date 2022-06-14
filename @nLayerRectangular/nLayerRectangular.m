@@ -10,7 +10,7 @@ classdef nLayerRectangular < nLayerForward
     %   NL = nLayerRectangular(maxM, maxN, Band="x");
     %   NL = nLayerRectangular(maxM, maxN, Band="ka", Verbosity=1);
     %   NL = nLayerRectangular(maxM, maxN, Band="v", ...
-    %           ConvergenceAbsTol=1e-4, IntegralPointsTauFixed=500);
+    %           ConvergenceAbsTol=1e-4, IntegralPointsFixed_kRho=500);
     %   NL = nLayerRectangular(maxM, maxN, band="x", Prop=val, ...);
     %
     %   gam = NL.calculate(f, er, ur, thk);
@@ -30,15 +30,15 @@ classdef nLayerRectangular < nLayerForward
     %       output. Set to 2 for a per-frequency output.
     %   convergenceAbsTol (0.001) - Default tolerance for reflection
     %       coefficient calculations.
-    %   integralPointsTauFixed (300) - Number of points to use for
-    %       fixed-point integration along tau. This parameter default is
+    %   integralPointsFixed_kRho (300) - Number of points to use for
+    %       fixed-point integration along kRho. This parameter default is
     %       tuned so that the fixed-point method is used for loss tangents
     %       above ~0.1. Raise to lower this loss tangent threshold.
-    %   interpolationPointsTau (2^12) - Number of points to use for the
-    %       interpolation function along tau.
-    %   integralPointsPsi (50) - Number of points to use to integrate along psi.
+    %   interpolationPoints_kRho (2^12) - Number of points to use for the
+    %       interpolation function along kRho.
+    %   integralPoints_kPhi (50) - Number of points to use to integrate along kPhi.
     %   integralInitialSegmentCount (9) - Initial number of segments along
-    %       tau used in the adaptive integration routine. Must be an odd
+    %       kRho used in the adaptive integration routine. Must be an odd
     %       integer.
     %
     % There are a number of parameters that can be modified to change the
@@ -48,7 +48,7 @@ classdef nLayerRectangular < nLayerForward
     % For Example:
     %   NL = nLayerRectangular(maxM, maxN, Band="x");
     %   NL.modesTE = [1, 0; 1, 2; 3, 0; 3, 2];
-    %   NL.integralPointsTauFixed = 100;
+    %   NL.integralPointsFixed_kRho = 100;
     %   NL.recomputeInterpolants(); % This line is necessary in this case.
     %   [...] = NL.calculate(...);
     %
@@ -57,10 +57,10 @@ classdef nLayerRectangular < nLayerForward
     %   b;
     %   speedOfLight; (Inherited from nLayerForward)
     %   modesTE;
-    %   interpolationPointsTau;
-    %   integralPointsTauFixed;
+    %   interpolationPoints_kRho;
+    %   integralPointsFixed_kRho;
+    %   integralPoints_kPhi;
     %   integralInitialSegmentCount;
-    %   integralPointsPsi;
     %
     % Any of the above properties can also be directly specified in the
     % class constructor: NL = nLayerRectangular(..., Prop=val, ...).
@@ -77,11 +77,11 @@ classdef nLayerRectangular < nLayerForward
         a;                      % Waveguide broad dimension (mm).
         b;                      % Waveguide narrow dimension (mm).
         modesTE;                % List of TE modes in rows of [m, n].
-        interpolationPointsTau = 2^12;  % Number of points for lookup table along tau.
-        integralPointsTauFixed = 300;   % Number of points for fixed point integral along tau.
+        interpolationPoints_kRho = 2^12;    % Number of points for lookup table along kRho.
+        integralPointsFixed_kRho = 300;     % Number of points for fixed point integral along kRho.
         integralInitialSegmentCount = 9;    % Number of segments to start with in adaptive integral.
-        integralPointsPsi = 50;         % Number of points for fixed point integral along psi.
-        convergenceAbsTol = 0.001;      % Convergence tolerance value (absolute).
+        integralPoints_kPhi = 50;           % Number of points for fixed point integral along kPhi.
+        convergenceAbsTol = 0.001;          % Convergence tolerance value (absolute).
     end
     properties (GetAccess = public, SetAccess = private)
         numModes;               % Number of modes considered (TE + TM).
@@ -89,19 +89,19 @@ classdef nLayerRectangular < nLayerForward
     end
     properties (Access = private)
         integralScaleFactor;    % Scale factor for change of varibles from 
-                                % tau [0, inf) to tauP [0, 1].
+                                % kRho [0, inf) to kRhoP [0, 1].
         
-        A1_EH;  % Interpolation functions for A1_E(tauP) and A1_H(tauP).
+        A1_EH;  % Interpolation functions for A1_E(kRhoP) and A1_H(kRhoP).
         
-        fixed_tau;      % Fixed-point integral coordindates tau.
-        fixed_A1_E;     % Fixed-point integral weights for A1_E(tauP).
-        fixed_A1_H;     % Fixed-point integral weights for A1_H(tauP).
-        fixed_errA1_E;  % Fixed-point error weights for A1_E(tauP).
-        fixed_errA1_H;  % Fixed-point error weights for A1_H(tauP).
+        fixed_kRho;     % Fixed-point integral coordindates kRho.
+        fixed_A1_E;     % Fixed-point integral weights for A1_E(kRhoP).
+        fixed_A1_H;     % Fixed-point integral weights for A1_H(kRhoP).
+        fixed_errA1_E;  % Fixed-point error weights for A1_E(kRhoP).
+        fixed_errA1_H;  % Fixed-point error weights for A1_H(kRhoP).
         
-        init_tau;       % First pass integral coordindates tau.
-        init_A1_E;      % First pass preinterpolated A1_E(tauP).
-        init_A1_H;      % First pass preinterpolated A1_H(tauP).
+        init_kRho;      % First pass integral coordindates kRho.
+        init_A1_E;      % First pass preinterpolated A1_E(kRhoP).
+        init_A1_H;      % First pass preinterpolated A1_H(kRhoP).
                 
         A2;             % Mode excitation matrix.
     end
@@ -125,14 +125,14 @@ classdef nLayerRectangular < nLayerForward
     methods (Access = private)
         [A] = computeA(O, f, er, ur, thk);
         [kA, kB] = computeK(O, f);
-        [Ahat_taup] = integrandAhatP(O, tauP, k0, er, ur, thk);
-        [integrandE, integrandH] = computeIntegrandEH(O, tauP);
+        [Ahat_kRhoP] = integrandAhatP(O, kRhoP, k0, er, ur, thk);
+        [integrandE, integrandH] = computeIntegrandEH(O, kRhoP);
         [A1, A2, b1, b2] = constructMatrixEquation(O, nLayerInt);
     end
     
     %% Private static function definitions (implemented in separate files)
     methods (Static, Access = public)
-        [GammaH, GammaE] = computeGamma0(tau, k0, er, ur, thk);
+        [GammaH, GammaE] = computeGamma0(kRho, k0, er, ur, thk);
     end
     
     %% Class constructor
@@ -146,7 +146,7 @@ classdef nLayerRectangular < nLayerForward
             %   NL = nLayerRectangular(maxM, maxN, Band="x");
             %   NL = nLayerRectangular(maxM, maxN, Band="x", Verbosity=1);
             %   NL = nLayerRectangular(maxM, maxN, Band="x", ...
-            %       ConvergenceAbsTol=1e-4, IntegralPointsTauFixed=500);
+            %       ConvergenceAbsTol=1e-4, IntegralPoints_kRhoFixed=500);
             %   NL = nLayerRectangular(maxM, maxN, Band="x", Prop=val, ...);
             %
             % Inputs:
@@ -165,19 +165,20 @@ classdef nLayerRectangular < nLayerForward
             %       output. Set to 2 for a per-frequency output.
             %   ConvergenceAbsTol (0.001) - Default tolerance for
             %       reflection coefficient calculations.
-            %   IntegralPointsTauFixed (300) - Number of points to use for
-            %       fixed-point integration along tau.
-            %   InterpolationPointsTau (2^12) - Number of points to use for the
-            %       interpolation function along tau.
-            %   IntegralPointsPsi (50) - Number of points to use to
-            %       integrate along psi.
+            %   IntegralPoints_kRhoFixed (300) - Number of points to use for
+            %       fixed-point integration along kRho.
+            %   InterpolationPoints_kRho (2^12) - Number of points to use for the
+            %       interpolation function along kRho.
+            %   IntegralPoints_kPhi (50) - Number of points to use to
+            %       integrate along kPhi.
             %   IntegralInitialSegmentCount (9) - Initial number of
-            %       segments along tau used in the adaptive integration
+            %       segments along kRho used in the adaptive integration
             %       routine. Must be an odd integer.
             
             arguments
                 maxM(1, 1) {mustBeInteger, mustBePositive};
                 maxN(1, 1) {mustBeInteger, mustBeNonnegative};
+
                 options.A(1, 1) {mustBeReal, mustBePositive} = 1;
                 options.B(1, 1) {mustBeReal, mustBePositive} = 0.5;
                 options.SpeedOfLight(1, 1) {mustBeReal, mustBePositive} = 299.792458;
@@ -185,9 +186,9 @@ classdef nLayerRectangular < nLayerForward
                 options.ModesTE(:, 2) {mustBeInteger, mustBeNonnegative};
                 options.Verbosity(1, 1) {mustBeInteger, mustBeNonnegative} = 0;
                 options.ConvergenceAbsTol(1, 1) {mustBeReal, mustBePositive} = 0.001;
-                options.IntegralPointsPsi(1, 1) {mustBeInteger, mustBePositive} = 50;
-                options.IntegralPointsTauFixed(1, 1) {mustBeInteger, mustBePositive} = 300;
-                options.InterpolationPointsTau(1, 1) {mustBeInteger, mustBePositive} = 2^12;
+                options.IntegralPoints_kPhi(1, 1) {mustBeInteger, mustBePositive} = 50;
+                options.IntegralPointsFixed_kRho(1, 1) {mustBeInteger, mustBePositive} = 300;
+                options.InterpolationPoints_kRho(1, 1) {mustBeInteger, mustBePositive} = 2^12;
                 options.IntegralInitialSegmentCount(1, 1) {mustBeInteger, mustBePositive} = 9;
             end
             
@@ -207,9 +208,9 @@ classdef nLayerRectangular < nLayerForward
             O.speedOfLight = options.SpeedOfLight;
             O.verbosity = options.Verbosity;
             O.convergenceAbsTol = options.ConvergenceAbsTol;
-            O.integralPointsPsi = options.IntegralPointsPsi;
-            O.integralPointsTauFixed = options.IntegralPointsTauFixed;
-            O.interpolationPointsTau = options.InterpolationPointsTau;
+            O.integralPoints_kPhi = options.IntegralPoints_kPhi;
+            O.integralPointsFixed_kRho = options.IntegralPointsFixed_kRho;
+            O.interpolationPoints_kRho = options.InterpolationPoints_kRho;
             O.integralInitialSegmentCount = options.IntegralInitialSegmentCount;
             
             O.recomputeInterpolants();

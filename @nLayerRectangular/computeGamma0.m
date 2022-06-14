@@ -1,11 +1,14 @@
-function [GammaH, GammaE] = computeGamma0(kRho, k0, er, ur, thk)
-%COMPUTEGAMMA0 Calculate reflection coefficient spectrum.
+function [Gamma0h, Gamma0e] = computeGamma0(kRho, k0, er, ur, thk)
+%COMPUTEGAMMA0 Computes Gamma0h and Gamma0e for the multilayer structure.
 % This function computes the spectrum for the multilayer structure
-% reflection coefficient for a rectangular waveguide. Specifically, it
-% computes k_1/(zeta_1*D1^(e)) and zeta_1*D1^(h)/k_1 as a function of tau.
+% reflection coefficient for TE and TM modes as a function of kRho.
+% Specifically, it computes Gamma0h(kRho) and Gamma0e(kRho).
+% 
+% The function inputs requirements are specifically formatted for nLayer
+% waveguide computations.
 %
 % Inputs
-%   tau - Column vector of spectral wavenumbers.
+%   kRho - Column vector of spectral wavenumbers.
 %   k0 - Array of free-space wavenumbers (the size must be 1-by-1-by-...,
 %       where the 3rd and 4th dimensions may be any size).
 %   er - Array of complex relative permittivities for each layer (the
@@ -16,16 +19,8 @@ function [GammaH, GammaE] = computeGamma0(kRho, k0, er, ur, thk)
 %       size(er, 2) and size(ur, 2). The last element of thk should have a
 %       value of inf for the infinite halfspace case.
 % Outputs
-%   specE - Calculated spectrum, same size as (tau .* k0)
-%   specH - Calculated spectrum, same size as (tau .* k0)
-%
-% The output of this function can be used along with the output of
-% "computeIntegrandEH" to compute the integrals I^(e)_ii(m, n, p, q) and
-% I^(h)_ii(m, n, p, q). See documentation for "computeIntegrandEH" for
-% more details.
-%
-% The outputs specE and specH are equal to k_1/(zeta_1*D1^(e)) and
-% zeta_1*D1^(h)/k_1, respectively, as a function of tau.
+%   Gamma0h - Calculated spectrum, same size as (kRho .* k0)
+%   Gamma0e - Calculated spectrum, same size as (kRho .* k0)
 %
 % Author: Matt Dvorsky
 
@@ -60,8 +55,8 @@ for ii = (length(thk) - 1):-1:1
 end
 
 %% Calculate Gamma_0
-GammaE = k0 .* er(1, 1, :, :) .* (1 + GammaE) ./ ((1 - GammaE) .* kzPlus1);
-GammaH = kzPlus1 .* (1 - GammaH) ./ ((1 + GammaH) .* k0 .* ur(1, 1, :, :));
+Gamma0e = k0 .* er(1, 1, :, :) .* (1 + GammaE) ./ ((1 - GammaE) .* kzPlus1);
+Gamma0h = kzPlus1 .* (1 - GammaH) ./ ((1 + GammaH) .* k0 .* ur(1, 1, :, :));
 
 end
 

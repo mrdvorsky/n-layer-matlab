@@ -1,6 +1,6 @@
-function [A1] = computeA1(O, f, er, ur, thk)
-%COMPUTEA1 Compute the integral of the matrix A1 over frequency.
-% This function computes the matrices A1 at each frequency specified by f.
+function [A] = computeA(O, f, er, ur, thk)
+%COMPUTEA1 Compute the integral of the matrix A over frequency.
+% This function computes the matrix A at each frequency specified by f.
 % The output of this function can along with the outputs of the
 % constructFrequencyMultipliers(...) function and the 
 % constructMatrixEquation(...) function to calculate S11 for a rectangular
@@ -42,11 +42,11 @@ end
 k0(1, 1, 1, :) = 2*pi .* f(:) ./ O.speedOfLight;
 
 %% Initialize A1 and specE, specH
-A1 = zeros(1, O.numModes, O.numModes, length(k0));
+A = zeros(1, O.numModes, O.numModes, length(k0));
 
 % computeGammaEH expects er and ur to be
 % 1-by-numLayers-by-1-by-length(k0).
-[GammaH, GammaE] = O.computeGamma0(O.fixed_tau, k0, ...
+[GammaH, GammaE] = O.computeGamma0(O.fixed_kRho, k0, ...
     permute(er, [3, 2, 4, 1]), permute(ur, [3, 2, 4, 1]), thk);
 
 %% Check Error in A1 When Using Fixed-Point Integration
@@ -66,7 +66,7 @@ isLossyFrequency = (abs(errorA1DomMode) ./ abs(A1DomMode)) < O.convergenceAbsTol
 % Use the fixed point integration method to compute the integral at all
 % frequencies at which this method is sufficiently accurate (i.e, at
 % "lossy" frequencies).
-A1(:, :, :, isLossyFrequency) = ...
+A(:, :, :, isLossyFrequency) = ...
     sum(GammaE(:, 1, 1, isLossyFrequency) .* O.fixed_A1_E ...
     + GammaH(:, 1, 1, isLossyFrequency) .* O.fixed_A1_H, 1);
 
@@ -92,15 +92,15 @@ for ff = 1:length(k0)
             fprintf("f = %.4g GHz - ", f(ff));
         end
         
-        A1(:, :, :, ff) = O.integralVectorized(...
-            @(tauP) O.integrandAhatP(tauP, k0(ff), er(ff, :), ur(ff, :), thk), ...
+        A(:, :, :, ff) = O.integralVectorized(...
+            @(kRhoP) O.integrandAhatP(kRhoP, k0(ff), er(ff, :), ur(ff, :), thk), ...
             0, 1, RelTol=O.convergenceAbsTol, Verbosity=(O.verbosity > 1), ...
             InitialIntervalCount=O.integralInitialSegmentCount);
     end
 end
 
 %% Format Output
-A1 = reshape(A1, O.numModes, O.numModes, length(k0));
+A = reshape(A, O.numModes, O.numModes, length(k0));
 
 end
 

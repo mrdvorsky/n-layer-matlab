@@ -3,7 +3,7 @@ function [] = setWaveguideDimensions(O, a, b)
 % Calling this functions sets the broad and narrow dimensions, O.a and O.b,
 % of the rectangular waveguide, to the specified values. The default unit
 % is mm, however, the units must be changed if not using the default value
-% of the speed of light ("c"), which is defined in the nLayerForward class.
+% of SpeedOfLight, which is defined in the nLayerForward class.
 %
 % After calling this function, the "recomputeInterpolants" function should
 % be called before calling "calculate".
@@ -25,6 +25,7 @@ arguments
     b(1, 1) {mustBeNumeric, mustBePositive};
 end
 
+%% Set Dimensions
 O.a = a;
 O.b = b;
 

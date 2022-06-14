@@ -15,7 +15,7 @@ function [a, b] = setWaveguideBand(O, band, options)
 %   NL.recomputeInterpolants();
 %
 % Inputs:
-%   band - Case-Insensitive waveguide band designator.
+%   band - Case-insensitive waveguide band designator.
 % Outputs:
 %   a - New value of O.a (waveguide broad dimension).
 %   b - New value of O.b (waveguide narrow dimension).

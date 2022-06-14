@@ -45,9 +45,9 @@ B = O.A2;
 %% Calculate Reflection Coefficient at each Frequency
 gam = zeros(length(f), 1);
 for ff = 1:length(f)
-    S = (A(:, :, ff).*kA(:, :, ff) + B(:, :).*kB(:, :, ff)) ...
+    Sj1 = ( A(:, :, ff).*kA(:, :, ff) + B(:, :).*kB(:, :, ff)) ...
         \ (-A(:, 1, ff).*kA(:, :, ff) + B(:, 1).*kB(:, :, ff));
-    gam(ff) = S(1);
+    gam(ff) = Sj1(1);
 end
 
 end

@@ -1,4 +1,4 @@
-function [integrandE, integrandH] = computeIntegrandEH(O, tauP)
+function [integrandE, integrandH] = computeIntegrandEH(O, kRhoP)
 %computeIntegrandEH Compute the partial integrand for I(m, n, p, q).
 % This function can be used to compute I^(e)_ii(m, n, p, q) and 
 % I^(h)_ii(m, n, p, q) by integrating the product of this function and
@@ -9,20 +9,20 @@ function [integrandE, integrandH] = computeIntegrandEH(O, tauP)
 % documentation of "constructMatrixEquation" for more details.
 %
 % This function computes the integrand for I^(e)_ii(...) and
-% I^(h)_ii(...) after a change of variables from tau to tauP.
-% The variable tau is related to tauP by the following equation.
-%       tau = O.integralScaleFactor * (1 - tauP) ./ tauP;
+% I^(h)_ii(...) after a change of variables from kRho to kRhoP.
+% The variable kRho is related to kRhoP by the following equation.
+%       kRho = O.integralScaleFactor * (1 - kRhoP) ./ kRhoP;
 %
-% Note that the "multilayerSpectrumEH" function uses tau as its
-% integration varable, while this function uses tauP. The following
+% Note that the "multilayerSpectrumEH" function uses kRho as its
+% integration varable, while this function uses kRhoP. The following
 % example shows the calculation of the integrals I^(e)_ii(...) and
 % I^(h)_ii(...).
 %
 % Example:
-%   function y = f(tauP)
-%       tau = O.integralScaleFactor * (1 - tauP) ./ tauP;
-%       [specE, specH] = multilayerSpectrumEH(tau, k0, er, ur, thk);
-%       [integrandE, integrandH] = O.computeIntegrandEH(tauP);
+%   function y = f(kRhoP)
+%       kRho = O.integralScaleFactor * (1 - kRhoP) ./ kRhoP;
+%       [specE, specH] = multilayerSpectrumEH(kRho, k0, er, ur, thk);
+%       [integrandE, integrandH] = O.computeIntegrandEH(kRhoP);
 %       y = specE.*integrandE + specH.*integrandH;
 %   end
 %   nLayerInt = integral(f, 0, 1, "ArrayValued", "true");
@@ -31,28 +31,28 @@ function [integrandE, integrandH] = computeIntegrandEH(O, tauP)
 % "constructMatrixEquation" function. See documentation for more details.
 %
 % Designation for each dimension:
-%   1: Integration variable tauP
+%   1: Integration variable kRhoP
 %   2: Mode matrix columns
 %   3: Mode matrix rows
 %   4: Subscript i of integration parameters I_ii(m, n, p, q)
-%   5: Integration variable psi (temporarily)
+%   5: Integration variable kPhi (temporarily)
 %
 % Author: Matt Dvorsky
 
 arguments
     O;
-    tauP(:, 1);
+    kRhoP(:, 1);
 end
 
 %% Compute Interpolating Coordinates
-% The integral needs to be evaluated from tau = [0, inf). However, a change
-% of variables tau = L(1 - tauP)/tauP is used here so that the interpolant
+% The integral needs to be evaluated from kRho = [0, inf). However, a change
+% of variables kRho = L(1 - kRhoP)/kRhoP is used here so that the interpolant
 % can be uniform in (0, 1].
 L = O.integralScaleFactor;
-tau = L * (1 - tauP) ./ tauP;
+kRho = L * (1 - kRhoP) ./ kRhoP;
 
 % Weighting function to account for change of variables.
-weights = L ./ (tauP.^2);
+weights = L ./ (kRhoP.^2);
 
 %% Compute Waveguide Mode Cutoffs
 am(1, 1, :, 1) = O.modesTE(:, 1) * pi ./ O.a;
@@ -69,15 +69,15 @@ f = @(xi, eta) (O.a.^2 .* O.b.^2 / 16) ...
     ./ ((am + xi) .* (ap + xi) ...
     .* (bn + eta) .* (bq + eta));
 
-%% Compute Integrals Over Psi at All Values of Tau
-[psi(1, 1, 1, 1, :), weightsPsi(1, 1, 1, 1, :)] = ...
-    O.fejer2(O.integralPointsPsi, 0, 0.5*pi);
-xi = tau .* cos(psi);
-eta = tau .* sin(psi);
+%% Compute Integrals Over kPhi at All Values of kRho
+[kPhi(1, 1, 1, 1, :), weights_kPhi(1, 1, 1, 1, :)] = ...
+    O.fejer2(O.integralPoints_kPhi, 0, 0.5*pi);
+xi = kRho .* cos(kPhi);
+eta = kRho .* sin(kPhi);
 
-fsc = 4*sum(weightsPsi .* tau.^3 .* sin(psi).^2 .* cos(psi).^2 .* f(xi, eta), 5);
-fss = 4*sum(weightsPsi .* tau.^3 .* sin(psi).^4 .* f(xi, eta), 5);
-fcc = 4*sum(weightsPsi .* tau.^3 .* cos(psi).^4 .* f(xi, eta), 5);
+fsc = 4*sum(weights_kPhi .* kRho.^3 .* sin(kPhi).^2 .* cos(kPhi).^2 .* f(xi, eta), 5);
+fss = 4*sum(weights_kPhi .* kRho.^3 .* sin(kPhi).^4 .* f(xi, eta), 5);
+fcc = 4*sum(weights_kPhi .* kRho.^3 .* cos(kPhi).^4 .* f(xi, eta), 5);
 
 %% Compute Integrand Values
 integrandE = zeros(size(fsc)) + zeros(1, 1, 1, 4);
@@ -94,10 +94,10 @@ integrandH(:, :, :, 3) =  weights .* (bn .* bq .* (4/pi.^2) .* fsc);
 integrandH(:, :, :, 4) = -weights .* (am .* bq .* (4/pi.^2) .* fsc);
 
 %% Fix Nans Caused by Singularities
-integrandE(tauP == 0, :, :, :) = 0;
-integrandH(tauP == 0, :, :, :) = 0;
+integrandE(kRhoP == 0, :, :, :) = 0;
+integrandH(kRhoP == 0, :, :, :) = 0;
 
-integrandE(tauP == 1, :, :, :) = 0;
-integrandH(tauP == 1, :, :, :) = 0;
+integrandE(kRhoP == 1, :, :, :) = 0;
+integrandH(kRhoP == 1, :, :, :) = 0;
 
 end

@@ -13,7 +13,7 @@ arguments
     options.ShowHyperlinks {mustBeNumericOrLogical} = true;
     options.BackingConductivity {mustBePositive} = inf;
     options.ThkUnitLabel {mustBeTextScalar} = "mm";
-    options.ConductivityUnitLabel {mustBeTextScalar} = "S/m";
+    options.ConductivityUnitLabel {mustBeTextScalar} = "S/mm";
     
     options.Width(1, 1) {mustBeInteger, mustBePositive} = 72;
     options.ThkWidth(1, 1) {mustBeInRange(options.ThkWidth, 0, 1)} = 0.3;

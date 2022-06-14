@@ -127,7 +127,7 @@ grid on;
 er4 = 4;
 ur4 = [];
 thk4 = [2];
-sigma4 = 10.^linspace(4, 8, 9).';
+sigma4 = 10.^linspace(1, 5, 9).';
 
 NL.printStructure(er3(1, :), ur3, thk3, BackingConductivity=sigma4(1), ...
     Title="Case 4");
@@ -146,5 +146,5 @@ plot(gam4, ".-", Linewidth=1);
 hold on;
 title("Case 4");
 zplane([]);
-legend(compose("\\sigma = %.1e S/m", abs(sigma4)));
+legend(compose("\\sigma = %.1e S/mm", abs(sigma4)));
 grid on;

@@ -19,8 +19,8 @@ arguments
 end
 
 %% Compute Mode Coefficients and Valid Indices
-ai(:, 1) = O.modesTE(:, 1) * pi ./ O.a;
-bi(:, 1) = O.modesTE(:, 2) * pi ./ O.b;
+ai(:, 1) = O.modesTE(:, 1) * pi ./ O.waveguideA;
+bi(:, 1) = O.modesTE(:, 2) * pi ./ O.waveguideB;
 
 %% Compute B Submatrices
 Bhh = -diag(ai .* (1 + (bi == 0)));
@@ -34,7 +34,7 @@ indTE = find(O.modesTE(:, 1) > 0);
 indTM = find(O.modesTE(:, 2) > 0);
 
 % Assemble output matrix.
-B = (0.25 * O.a * O.b) .* [...
+B = (0.25 * O.waveguideA * O.waveguideB) .* [...
     Bhh(indTE, indTE), Bhe(indTE, indTM); ...
     Beh(indTM, indTE), Bee(indTM, indTM)];
 

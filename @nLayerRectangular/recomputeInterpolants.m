@@ -36,7 +36,7 @@ O.modesTM = O.modesTE(find(O.modesTE(:, 2) > 0), :);
 O.numModes = size(O.modesTE, 1) + size(O.modesTM, 1);
 
 % Scale factor for change of variables between kRho and kRhoP
-O.integralScaleFactor = pi*pi ./ O.a;
+O.integralScaleFactor = pi*pi ./ O.waveguideA;
 
 %% Compute the Matrix A at Various Values of kRhoP
 % Compute Ah and Ae interpolationlookup tables as a function of kRhoP.

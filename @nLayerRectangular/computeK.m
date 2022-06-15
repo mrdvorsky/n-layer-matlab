@@ -28,8 +28,8 @@ end
 %% Mode Coefficients
 k0 = 2*pi .* f ./ O.speedOfLight;
 
-aj(1, :) = O.modesTE(:, 1) * pi ./ O.a;
-bj(1, :) = O.modesTE(:, 2) * pi ./ O.b;
+aj(1, :) = O.modesTE(:, 1) * pi ./ O.waveguideA;
+bj(1, :) = O.modesTE(:, 2) * pi ./ O.waveguideB;
 
 kmn = conj(sqrt(k0.^2 - aj.^2 - bj.^2));
 

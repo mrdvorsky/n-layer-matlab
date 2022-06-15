@@ -1,4 +1,4 @@
-function [] = setWaveguideDimensions(O, a, b)
+function [] = setWaveguideDimensions(O, waveguideA, waveguideB)
 %SETWAVEGUIDEDIMENSIONS Set waveguide broad and narrow dimensions.
 % Calling this functions sets the broad and narrow dimensions, O.a and O.b,
 % of the rectangular waveguide, to the specified values. The default unit
@@ -10,24 +10,24 @@ function [] = setWaveguideDimensions(O, a, b)
 %
 % Example Usage:
 %   NL = nLayerRectangular(...);
-%   NL.setWaveguideDimensions(a, b);
+%   NL.setWaveguideDimensions(waveguideA, waveguideB);
 %   NL.recomputeInterpolants();
 %
 % Inputs:
-%   a - New value of O.a (waveguide broad dimension), in mm.
-%   b - New value of O.b (waveguide narrow dimension), in mm.
+%   waveguideA - New value of O.waveguideA (waveguide broad dimension).
+%   waveguideB - New value of O.waveguideB (waveguide narrow dimension).
 %
 % Author: Matt Dvorsky
 
 arguments
     O;
-    a(1, 1) {mustBeNumeric, mustBePositive};
-    b(1, 1) {mustBeNumeric, mustBePositive};
+    waveguideA(1, 1) {mustBeNumeric, mustBePositive};
+    waveguideB(1, 1) {mustBeNumeric, mustBePositive};
 end
 
 %% Set Dimensions
-O.a = a;
-O.b = b;
+O.waveguideA = waveguideA;
+O.waveguideB = waveguideB;
 
 end
 

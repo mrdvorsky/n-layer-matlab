@@ -1,11 +1,11 @@
 function [gam] = calculateGamma(O, f, er, ur, thk)
-%CALCULATE Calculate S11 for rectangular waveguide TE10 mode excitation.
+%CALCULATEGAMMA Calculate S11 for rectangular waveguide TE10 mode excitation.
 % Computes the reflection coefficient of the rectangular waveguide TE10
 % mode when looking into a multilayer structure defined by er, ur, thk at
 % the frequencies defined by f.
 %
 % Inputs:
-%   f - Column vector of frequencies (GHz).
+%   f - Column vector of frequencies.
 %   er - Array of complex relative permittivities for each layer. Every row
 %       er(ff, :) contains the permittivity of each layer at the frequency
 %       f(ff).
@@ -34,12 +34,9 @@ if all(thk == 0)
 end
 
 %% Compute A, B, kA, and kB
-% This is the computationally intensive part of this algorithm
-A = O.computeA(f, er, ur, thk);
-
-% B is precomputed in the "recomputeInterpolants" function.
-B = O.A2;
-
+% The call to "O.computeA(...)" is computationally intensive.
+[A] = O.computeA(f, er, ur, thk);
+[B] = O.computeB();
 [kA, kB] = O.computeK(f);
 
 %% Calculate Reflection Coefficient at each Frequency

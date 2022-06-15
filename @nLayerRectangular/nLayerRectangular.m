@@ -35,7 +35,7 @@ classdef nLayerRectangular < nLayerForward
     %       tuned so that the fixed-point method is used for loss tangents
     %       above ~0.1. Raise to lower this loss tangent threshold.
     %   interpolationPoints_kRho (2^12) - Number of points to use for the
-    %       interpolation function along kRho.
+    %       interpolation lookup table along kRho.
     %   integralPoints_kPhi (50) - Number of points to use to integrate along kPhi.
     %   integralInitialSegmentCount (9) - Initial number of segments along
     %       kRho used in the adaptive integration routine. Must be an odd
@@ -91,19 +91,17 @@ classdef nLayerRectangular < nLayerForward
         integralScaleFactor;    % Scale factor for change of varibles from 
                                 % kRho [0, inf) to kRhoP [0, 1].
         
-        A1_EH;  % Interpolation functions for A1_E(kRhoP) and A1_H(kRhoP).
+        table_AheHat;   % Interpolation tables for AhHat(kRhoP) and AeHat(kRhoP).
         
-        fixed_kRho;     % Fixed-point integral coordindates kRho.
-        fixed_A1_E;     % Fixed-point integral weights for A1_E(kRhoP).
-        fixed_A1_H;     % Fixed-point integral weights for A1_H(kRhoP).
-        fixed_errA1_E;  % Fixed-point error weights for A1_E(kRhoP).
-        fixed_errA1_H;  % Fixed-point error weights for A1_H(kRhoP).
+        fixed_kRho;         % Fixed-point integral coordindates kRho.
+        fixed_AhHat;        % Fixed-point integral weights for AhHat(kRhoP).
+        fixed_AeHat;        % Fixed-point integral weights for AeHat(kRhoP).
+        fixed_errorAhHat;   % Fixed-point error weights for AhHat(kRhoP).
+        fixed_errorAeHat;   % Fixed-point error weights for AeHat(kRhoP).
         
         init_kRho;      % First pass integral coordindates kRho.
-        init_A1_E;      % First pass preinterpolated A1_E(kRhoP).
-        init_A1_H;      % First pass preinterpolated A1_H(kRhoP).
-                
-        A2;             % Mode excitation matrix.
+        init_AhHat;     % First pass preinterpolated AhHat(kRhoP).
+        init_AeHat;     % First pass preinterpolated AeHat(kRhoP).
     end
     
     %% Protected member function definitions (implemented in separate files)
@@ -115,24 +113,26 @@ classdef nLayerRectangular < nLayerForward
     methods (Access = public)
         [outputLabels] = getOutputLabels(O);
         
-        [modes] = setModes(O, maxM, maxN);
+        [modesTE, modesTM] = setModes(O, maxM, maxN);
         [a, b] = setWaveguideBand(O, band, options);
         setWaveguideDimensions(O, a, b);
+
         recomputeInterpolants(O);
     end
     
     %% Private member function definitions (implemented in separate files)
     methods (Access = private)
         [A] = computeA(O, f, er, ur, thk);
+        [B] = computeB(O);
         [kA, kB] = computeK(O, f);
-        [Ahat_kRhoP] = integrandAhatP(O, kRhoP, k0, er, ur, thk);
-        [integrandE, integrandH] = computeIntegrandEH(O, kRhoP);
-        [A1, A2, b1, b2] = constructMatrixEquation(O, nLayerInt);
+
+        [AhHat, AeHat] = computeAhat(O, kRhoP);
+        [Ahat] = integrandAhat(O, kRhoP, k0, er, ur, thk);
     end
     
     %% Private static function definitions (implemented in separate files)
     methods (Static, Access = public)
-        [GammaH, GammaE] = computeGamma0(kRho, k0, er, ur, thk);
+        [Gamma0h, Gamma0e] = computeGamma0(kRho, k0, er, ur, thk);
     end
     
     %% Class constructor
@@ -140,41 +140,17 @@ classdef nLayerRectangular < nLayerForward
         function O = nLayerRectangular(maxM, maxN, options)
             %NLAYERRECTANGULAR Construct an instance of this class.
             % Example Usage:
-            %   NL = nLayerRectangular(maxM, maxN, A=7.112, B=3.556);
-            %   NL = nLayerRectangular(maxM, maxN, A=7.112e-3, B=3.556e-3, ...
-            %       SpeedOfLight=299.79e6);
-            %   NL = nLayerRectangular(maxM, maxN, Band="x");
-            %   NL = nLayerRectangular(maxM, maxN, Band="x", Verbosity=1);
-            %   NL = nLayerRectangular(maxM, maxN, Band="x", ...
-            %       ConvergenceAbsTol=1e-4, IntegralPoints_kRhoFixed=500);
-            %   NL = nLayerRectangular(maxM, maxN, Band="x", Prop=val, ...);
+            %   See example usage in main class documentation. Note that
+            %   all public class properties can be specified as a named
+            %   argument to the constructor, but they are capitalized 
+            %   (e.g., nLayerRectangular(..., Prop1=val) sets prop1=val).
             %
             % Inputs:
             %   maxM - Highest index m of TEmn and TMmn modes to consider.
             %   maxN - Highest index n of TEmn and TMmn modes to consider.
             % Named Arguments:
-            %   A (1) - Waveguide broad dimension (mm).
-            %   B (0.5) - Waveguide narrow dimension (mm).
-            %   SpeedOfLight (299.792458) - Speed of light (mm/ns).
             %   Band - Case-insensitive waveguide band to use. Either
             %       specify this or the dimensions (a and b) directly.
-            %   ModesTE - List of modes to use in rows of [m, n].
-            %       If specified, this will be used instead of maxM and
-            %       maxN. The first row must be [1, 0].
-            %   Verbosity - Verbosity level. Set to 1 for basic command line
-            %       output. Set to 2 for a per-frequency output.
-            %   ConvergenceAbsTol (0.001) - Default tolerance for
-            %       reflection coefficient calculations.
-            %   IntegralPoints_kRhoFixed (300) - Number of points to use for
-            %       fixed-point integration along kRho.
-            %   InterpolationPoints_kRho (2^12) - Number of points to use for the
-            %       interpolation function along kRho.
-            %   IntegralPoints_kPhi (50) - Number of points to use to
-            %       integrate along kPhi.
-            %   IntegralInitialSegmentCount (9) - Initial number of
-            %       segments along kRho used in the adaptive integration
-            %       routine. Must be an odd integer.
-            
             arguments
                 maxM(1, 1) {mustBeInteger, mustBePositive};
                 maxN(1, 1) {mustBeInteger, mustBeNonnegative};

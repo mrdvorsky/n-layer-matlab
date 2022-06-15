@@ -9,10 +9,10 @@ function [] = recomputeInterpolants(O)
 %   b;
 %   speedOfLight; (Inherited from nLayerForward)
 %   modesTE;
-%   interpolationPointsTau;
-%   integralPointsTauFixed;
+%   interpolationPoints_kRho;
+%   integralPointsFixed_kRho;
+%   integralPoints_kPhi;
 %   integralInitialSegmentCount;
-%   integralPointsPsi;
 %
 % Example Usage:
 %   NL = nLayerRectangular(...);
@@ -23,9 +23,9 @@ function [] = recomputeInterpolants(O)
 
 %% Check For Parameter Validity
 % This initial segment count for adaptive integration should be odd so
-% that the "integrandA1" function can use that fact to determine when the
-% first pass occurs. See "integrandA1" for more details.
-if mod(O.integralInitialSegmentCount, 2) == 0 % Check if even
+% that the "integrandAhatP" function can use that fact to determine when
+% the first pass occurs. See "integrandAhatP" for more details.
+if mod(O.integralInitialSegmentCount, 2) == 0
     error(strcat("Parameter 'integralInitialSegmentCount' must be an ", ...
         "odd integer (current value: %d)."), O.integralInitialSegmentCount);
 end
@@ -36,73 +36,54 @@ O.modesTM = O.modesTE(find(O.modesTE(:, 2) > 0), :);
 O.numModes = size(O.modesTE, 1) + size(O.modesTM, 1);
 
 % Scale factor for change of variables between kRho and kRhoP
-O.integralScaleFactor = pi*pi ./ O.a;
+O.integralScaleFactor = pi*pi ./ O.waveguideA;
 
-%% Compute A1 and b1 at various values of tauP
-% Compute integrands for I_i^(e) and I_i^(h) at each value of tauP.
-kRhoP(:, 1) = linspace(0, 1, O.interpolationPointsTau);
-[integrandE, integrandH] = O.computeIntegrandEH(kRhoP);
+%% Compute the Matrix A at Various Values of kRhoP
+% Compute Ah and Ae interpolationlookup tables as a function of kRhoP.
+kRhoP(:, 1) = linspace(0, 1, O.interpolationPoints_kRho);
 
-% Construct matrix equation from integrands. Note that a permutation is
-% first performed, as "constructMatrixEquation" expects the first 3
-% dimensions to be m, n, and i.
-% Note that A2 does not depend on I_i^(e) or I_i^(h), and thus is only
-% computed once.
-[A1_E, A2] = O.constructMatrixEquation(permute(integrandE, [2, 3, 4, 1]));
-[A1_H, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
+% Compute Ah and Ae at kRhoP coordinates.
+[AhHat, AeHat] = O.computeAhat(kRhoP);
 
-% Combine A1_E and A1_H into one array for faster interpolation.
-% Also, undo the previous permutation.
-A1_EH = ipermute(cat(3, A1_E, A1_H), [2, 3, 4, 1]);
-
-% Store computed matrices
-O.A1_EH = A1_EH;
-O.A2 = A2;
+% Combine Ae and Ah into one array for faster interpolation.
+% Store in a table that is used in the "integrandAhat" function.
+O.table_AheHat = cat(4, AhHat, AeHat);
 
 %% Fixed Point Integration Weights and Nodes
 % For lossy structures, generally no adaptive meshing is needed. In those
 % cases we can use a precomputed set of weights and nodes, instead of
 % computing them on the fly. This is generally 3 to 4 times faster than
 % when using the adaptive integration.
-[kRhoP, weights, errWeights] = O.fejer2(O.integralPointsTauFixed, 0, 1);
+[kRhoP, weights, errWeights] = O.fejer2(O.integralPointsFixed_kRho, 0, 1);
 
-% The procedure here is almost exactly the same as in the previous section,
-% except there is no need to recompute A2 and b2, and A1_E and A2_E are
-% kept separate.
-[integrandE, integrandH] = O.computeIntegrandEH(kRhoP);
-[A1_E, ~] = O.constructMatrixEquation(permute(integrandE, [2, 3, 4, 1]));
-[A1_H, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
+% Compute Ah and Ae at kRhoP coordinates.
+[AhHat, AeHat] = O.computeAhat(kRhoP);
 
-A1_E = ipermute(A1_E, [2, 3, 4, 1]);
-A1_H = ipermute(A1_H, [2, 3, 4, 1]);
-
-% Store computed matrices. Also, precompute tau using tauP.
-O.fixed_tau = O.integralScaleFactor * (1 - kRhoP) ./ kRhoP;
-O.fixed_A1_E = A1_E .* weights;
-O.fixed_A1_H = A1_H .* weights;
-O.fixed_errA1_E = A1_E .* errWeights;
-O.fixed_errA1_H = A1_H .* errWeights;
+% Store computed matrices. Also, precompute kRho using kRhoP. These are
+% used in the "computeA" function.
+O.fixed_kRho = O.integralScaleFactor * (1 - kRhoP) ./ kRhoP;
+O.fixed_AhHat = AhHat .* weights;
+O.fixed_AeHat = AeHat .* weights;
+O.fixed_errorAhHat = AhHat .* errWeights;
+O.fixed_errorAeHat = AeHat .* errWeights;
 
 %% First Integration Pass Precomputation
 % The initial pass of the adaptive integral algorithm always uses the same
-% nodes (i.e., the same evaluation coordinates of tau). Thus, we can 
-% precompute the values of the integrand for A1 at those coordinates.
-% These are used in the "integrandA1" function.
+% nodes (i.e., the same evaluation coordinates of kRho). Thus, we can 
+% precompute the values of the integrand for A at those coordinates,
+% instead of needing to perform an interpolation. These are used in the
+% "integrandAhat" function.
 [kRhoP, ~, ~] = O.gaussKronrod(...
     O.integralInitialSegmentCount, 0, 1);
 
-% The procedure here is the same as in the previous section.
-[integrandE, integrandH] = O.computeIntegrandEH(kRhoP);
-[A1_E, ~] = O.constructMatrixEquation(permute(integrandE, [2, 3, 4, 1]));
-[A1_H, ~] = O.constructMatrixEquation(permute(integrandH, [2, 3, 4, 1]));
+% Compute Ah and Ae at kRhoP coordinates.
+[AhHat, AeHat] = O.computeAhat(kRhoP);
 
-A1_E = ipermute(A1_E, [2, 3, 4, 1]);
-A1_H = ipermute(A1_H, [2, 3, 4, 1]);
-
-% Store computed matrices. Also, precompute tau using tauP.
-O.init_tau = O.integralScaleFactor * (1 - kRhoP) ./ kRhoP;
-O.init_A1_E = A1_E;
-O.init_A1_H = A1_H;
+% Store computed matrices. Also, precompute kRho using kRhoP. These are
+% used in the "integrandAhat" function.
+O.init_kRho = O.integralScaleFactor * (1 - kRhoP) ./ kRhoP;
+O.init_AhHat = AhHat;
+O.init_AeHat = AeHat;
 
 end
 

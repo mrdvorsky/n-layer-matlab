@@ -1,10 +1,10 @@
-function [a, b] = setWaveguideBand(O, band, options)
+function [waveguideA, waveguideB] = setWaveguideBand(O, band, options)
 %SETWAVEGUIDEBAND Set waveguide a and b dimensions (mm) to a specific band.
-% Calling this functions sets the broad and narrow dimensions, O.a and O.b,
-% to the dimensions of the band specified. The default unit is mm, however,
-% this can be changed by specifying a the UnitScaleFactor optional
-% parameter, which will be used as a multiplier to determine the new values
-% of O.a and O.b.
+% Calling this functions sets the broad and narrow dimensions, O.waveguideA
+% and O.waveguideB, to the dimensions of the band specified. The default
+% unit is mm, however, this can be changed by specifying a the
+% UnitScaleFactor optional parameter, which will be used as a multiplier to
+% determine the new values of O.waveguideA and O.waveguideB.
 %
 % After calling this function, the "recomputeInterpolants" function should
 % be called before calling "calculate".
@@ -15,12 +15,12 @@ function [a, b] = setWaveguideBand(O, band, options)
 %   NL.recomputeInterpolants();
 %
 % Inputs:
-%   band - Case-Insensitive waveguide band designator.
+%   band - Case-insensitive waveguide band designator.
 % Outputs:
-%   a - New value of O.a (waveguide broad dimension).
-%   b - New value of O.b (waveguide narrow dimension).
+%   waveguideA - New value of O.waveguideA (waveguide broad dimension).
+%   waveguideB - New value of O.waveguideB (waveguide narrow dimension).
 % Named Arguments:
-%   UnitScaleFactor (1) - Multiplier for O.a and O.b.
+%   UnitScaleFactor (1) - Multiplier for O.waveguideA and O.waveguideB.
 %
 % Author: Matt Dvorsky
 
@@ -44,11 +44,14 @@ if isempty(bandIndex)
 end
 
 %% Set dimensions
-O.a = bandDimsA(bandIndex) .* 25.4 .* options.UnitScaleFactor;
-O.b = bandDimsB(bandIndex) .* 25.4 .* options.UnitScaleFactor;
+O.waveguideA = bandDimsA(bandIndex) .* 25.4 .* options.UnitScaleFactor;
+O.waveguideB = bandDimsB(bandIndex) .* 25.4 .* options.UnitScaleFactor;
 
-a = O.a;
-b = O.b;
+waveguideA = O.waveguideA;
+waveguideB = O.waveguideB;
+
+%% Set band identifier
+O.waveguideBand = lower(string(band));
 
 end
 

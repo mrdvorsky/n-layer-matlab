@@ -3,7 +3,7 @@
 % structure.
 %
 % The basic usage of nLayerRectangular is as follows (example for x-band):
-%   NL = nLayerRectangular(maxM, maxN, band="x");
+%   NL = nLayerRectangular(maxM, maxN, waveguideBand="x");
 %   S11 = NL.calculate(f, er, ur, thk);
 %
 % In the above example, maxM and maxN are the maximum mode m and n indices
@@ -21,14 +21,18 @@ clear;
 close all;
 
 %% Inputs
-wgBand = "x";                       % Use x-band waveguide dimensions
-f = linspace(8.2, 12.4, 21).';      % Frequencies to calculate (column vector)
-fRes = linspace(8.2, 12.4, 401).';  % Use more points for the resonant case
+wgBand = "x";
 
-maxM = 3;                           % Max mode index for broad dimension
-maxN = 2;                           % Max mode index for narrow dimension
+% More frequency samples for the resonant case
+f = linspace(8.2, 12.4, 21).';
+fRes = linspace(8.2, 12.4, 401).';
 
-convergenceTol = 1e-3;              % Tolerance for convergence (-60 dB)
+% Mode indices maximum values
+maxM = 3;
+maxN = 2;
+
+% Tolerance for convergence (-60 dB)
+convergenceTol = 1e-3;
 
 %% Create nLayer Object
 % Creating the object initially takes a short amount of time (~0.2 seconds)
@@ -38,26 +42,24 @@ convergenceTol = 1e-3;              % Tolerance for convergence (-60 dB)
 % directly or using the waveguide band identifier. See documentation for
 % nLayerRectangular for more details.
 
-NL = nLayerRectangular(maxM, maxN, Band=wgBand);        % Create nLayer object.
-% NL = load("nLayer_xBand").NL;                           % Optionally load nLayer object from file.
-% NL = nLayerRectangular(maxM, maxN, A=22.86, B=10.16);   % Alternative way to specify waveguide dimensions.
+NL = nLayerRectangular(maxM, maxN, waveguideBand=wgBand);
+% NL = load("nLayer_xBand").NL;
+% NL = nLayerRectangular(maxM, maxN, waveguideA=22.86, waveguideB=10.16);
 
-NL.convergenceAbsTol = convergenceTol;  % Optionally specify tolerance for convergence.
-NL.verbosity = 1;                       % Leave at 0 for no command line output.
+% Optionally, specify convergence tolerance and verbosity
+NL.convergenceAbsTol = convergenceTol;
+NL.verbosity = 1;
 
 %% Calculate structure 1
 % Two layer conductor-backed structure (very low loss).
 % Layer 1: er = 1 - 0.0001j, ur = 1, thk = 1 mm
 % Layer 2: er = 2 - 0.0001j, ur = 1, thk = 5 mm
-er1 = [1 - 0.0001j, 2 - 0.0001j];   % Row vector
-ur1 = [];                           % Empty vector will be defaulted to all 1's
-thk1 = [1, 5];                      % Row vector
+er1 = [1 - 0.0001j, 2 - 0.0001j];
+ur1 = [];
+thk1 = [1, 5];
 
 NL.printStructure(er1, ur1, thk1, Title="Case 1");
 tic;
-% Call this function to calculate the reflection coefficient. The
-% reflection coefficient will be calculated within the tolerance specified
-% earlier.
 gam1 = NL.calculate(f, er1, ur1, thk1);
 fprintf("Two-layer low loss conductor backed: ");
 toc;

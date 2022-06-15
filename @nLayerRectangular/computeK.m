@@ -1,24 +1,18 @@
 function [kA, kB] = computeK(O, f)
 %COMPUTEK Computes kA and kB.
-% Computes the matrices k_A1, k_A2, k_b1, k_b2, used to solve the 
-% rectangular waveguide equation for multilayer structures.
+% Computes the matrices kA and k, which are used to compute the
+% unnormalized mode S-parameter matrix.
 %
 % Inputs:
-%   f - vector of frequencies to consider (default unit is GHz).
+%   f - vector of frequencies to consider.
 % Outputs:
-%   k_A1, k_A2, k_b1, k_b2 - Matrices used to compute S11. See usage below.
+%   kA, kB - Matrices used to compute S-parameters.
 %
-% The outputs of this function can be used along with the outputs of the
-% constructMatrixEquation(...) function to calculate S11 for a
-% rectangular waveguide. See example usage below, where "f" is scalar.
-%
-% Example Usage:
-%   [k_A1, k_A2, k_b1, k_b2] = O.constructFrequencyMultipliers(f);
-%   [A1, A2] = O.constructMatrixEquation(nLayerInt);
-%   etaR1 = sqrt(ur(1) ./ er(1));
-%   x = (A1.*k_A1 + etaR1.*A2.*k_A2) ...
-%        \ (-A1(:, 1).*k_b1 + etaR1.*A2(:, 1).*k_b2);
-%   S11 = x(1);
+% Example Usage (for single frequency, unnormalized S-parameter matrix):
+%   [A] = O.computeA(f(ii), er, ur, thk);
+%   [B] = O.computeB();
+%   [kA, kB] = O.computeK(f(ii));
+%   S = (A.*kA + B.*kB) \ (-A.*kA + B.*kB);
 %
 % Although the example above shows usage with a scalar value for "f", the
 % input "f" can be a vector. In this case, the size of the 3rd dimension
@@ -34,19 +28,31 @@ end
 %% Mode Coefficients
 k0 = 2*pi .* f ./ O.speedOfLight;
 
-am(1, :) = O.modesTE(:, 1) * pi ./ O.a;
-bn(1, :) = O.modesTE(:, 2) * pi ./ O.b;
-ap(:, 1) = O.modesTE(:, 1) * pi ./ O.a;
-bq(:, 1) = O.modesTE(:, 2) * pi ./ O.b;
+aj(1, :) = O.modesTE(:, 1) * pi ./ O.waveguideA;
+bj(1, :) = O.modesTE(:, 2) * pi ./ O.waveguideB;
 
-kmn = conj(sqrt(k0.^2 - am.^2 - bn.^2));
+kmn = conj(sqrt(k0.^2 - aj.^2 - bj.^2));
 
+%% Compute kA and kB Submatrices
+% Note that instead of right multiplying by the diagonal matrices KA and
+% KB, we can instead multiply each column by the corresponding diagonal
+% element for better efficiency. Thus, kA and kB will be constructed as row
+% vectors instead of diagonal matrices.
+
+kAhh = k0 + 0*kmn;
+kAee = 0*k0 + kmn;
+
+kBhh = 0*k0 + kmn;
+kBee = k0 + 0*kmn;
+
+%% Compute kA and kB
+% Get indices of valid TE and TM modes.
 indTE = find(O.modesTE(:, 1) > 0);
 indTM = find(O.modesTE(:, 2) > 0);
 
-%% Assemble Frequency Multipliers
-kA = [k0 + 0*kmn(1, indTE, :), 0*k0 + kmn(1, indTM, :)];
-kB = [0*k0 + kmn(1, indTE, :), k0 + 0*kmn(1, indTM, :)];
+% Assemble output vectors. See above note about row vectors vs matrices.
+kA = [kAhh(1, indTE, :), kAee(1, indTM, :)];
+kB = [kBhh(1, indTE, :), kBee(1, indTM, :)];
 
 end
 

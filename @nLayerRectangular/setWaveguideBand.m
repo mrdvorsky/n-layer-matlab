@@ -50,5 +50,8 @@ O.waveguideB = bandDimsB(bandIndex) .* 25.4 .* options.UnitScaleFactor;
 waveguideA = O.waveguideA;
 waveguideB = O.waveguideB;
 
+%% Set band identifier
+O.waveguideBand = lower(string(band));
+
 end
 

@@ -1,4 +1,4 @@
-classdef (Abstract) nLayerForward < matlab.mixin.Copyable
+classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetExactNames
     %NLAYERFORWARD Interface class for nLayer forward calculators.
     % This class serves as an interface definition for all nLayer forward
     % calculator objects. These objects take in a multilayer structure
@@ -51,29 +51,29 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable
     % Author: Matt Dvorsky
     
     properties (GetAccess = public, SetAccess = public)
-        speedOfLight = 299.792458;      % Speed of light (mm/ns).
-        verbosity = 0;                  % Verbosity level. Zero for no console output.
-        checkStructureValues = true;    % Whether to check ranges of er, ur, and thk.
+        speedOfLight(1, 1) {mustBePositive} = 299.792458;   % Speed of light (default mm GHz).
+        verbosity(1, 1) {mustBeNonnegative} = 0;            % Verbosity level. Set to zero for no console output.
+        checkStructureValues(1, 1) logical = true;          % Whether to check ranges of er, ur, and thk.
     end
     
     %% Virtual Protected member function definitions
-    methods (Abstract, Access = protected)
+    methods (Abstract, Access=protected)
         [gam] = calculateGamma(O, f, er, ur, thk);
     end
     
     %% Virtual Public member function definitions
-    methods (Abstract, Access = public)
+    methods (Abstract, Access=public)
         [outputLabels] = getOutputLabels(O);
     end
     
     %% Public member function definitions (implemented in separate files)
-    methods (Access = public)
+    methods (Access=public)
         [gam] = calculate(O, f, er, ur, thk);
         [er, ur, thk] = changeStructureConductivity(O, f, er, ur, thk, sigma);
     end
     
     %% Public static function definitions (implemented in separate files)
-    methods (Static, Access = public)
+    methods (Static, Access=public)
         [nodes, weights, errorWeights] = gaussKronrod(numSegs, a, b);
         [nodes, weights, errorWeights] = fejer2(orderN, a, b);
         [q] = integralVectorized(fun, a, b, options);

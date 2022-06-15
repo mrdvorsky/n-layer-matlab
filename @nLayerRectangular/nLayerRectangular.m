@@ -22,12 +22,12 @@ classdef nLayerRectangular < nLayerForward
     %   waveguideA - Waveguide broad dimension.
     %   waveguideB - Waveguide narrow dimension.
     %   speedOfLight (299.792458) - Speed of light (mm/ns default units).
-    %   modesTE - List of TE modes to consider (in rows of m, n). The ports
-    %       for the S-parameters will be in the order specified by modesTE,
-    %       followed by modesTM.
-    %   modesTM (read-only) - List of TM modes to consider (in rows of 
-    %       m, n). This is automatically generated from modesTE. It will be
-    %       in the same order after removing invalid TM modes.
+    %   modesTE - List of TEmn modes to consider (in rows of [m, n]). The
+    %       ports for the S-parameters will be in the order specified by
+    %       modesTE, followed by modesTM.
+    %   modesTM (read-only) - List of TMmn modes to consider (in rows of 
+    %       [m, n]). This is automatically generated from modesTE. It will
+    %       be in the same order after removing invalid TM modes.
     %   numModes (read-only) - Number of modes (numTE + numTM) to consider.
     %   verbosity (0) - Verbosity level. Set to 1 for basic command line
     %       output. Set to 2 for a per-frequency output.
@@ -79,7 +79,7 @@ classdef nLayerRectangular < nLayerForward
     properties (GetAccess=public, SetAccess=public)
         waveguideA(1, 1) {mustBePositive} = 1;              % Waveguide broad dimension.
         waveguideB(1, 1) {mustBePositive} = 0.5;            % Waveguide narrow dimension.
-        modesTE(:, 2) {mustBeInteger, mustBeNonnegative};   % List of TE modes in rows of [m, n].
+        modesTE(:, 2) {mustBeInteger, mustBeNonnegative};   % List of TEmn modes in rows of [m, n].
         interpolationPoints_kRho(1, 1) {mustBePositive, mustBeInteger} = 2^12;  % Number of points for lookup table along kRho.
         integralPointsFixed_kRho(1, 1) {mustBePositive, mustBeInteger} = 300;   % Number of points for fixed point integral along kRho.
         integralPoints_kPhi(1, 1) {mustBePositive, mustBeInteger} = 50;         % Number of points for fixed point integral along kPhi.
@@ -88,7 +88,7 @@ classdef nLayerRectangular < nLayerForward
     end
     properties (GetAccess=public, SetAccess=private)
         numModes;       % Number of modes considered (TE + TM).
-        modesTM;        % List of TM modes in rows of [m, n].
+        modesTM;        % List of TMmn modes in rows of [m, n].
         waveguideBand = "";     % Waveguide band identifier.
     end
     properties (Access=private)

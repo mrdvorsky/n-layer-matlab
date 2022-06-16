@@ -64,8 +64,8 @@ vLower = O.table_AheHat(intInd, :, :, :);
 vHigher = O.table_AheHat(intInd + 1, :, :, :);
 interpolated_AheHat = vLower + mixingFactor .* (vHigher - vLower);
 
-AHat = Gamma0h.*interpolated_AheHat(:, :, :, 1) ...
-    + Gamma0e.*interpolated_AheHat(:, :, :, 2);
+AHat = Gamma0h .* interpolated_AheHat(:, :, :, 1) ...
+    + Gamma0e .* interpolated_AheHat(:, :, :, 2);
 
 end
 

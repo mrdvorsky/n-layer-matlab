@@ -42,8 +42,8 @@ function [AHat] = integrandAhat(O, kRhoP, k0, er, ur, thk)
 % size of kRhoP. Thus, there is no need to check that the values of kRhoP
 % match the precomputed values.
 %
-% The values of O.init_kRho, O.init_AhHat, and O.init_AeHat are computed
-% in the "recomputeInterpolants" member function.
+% The values of O.init_kRho and O.init_AhHat are computed in the
+% "recomputeInterpolants" member function.
 if numel(kRhoP) == numel(O.init_kRho)
     [Gamma0h] = O.computeGamma0(O.init_kRho, k0, er, ur, thk);
     AHat = Gamma0h .* O.init_AhHat;
@@ -64,6 +64,6 @@ vLower = O.table_AhHat(intInd, :, :, :);
 vHigher = O.table_AhHat(intInd + 1, :, :, :);
 interpolated_AhHat = vLower + mixingFactor .* (vHigher - vLower);
 
-AHat = Gamma0h.*interpolated_AhHat(:, :, :, 1);
+AHat = Gamma0h .* interpolated_AhHat(:, :, :, 1);
 
 end

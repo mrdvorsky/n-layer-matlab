@@ -1,7 +1,7 @@
 classdef nLayerCircularTE < nLayerForward
     %NLAYERCIRCULARTE Implementation of nLayerForward for circular waveguides TE0n modes.
     % This class can be used to calculate the reflection coefficient seen
-    % by a rectangular waveguide looking into a multilayer structure. Note
+    % by a circular waveguide looking into a multilayer structure. Note
     % that the units of all parameters should match that of the speed of
     % light specified by the speedOfLight parameter (default is mm GHz).
     %
@@ -62,7 +62,7 @@ classdef nLayerCircularTE < nLayerForward
     %   integralInitialSegmentCount;
     %
     % Any of the above properties can also be directly specified in the
-    % class constructor: NL = nLayerRectangular(..., prop=val, ...).
+    % class constructor: NL = nLayerCircularTE(..., prop=val, ...).
     % Constructing using this method avoids the requirement of having to
     % call "recomputeInterpolants()" manually.
     %

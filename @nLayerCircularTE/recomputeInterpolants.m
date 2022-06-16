@@ -48,7 +48,7 @@ O.integralScaleFactor = (2*pi) ./ O.waveguideR;
 % Compute Ah and interpolation lookup tables as a function of kRhoP.
 kRhoP(:, 1) = linspace(0, 1, O.interpolationPoints_kRho);
 
-% Compute Ah at kRhoP coordinates.
+% Compute AhHat at kRhoP coordinates.
 [AhHat] = O.computeAhat(kRhoP);
 
 % Store in a table that is used in the "integrandAhat" function.
@@ -61,7 +61,7 @@ O.table_AhHat = AhHat;
 % when using the adaptive integration.
 [kRhoP, weights, errWeights] = O.fejer2(O.integralPointsFixed_kRho, 0, 1);
 
-% Compute Ah at kRhoP coordinates.
+% Compute AhHat at kRhoP coordinates.
 [AhHat] = O.computeAhat(kRhoP);
 
 % Store computed matrices. Also, precompute kRho using kRhoP. These are
@@ -79,7 +79,7 @@ O.fixed_errorAhHat = AhHat .* errWeights;
 [kRhoP, ~, ~] = O.gaussKronrod(...
     O.integralInitialSegmentCount, 0, 1);
 
-% Compute Ah at kRhoP coordinates.
+% Compute AhHat at kRhoP coordinates.
 [AhHat] = O.computeAhat(kRhoP);
 
 % Store computed matrices. Also, precompute kRho using kRhoP. These are

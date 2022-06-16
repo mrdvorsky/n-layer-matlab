@@ -4,7 +4,7 @@ function [outputLabels] = getOutputLabels(O)
 % set of measurements gam(:, ii).
 %
 % Example Usage:
-%   NL = nLayerRectangular(maxM, maxN, band=wgBand);
+%   NL = nLayerCircularTE(numModes, waveguideR=wgR);
 %   outputLabels = NL.getOutputLabels();
 %
 % Outputs:

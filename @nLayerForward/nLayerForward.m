@@ -7,8 +7,8 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
     % functions.
     %
     % nLayerForward Properties:
-    %   speedOfLight (299.792458) - Speed of light (mm GHz). Must match
-    %       units of distance and frequency used.
+    %   speedOfLight (299.792458) - Speed of light (default is mm GHz).
+    %       Must match units of distance and frequency used.
     %   verbosity (0) - A value of 0 should suppress console output.
     %   checkStructureValues (true) - Flag used in the "verifyStructure"
     %       function. If true, this function will throw errors if
@@ -51,7 +51,7 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
     % Author: Matt Dvorsky
     
     properties (GetAccess = public, SetAccess = public)
-        speedOfLight(1, 1) {mustBePositive} = 299.792458;   % Speed of light (default mm GHz).
+        speedOfLight(1, 1) {mustBePositive} = 299.792458;   % Speed of light (default is mm GHz).
         verbosity(1, 1) {mustBeNonnegative} = 0;            % Verbosity level. Set to zero for no console output.
         checkStructureValues(1, 1) logical = true;          % Whether to check ranges of er, ur, and thk.
     end

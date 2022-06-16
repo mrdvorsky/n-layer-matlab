@@ -6,16 +6,20 @@ function [gam] = calculate(O, f, er, ur, thk, varargin, options)
 % nLayerForward (e.g., nLayerRectangular, etc.). Check documentation of the
 % specific subclass for more specific information.
 %
+% Note that the units for all distance and time (or frequency) parameters
+% are defined by the speedOfLight parameter. The default units are mm and
+% GHz.
+%
 % Example Usage:
-%   NL = nLayerRectangular(maxM, maxN, band=wgBand);
-%   NL = nLayerCircularTE(numModes, R=wgR);
+%   NL = nLayerRectangular(maxM, maxN, waveguideBand=wgBand);
+%   NL = nLayerCircularTE(numModes, waveguideR=wgR);
 %   gam = NL.calculate(f, er, ur, thk, ...);
 %   gam = NL.calculate(f, er, [], thk, ...);
 %   gam = NL.calculate(f, [], ur, thk, ...);
 %   gam = NL.calculate(f, [], ur, thk, ..., BackingConductivity=sigma);
 %
 % Inputs:
-%   f - Column vector of frequencies (GHz).
+%   f - Column vector of frequencies.
 %   er - Array of complex relative permittivities for each layer. Every row
 %       er(ff, :) should contain the permittivity of each layer at the
 %       frequency f(ff). Pass in [] to use default value (1).
@@ -28,7 +32,7 @@ function [gam] = calculate(O, f, er, ur, thk, varargin, options)
 %       First dimension will have the same size as f.
 % Named Arguments:
 %   BackingConductivity (inf) - Conductivity of the backing conductor, in
-%       (S/m). Must be scalar or have the same length as f.
+%       (S/unitDistance). Must be scalar or have the same length as f.
 %
 % Author: Matt Dvorsky
 

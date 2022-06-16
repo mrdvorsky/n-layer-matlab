@@ -38,8 +38,8 @@ k0j = conj(sqrt(k0.^2 - kc0j.^2));
 % element for better efficiency. Thus, kA and kB will be constructed as row
 % vectors instead of diagonal matrices.
 
-kA = ones(size(k0j));
-kB = k0j;
+kA = k0 + 0*k0j;
+kB = 0*k0 + k0j;
 
 end
 

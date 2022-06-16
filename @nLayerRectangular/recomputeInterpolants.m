@@ -5,9 +5,9 @@ function [] = recomputeInterpolants(O)
 % automatically called after creating an nLayerRectangular object.
 %
 % List of critical parameters:
-%   a;
-%   b;
-%   speedOfLight; (Inherited from nLayerForward)
+%   waveguideA;
+%   waveguideB;
+%   speedOfLight;
 %   modesTE;
 %   interpolationPoints_kRho;
 %   integralPointsFixed_kRho;
@@ -39,7 +39,7 @@ O.numModes = size(O.modesTE, 1) + size(O.modesTM, 1);
 O.integralScaleFactor = pi*pi ./ O.waveguideA;
 
 %% Compute the Matrix A at Various Values of kRhoP
-% Compute Ah and Ae interpolationlookup tables as a function of kRhoP.
+% Compute Ah and Ae interpolation lookup tables as a function of kRhoP.
 kRhoP(:, 1) = linspace(0, 1, O.interpolationPoints_kRho);
 
 % Compute Ah and Ae at kRhoP coordinates.

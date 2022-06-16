@@ -55,8 +55,8 @@ for ii = (length(thk) - 1):-1:1
 end
 
 %% Calculate Gamma_0
-Gamma0e = k0 .* er(1, 1, :, :) .* (1 + GammaE) ./ ((1 - GammaE) .* kzPlus1);
 Gamma0h = kzPlus1 .* (1 - GammaH) ./ ((1 + GammaH) .* k0 .* ur(1, 1, :, :));
+Gamma0e = k0 .* er(1, 1, :, :) .* (1 + GammaE) ./ ((1 - GammaE) .* kzPlus1);
 
 end
 

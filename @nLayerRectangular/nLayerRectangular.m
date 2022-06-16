@@ -6,7 +6,7 @@ classdef nLayerRectangular < nLayerForward
     % light specified by the speedOfLight parameter (default is mm GHz).
     %
     % Example Usage:
-    %   NL = nLayerRectangular(maxM, maxN, waveguideBand="x", verbosity=1);
+    %   NL = nLayerRectangular(maxM, maxN, waveguideBand="x");
     %   NL = nLayerRectangular(maxM, maxN, waveguideA=7.112, waveguideB=3.556);
     %   NL = nLayerRectangular(maxM, maxN, speedOfLight=299.79e6, ...
     %       waveguideA=7.112e-3, waveguideB=3.556e-3);
@@ -21,7 +21,7 @@ classdef nLayerRectangular < nLayerForward
     % nLayerRectangular Properties:
     %   waveguideA - Waveguide broad dimension.
     %   waveguideB - Waveguide narrow dimension.
-    %   speedOfLight (299.792458) - Speed of light (mm/ns default units).
+    %   speedOfLight (299.792458) - Speed of light (default is mm GHz).
     %   modesTE - List of TEmn modes to consider (in rows of [m, n]). The
     %       ports for the S-parameters will be in the order specified by
     %       modesTE, followed by modesTM.
@@ -92,8 +92,7 @@ classdef nLayerRectangular < nLayerForward
         waveguideBand = "";     % Waveguide band identifier.
     end
     properties (Access=private)
-        integralScaleFactor;    % Scale factor for change of varibles from
-                                % kRho [0, inf) to kRhoP [0, 1].
+        integralScaleFactor;    % Scale factor for change of varibles from kRho [0, inf) to kRhoP [0, 1].
 
         table_AheHat;       % Interpolation tables for AhHat(kRhoP) and AeHat(kRhoP).
 
@@ -117,7 +116,6 @@ classdef nLayerRectangular < nLayerForward
 
         [modesTE, modesTM] = setModes(O, maxM, maxN);
         [waveguideA, waveguideB] = setWaveguideBand(O, band, options);
-        setWaveguideDimensions(O, waveguideA, waveguideB);
 
         recomputeInterpolants(O);
     end

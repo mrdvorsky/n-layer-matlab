@@ -1,5 +1,5 @@
 function [AhHat, AeHat] = computeAhat(O, kRhoP)
-%COMPUTEAHATP Computes the matrices AhHat(kRho) and AeHat(kRho).
+%COMPUTEAHAT Computes the matrices AhHat(kRho) and AeHat(kRho).
 %   This function computes the matrices AhHat(kRho) and AeHat(kRho) as a
 %   function of kRho. The outputs of this function can be used to compute
 %   the matrices Ah and Ae, respectively by integrating over kRhoP over the
@@ -7,15 +7,15 @@ function [AhHat, AeHat] = computeAhat(O, kRhoP)
 %   will be applied in this function automatically.
 %
 % Example Usage:
-%   [AhHat_kRhoP, AeHat_kRhoP] = O.computeAhat(kRhoP);
+%   [AhHat, AeHat] = O.computeAhat(kRhoP);
 %
 % Inputs:
 %   kRhoP - A vector of kRhoP coordinates (coordinate transform of kRho).
 %       Values should be in the interval [0, 1].
 % Outputs:
-%   AhHat_kRhoP, AeHat_kRhoP - Matrices computed as a function of kRhoP
-%       that can be used to compute the matrix A (i.e., Ah + Ae). The size
-%       will be numel(kRhoP) by O.numModes by O.numModes.
+%   AhHat, AeHat - Matrices computed as a function of kRhoP that can be
+%       used to compute the matrix A (i.e., Ah + Ae). The size will be
+%       numel(kRhoP) by O.numModes by O.numModes.
 %
 % Author: Matt Dvorsky
 
@@ -60,16 +60,16 @@ fsc = sum(weights_kPhi .* kRho.^3 .* sin(kPhi).^2 .* cos(kPhi).^2 .* f(kx, ky), 
 fss = sum(weights_kPhi .* kRho.^3 .* sin(kPhi).^4 .* f(kx, ky), 4);
 fcc = sum(weights_kPhi .* kRho.^3 .* cos(kPhi).^4 .* f(kx, ky), 4);
 
-%% Compute Ah and Ae Submatrices
-Ahhh = -bj.*bj.*ai.*fsc - aj.*aj.*ai.*fsc;
-Ahhe = -aj.*bj.*ai.*fsc + bj.*aj.*ai.*fsc;
-Aheh =  bj.*bj.*bi.*fsc + aj.*aj.*bi.*fsc;
-Ahee =  aj.*bj.*bi.*fsc - bj.*aj.*bi.*fsc;
+%% Compute AhHat and AeHat Submatrices
+AhhhHat = -bj.*bj.*ai.*fsc - aj.*aj.*ai.*fsc;
+AhheHat = -aj.*bj.*ai.*fsc + bj.*aj.*ai.*fsc;
+AhehHat =  bj.*bj.*bi.*fsc + aj.*aj.*bi.*fsc;
+AheeHat =  aj.*bj.*bi.*fsc - bj.*aj.*bi.*fsc;
 
-Aehh =  bj.*bj.*ai.*fsc - aj.*aj.*ai.*fss;
-Aehe =  aj.*bj.*ai.*fsc + bj.*aj.*ai.*fss;
-Aeeh =  bj.*bj.*bi.*fcc - aj.*aj.*bi.*fsc;
-Aeee =  aj.*bj.*bi.*fcc + bj.*aj.*bi.*fsc;
+AehhHat =  bj.*bj.*ai.*fsc - aj.*aj.*ai.*fss;
+AeheHat =  aj.*bj.*ai.*fsc + bj.*aj.*ai.*fss;
+AeehHat =  bj.*bj.*bi.*fcc - aj.*aj.*bi.*fsc;
+AeeeHat =  aj.*bj.*bi.*fcc + bj.*aj.*bi.*fsc;
 
 %% Compute Ah(kRhoP) and Ae(kRhoP)
 % Get indices of valid TE and TM modes.
@@ -78,11 +78,11 @@ indTM = find(O.modesTE(:, 2) > 0);
 
 % Assemble output matrices.
 AhHat = weights_kRho .* cat(2, ...
-    cat(3, Ahhh(:, indTE, indTE), Ahhe(:, indTE, indTM)), ...
-    cat(3, Aheh(:, indTM, indTE), Ahee(:, indTM, indTM)));
+    cat(3, AhhhHat(:, indTE, indTE), AhheHat(:, indTE, indTM)), ...
+    cat(3, AhehHat(:, indTM, indTE), AheeHat(:, indTM, indTM)));
 AeHat = weights_kRho .* cat(2, ...
-    cat(3, Aehh(:, indTE, indTE), Aehe(:, indTE, indTM)), ...
-    cat(3, Aeeh(:, indTM, indTE), Aeee(:, indTM, indTM)));
+    cat(3, AehhHat(:, indTE, indTE), AeheHat(:, indTE, indTM)), ...
+    cat(3, AeehHat(:, indTM, indTE), AeeeHat(:, indTM, indTM)));
 
 %% Fix Nans Caused by Singularities At Endpoints
 AhHat(kRhoP == 0, :, :) = 0;

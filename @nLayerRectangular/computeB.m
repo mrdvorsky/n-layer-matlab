@@ -1,5 +1,5 @@
 function [B] = computeB(O)
-%COMPUTEAHATP Computes the matrix B.
+%COMPUTEB Computes the matrix B.
 %   This function computes the matrix B, which is used to compute
 %   the unnormalized mode S-parameter matrix.
 %
@@ -18,7 +18,7 @@ arguments
     O;
 end
 
-%% Compute Mode Coefficients and Valid Indices
+%% Compute Mode Coefficients
 ai(:, 1) = O.modesTE(:, 1) * pi ./ O.waveguideA;
 bi(:, 1) = O.modesTE(:, 2) * pi ./ O.waveguideB;
 

@@ -40,7 +40,7 @@ end
 %% Calculate Freespace Wavenumber
 k0(1, 1, 1, :) = 2*pi .* f(:) ./ O.speedOfLight;
 
-%% Initialize A and specE, specH
+%% Initialize A and Gamma0h, Gamma0e
 A = zeros(1, O.numModes, O.numModes, length(k0));
 
 % computeGamma0 expects er and ur to be 1 by numLayers by 1 by length(k0).

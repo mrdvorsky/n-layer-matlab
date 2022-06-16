@@ -1,6 +1,6 @@
 function [kA, kB] = computeK(O, f)
 %COMPUTEK Computes kA and kB.
-% Computes the matrices kA and k, which are used to compute the
+% Computes the matrices kA and kB, which are used to compute the
 % unnormalized mode S-parameter matrix.
 %
 % Inputs:
@@ -31,7 +31,7 @@ k0 = 2*pi .* f ./ O.speedOfLight;
 aj(1, :) = O.modesTE(:, 1) * pi ./ O.waveguideA;
 bj(1, :) = O.modesTE(:, 2) * pi ./ O.waveguideB;
 
-kmn = conj(sqrt(k0.^2 - aj.^2 - bj.^2));
+kjj = conj(sqrt(k0.^2 - aj.^2 - bj.^2));
 
 %% Compute kA and kB Submatrices
 % Note that instead of right multiplying by the diagonal matrices KA and
@@ -39,11 +39,11 @@ kmn = conj(sqrt(k0.^2 - aj.^2 - bj.^2));
 % element for better efficiency. Thus, kA and kB will be constructed as row
 % vectors instead of diagonal matrices.
 
-kAhh = k0 + 0*kmn;
-kAee = 0*k0 + kmn;
+kAhh = k0 + 0*kjj;
+kAee = 0*k0 + kjj;
 
-kBhh = 0*k0 + kmn;
-kBee = k0 + 0*kmn;
+kBhh = 0*k0 + kjj;
+kBee = k0 + 0*kjj;
 
 %% Compute kA and kB
 % Get indices of valid TE and TM modes.

@@ -25,7 +25,7 @@ wgBand = "x";
 
 % More frequency samples for the resonant case
 f = linspace(8.2, 12.4, 21).';
-fRes = linspace(8.2, 12.4, 401).';
+fRes = linspace(8.2, 12.4, 1601).';
 
 % Mode indices maximum values
 maxM = 3;

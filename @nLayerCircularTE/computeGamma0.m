@@ -3,7 +3,7 @@ function [Gamma0h] = computeGamma0(kRho, k0, er, ur, thk)
 % This function computes the spectrum for the multilayer structure
 % reflection coefficient for TE modes as a function of kRho.
 % Specifically, it computes Gamma0h(kRho).
-% 
+%
 % The function inputs requirements are specifically formatted for nLayer
 % waveguide computations.
 %
@@ -38,13 +38,13 @@ end
 for ii = (length(thk) - 1):-1:1
     kz = sqrt(k0.^2 .* er(1, ii, :, :) .* ur(1, ii, :, :) - kRho.^2);
     kz = complex(real(kz), -abs(imag(kz)));
-    
-    gammaH = (ur(1, ii + 1, :, :).*kz - ur(1, ii, :, :).*kzPlus1) ...
-        ./ (ur(1, ii + 1, :, :).*kz + ur(1, ii, :, :).*kzPlus1);
-    
-    GammaH = exp(-2j .* kz .* thk(ii)) .* (gammaH + GammaH) ...
-        ./ (1 + gammaH.*GammaH);
-    
+
+    gammaH = (ur(1, ii + 1, :, :) ./ ur(1, ii, :, :)) .* (kz ./ kzPlus1);
+
+    GammaH = exp(-2j .* kz .* thk(ii)) ...
+        .* (GammaH .* (gammaH + 1) + (gammaH - 1)) ...
+        ./ (GammaH .* (gammaH - 1) + (gammaH + 1));
+
     kzPlus1 = kz;
 end
 

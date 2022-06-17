@@ -15,9 +15,9 @@ function [er, ur, thk] = changeStructureConductivity(O, f, er, ur, thk, sigma)
 %       last element is inf, this layer will be replaced with an equivalent
 %       half-space conductor layer with conductivity sigma. Otherwise, a
 %       new layer will be added.
-%   sigma - Conductivity value to use, in S/mm. Can be a column vector with
-%       the same length as f. The distance unit is the same as the units of
-%       the speed of light.
+%   sigma - Conductivity value to use, in S/unitDistance. Can be a column
+%       vector with the same length as f. The distance unit is the same as
+%       the units of the speed of light.
 % Outputs:
 %   er - Array of complex relative permittivities for each layer. Every row
 %       er(ff, :) will contain the permittivity of each layer at the

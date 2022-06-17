@@ -43,11 +43,9 @@ arguments
     ur(:, :);
     thk(1, :);
 end
-
 arguments (Repeating)
     varargin;
 end
-
 arguments
     options.BackingConductivity(:, 1) = inf;
 end

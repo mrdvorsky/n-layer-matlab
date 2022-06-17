@@ -48,7 +48,7 @@ for ii = (length(thk) - 1):-1:1
     kzPlus1 = kz;
 end
 
-%% Calculate Gamma_0
+%% Calculate Gamma0h
 Gamma0h = kzPlus1 .* (1 - GammaH) ./ ((1 + GammaH) .* k0 .* ur(1, 1, :, :));
 
 end

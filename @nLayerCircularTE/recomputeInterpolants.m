@@ -10,7 +10,6 @@ function [] = recomputeInterpolants(O)
 %   modesTE;
 %   interpolationPoints_kRho;
 %   integralPointsFixed_kRho;
-%   integralPoints_kPhi;
 %   integralInitialSegmentCount;
 %
 % Example Usage:
@@ -36,9 +35,9 @@ O.modeCutoffs = zeros(O.numModes, 1);
 for ii = 1:O.numModes
     % Use zeros of 1st order bessel function to calculate mode cutoff
     % wavenumbers. A reasonable approximation for the nth zero is 
-    % 0.785 + pi*n. This is used as the initial guess.
+    % pi*(n + 0.25). This is used as the initial guess.
     O.modeCutoffs(ii) = fzero(@(x) besselj(1, x), ...
-        0.785 + pi*O.modesTE(ii)) ./ O.waveguideR;
+        pi*(O.modesTE(ii) + 0.25)) ./ O.waveguideR;
 end
 
 % Scale factor for change of variables between tau and tauP

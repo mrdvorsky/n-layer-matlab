@@ -34,7 +34,7 @@ function [AHat] = integrandAhat(O, kRhoP, k0, er, ur, thk)
 %% First Pass Optimization
 % The initial pass of the adaptive integration routine used in
 % "computeA" uses the same nodes every time. We can thus take advantage
-% of precomputed values for AhHat and AeHat instead of performing the same
+% of precomputed values for AhHat instead of performing the same
 % interpolation every time. We can tell if this is the first pass by
 % comparing the size of kRhoP to the size of the precomputed AhHat. Note
 % that this size is asserted to be an odd integer, and that only the first

@@ -22,7 +22,7 @@ end
 kc0i(:, 1) = O.modeCutoffs;
 
 %% Compute B
-B = 0.5 * diag(besselj(0, O.waveguideR * kc0i));
+B = 0.5 * kc0i .* diag(besselj(0, O.waveguideR * kc0i));
 
 end
 

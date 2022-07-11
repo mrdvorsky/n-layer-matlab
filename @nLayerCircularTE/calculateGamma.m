@@ -40,12 +40,14 @@ end
 [kA, kB] = O.computeK(f);
 
 %% Calculate Reflection Coefficient at each Frequency
-gam = zeros(length(f), 1);
+gam = zeros(length(f), O.numModes, O.numModes);
 for ff = 1:length(f)
-    Sj1 = ( A(:, :, ff).*kA(:, :, ff) + B(:, :).*kB(:, :, ff)) ...
-        \ (-A(:, 1, ff).*kA(:, :, ff) + B(:, 1).*kB(:, :, ff));
-    gam(ff) = Sj1(1);
+    Sij = ( A(:, :, ff).*kA(:, :, ff) + B(:, :).*kB(:, :, ff)) ...
+        \ (-A(:, :, ff).*kA(:, :, ff) + B(:, :).*kB(:, :, ff));
+    gam(ff, :, :) = Sij;
 end
+
+gam = gam(:, 1);
 
 end
 

@@ -169,11 +169,11 @@ function mustBeValidErUr(er)
     mustBeFinite(er);
     if real(er) < 1
         throwAsCaller(MException("nLayer:InvalidErUr", ...
-            "The real part of er/ur must be 1 or more."));
+            "The real part must be 1 or more."));
     end
     if imag(er) > 0
         throwAsCaller(MException("nLayer:InvalidErUr", ...
-            "The imaginary part of er/ur must be nonnegative."));
+            "The imaginary part must be nonnegative."));
     end
 end
 

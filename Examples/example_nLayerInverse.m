@@ -29,7 +29,7 @@ er1 = [1 - 0.0j, 4 - 0.05j];
 thk1 = [0.5, 0.5];
 noiseStd = 0.001;
 
-NL1 = nLayerRectangular(3, 2, Band="ka");
+NL1 = nLayerRectangular(3, 2, waveguideBand="ka");
 NL1.printStructure(er1, [], thk1);
 tic;
 gamActual1 = NL1.calculate(f1, er1, [], thk1);

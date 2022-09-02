@@ -31,6 +31,7 @@ k0 = 2*pi .* f ./ O.speedOfLight;
 kc0j(1, :) = O.modeCutoffs;
 
 k0j = conj(sqrt(k0.^2 .* O.waveguideEr .* O.waveguideUr - kc0j.^2));
+k0j = complex(real(k0j), -abs(imag(k0j)));
 
 %% Compute kA and kB
 % Note that instead of right multiplying by the diagonal matrices KA and

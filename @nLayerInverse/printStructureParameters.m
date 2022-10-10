@@ -29,7 +29,7 @@ end
 %% Get Values of er, ur, and thk
 if isempty(thk)
     er = complex(O.erInitialValue, -O.erpInitialValue);
-    ur = [];
+    ur = complex(O.urInitialValue, -O.urpInitialValue);
     thk = O.thkInitialValue;
 end
 
@@ -60,8 +60,8 @@ if formatOptions.ShowLimits
             sprintf(options.FormatString(ii, 3), O.erpRange(1, ii)));
         
         options.AdditionalText(ii, 3, 1) = sprintf(" [%s - j%s,", ...
-            sprintf(options.FormatString(ii, 4), O.erRange(1, ii)), ...
-            sprintf(options.FormatString(ii, 5), O.erpRange(1, ii)));
+            sprintf(options.FormatString(ii, 4), O.urRange(1, ii)), ...
+            sprintf(options.FormatString(ii, 5), O.urpRange(1, ii)));
         
         % Upper Limit
         options.AdditionalText(ii, 1, 2) = sprintf("  %s]", ...
@@ -72,8 +72,9 @@ if formatOptions.ShowLimits
             sprintf(options.FormatString(ii, 3), O.erpRange(2, ii)));
         
         options.AdditionalText(ii, 3, 2) = sprintf("  %s - j%s]", ...
-            sprintf(options.FormatString(ii, 4), O.erRange(2, ii)), ...
-            sprintf(options.FormatString(ii, 5), O.erpRange(2, ii)));
+            sprintf(options.FormatString(ii, 4), O.urRange(2, ii)), ...
+            sprintf(options.FormatString(ii, 5), O.urpRange(2, ii)));
+
     end
 end
 
@@ -94,6 +95,14 @@ options.FormatString(O.erLayersToSolve, 2) = compose(...
 options.FormatString(O.erpLayersToSolve, 3) = compose(...
     formatOptions.SolveParameterFormatString, ...
     options.FormatString(O.erpLayersToSolve, 3));
+
+options.FormatString(O.urLayersToSolve, 4) = compose(...
+    formatOptions.SolveParameterFormatString, ...
+    options.FormatString(O.urLayersToSolve, 4));
+
+options.FormatString(O.urpLayersToSolve, 5) = compose(...
+    formatOptions.SolveParameterFormatString, ...
+    options.FormatString(O.urpLayersToSolve, 5));
 
 %% Create String
 optionsCell = namedargs2cell(options);

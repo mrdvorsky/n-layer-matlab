@@ -25,6 +25,8 @@ classdef nLayerInverse < matlab.mixin.Copyable
         
         default_erRange = [1; 100];
         default_erpRange = [0.001; 10];
+        default_urRange = [1; 100];
+        default_urpRange = [0.001; 10];
         default_thkRange = [0.001; 100];
     end
     
@@ -35,14 +37,20 @@ classdef nLayerInverse < matlab.mixin.Copyable
         
         erLayersToSolve;
         erpLayersToSolve;
+        urLayersToSolve;
+        urpLayersToSolve;
         thkLayersToSolve;
         
         erRange;
         erpRange;
+        urRange;
+        urpRange;
         thkRange;
         
         erInitialValue;
         erpInitialValue;
+        urInitialValue;
+        urpInitialValue;
         thkInitialValue;
     end
     

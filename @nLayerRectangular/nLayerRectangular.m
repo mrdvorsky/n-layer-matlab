@@ -109,7 +109,7 @@ classdef nLayerRectangular < nLayerForward
 
     %% Class Functions
     methods (Access=protected)
-        [gam] = calculateGamma(O, f, er, ur, thk);
+        [gam] = calculate_impl(O, f, er, ur, thk);
     end
     methods (Access=public)
         [outputLabels] = getOutputLabels(O);

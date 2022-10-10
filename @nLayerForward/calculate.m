@@ -61,7 +61,7 @@ if any(isfinite(options.BackingConductivity))
 end
 
 %% Calculate Reflection/Transmission Coefficients
-gam = O.calculateGamma(f, er, ur, thk, varargin{:});
+gam = O.calculate_impl(f, er, ur, thk, varargin{:});
 
 end
 

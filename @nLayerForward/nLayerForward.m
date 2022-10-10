@@ -58,7 +58,7 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
     
     %% Virtual Protected member function definitions
     methods (Abstract, Access=protected)
-        [gam] = calculateGamma(O, f, er, ur, thk);
+        [gam] = calculate_impl(O, f, er, ur, thk);
     end
     
     %% Virtual Public member function definitions

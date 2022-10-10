@@ -3,8 +3,12 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 
 SET startupHeader=%%%% Matt Dvorsky nLayer Library
 
+powershell -Command "[Environment]::GetFolderPath('MyDocuments') | Out-File 'docspath.tmp' -Encoding ascii"
+set /p DOCSPATH=< docspath.tmp
+del docspath.tmp
+
 SET scriptPath=%~dp0
-SET startupPath=C:\Users\%username%\Documents\MATLAB\startup.m
+SET startupPath="%DOCSPATH%\MATLAB\startup.m"
 SET copyString=addpath(genpath("%scriptPath%"));
 
 

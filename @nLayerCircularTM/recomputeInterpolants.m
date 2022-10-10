@@ -2,14 +2,15 @@ function [] = recomputeInterpolants(O)
 %RECOMPUTEINTERPOLANTS Recompute interpolation functions, structs, etc.
 % This function should be called anytime any critical parameter is changed,
 % and must be called before calling calculate. This function is
-% automatically called after creating an nLayerCircularTE object.
+% automatically called after creating an nLayerCircularTM object.
 %
 % List of critical parameters:
 %   waveguideR;
 %   speedOfLight;
-%   modesTE;
+%   modesTM;
 %   interpolationPoints_kRho;
 %   integralPointsFixed_kRho;
+%   integralPoints_kPhi;
 %   integralInitialSegmentCount;
 %
 % Example Usage:
@@ -19,16 +20,25 @@ function [] = recomputeInterpolants(O)
 %
 % Author: Matt Dvorsky
 
+%% Check For Parameter Validity
+% This initial segment count for adaptive integration should be odd so
+% that the "integrandAhatP" function can use that fact to determine when
+% the first pass occurs. See "integrandAhatP" for more details.
+if mod(O.integralInitialSegmentCount, 2) == 0
+    error(strcat("Parameter 'integralInitialSegmentCount' must be an ", ...
+        "odd integer (current value: %d)."), O.integralInitialSegmentCount);
+end
+
 %% Calculate Mode Cutoffs
-O.numModes = numel(O.modesTE);
+O.numModes = numel(O.modesTM);
 
 O.modeCutoffs = zeros(O.numModes, 1);
 for ii = 1:O.numModes
-    % Use zeros of 1st order bessel function to calculate mode cutoff
+    % Use zeros of 0th order bessel function to calculate mode cutoff
     % wavenumbers. A reasonable approximation for the nth zero is 
-    % pi*(n + 0.25). This is used as the initial guess.
-    O.modeCutoffs(ii) = fzero(@(x) besselj(1, x), ...
-        pi*(O.modesTE(ii) + 0.25)) ./ O.waveguideR;
+    % pi*(n - 0.25). This is used as the initial guess.
+    O.modeCutoffs(ii) = fzero(@(x) besselj(0, x), ...
+        pi*(O.modesTM(ii) - 0.25)) ./ O.waveguideR;
 end
 
 % Scale factor for change of variables between tau and tauP
@@ -38,11 +48,11 @@ O.integralScaleFactor = (2*pi) ./ O.waveguideR;
 % Compute Ah and interpolation lookup tables as a function of kRhoP.
 kRhoP(:, 1) = linspace(0, 1, O.interpolationPoints_kRho);
 
-% Compute AhHat at kRhoP coordinates.
-[AhHat] = O.computeAhat(kRhoP);
+% Compute AeHat at kRhoP coordinates.
+[AeHat] = O.computeAhat(kRhoP);
 
 % Store in a table that is used in the "integrandAhat" function.
-O.table_AhHat = AhHat;
+O.table_AeHat = AeHat;
 
 %% Fixed Point Integration Weights and Nodes
 % For lossy structures, generally no adaptive meshing is needed. In those
@@ -51,14 +61,14 @@ O.table_AhHat = AhHat;
 % when using the adaptive integration.
 [kRhoP, weights, errWeights] = O.fejer2(O.integralPointsFixed_kRho, 0, 1);
 
-% Compute AhHat at kRhoP coordinates.
-[AhHat] = O.computeAhat(kRhoP);
+% Compute AeHat at kRhoP coordinates.
+[AeHat] = O.computeAhat(kRhoP);
 
 % Store computed matrices. Also, precompute kRho using kRhoP. These are
 % used in the "computeA" function.
 O.fixed_kRho = O.integralScaleFactor * (1 - kRhoP) ./ kRhoP;
-O.fixed_AhHat = AhHat .* weights;
-O.fixed_errorAhHat = AhHat .* errWeights;
+O.fixed_AeHat = AeHat .* weights;
+O.fixed_errorAeHat = AeHat .* errWeights;
 
 %% First Integration Pass Precomputation
 % The initial pass of the adaptive integral algorithm always uses the same
@@ -69,13 +79,13 @@ O.fixed_errorAhHat = AhHat .* errWeights;
 [kRhoP, ~, ~] = O.gaussKronrod(...
     O.integralInitialSegmentCount, 0, 1);
 
-% Compute AhHat at kRhoP coordinates.
-[AhHat] = O.computeAhat(kRhoP);
+% Compute AeHat at kRhoP coordinates.
+[AeHat] = O.computeAhat(kRhoP);
 
 % Store computed matrices. Also, precompute kRho using kRhoP. These are
 % used in the "integrandAhat" function.
 O.init_kRho = O.integralScaleFactor * (1 - kRhoP) ./ kRhoP;
-O.init_AhHat = AhHat;
+O.init_AeHat = AeHat;
 
 end
 

@@ -34,25 +34,25 @@ function [AHat] = integrandAhat(O, kRhoP, k0, er, ur, thk)
 %% First Pass Optimization
 % The initial pass of the adaptive integration routine used in
 % "computeA" uses the same nodes every time. We can thus take advantage
-% of precomputed values for AhHat instead of performing the same
+% of precomputed values for AeHat instead of performing the same
 % interpolation every time. We can tell if this is the first pass by
-% comparing the size of kRhoP to the size of the precomputed AhHat. Note
+% comparing the size of kRhoP to the size of the precomputed AeHat. Note
 % that this size is asserted to be an odd integer, and that only the first
 % pass of an adaptive integration routine can have an odd value for the
 % size of kRhoP. Thus, there is no need to check that the values of kRhoP
 % match the precomputed values.
 %
-% The values of O.init_kRho and O.init_AhHat are computed in the
+% The values of O.init_kRho and O.init_AeHat are computed in the
 % "recomputeInterpolants" member function.
 if numel(kRhoP) == numel(O.init_kRho)
-    [Gamma0h] = O.computeGamma0(O.init_kRho, k0, er, ur, thk);
-    AHat = Gamma0h .* O.init_AhHat;
+    [Gamma0e] = O.computeGamma0(O.init_kRho, k0, er, ur, thk);
+    AHat = Gamma0e .* O.init_AeHat;
     return;
 end
 
 %% General Case (Linear Interpolation)
 kRho = O.integralScaleFactor * (1 - kRhoP) ./ kRhoP;
-[Gamma0h] = O.computeGamma0(kRho, k0, er, ur, thk);
+[Gamma0e] = O.computeGamma0(kRho, k0, er, ur, thk);
 
 % Get indices and mixing factors for linear interpolation
 fracInd = kRhoP * (O.interpolationPoints_kRho - 1) + 1;
@@ -60,10 +60,10 @@ intInd = floor(fracInd);
 mixingFactor = fracInd - intInd;
 
 % Perform linear interpolation
-vLower = O.table_AhHat(intInd, :, :, :);
-vHigher = O.table_AhHat(intInd + 1, :, :, :);
-interpolated_AhHat = vLower + mixingFactor .* (vHigher - vLower);
+vLower = O.table_AeHat(intInd, :, :, :);
+vHigher = O.table_AeHat(intInd + 1, :, :, :);
+interpolated_AeHat = vLower + mixingFactor .* (vHigher - vLower);
 
-AHat = Gamma0h .* interpolated_AhHat(:, :, :, 1);
+AHat = Gamma0e .* interpolated_AeHat(:, :, :, 1);
 
 end

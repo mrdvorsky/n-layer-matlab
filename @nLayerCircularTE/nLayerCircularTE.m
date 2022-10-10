@@ -70,13 +70,14 @@ classdef nLayerCircularTE < nLayerForward
 
     properties (GetAccess = public, SetAccess = public)
         waveguideR(1, 1) {mustBePositive} = 1;      % Waveguide radius.
-        waveguideEr(1, 1) {mustBeValidErUr} = 1;    % Waveguide fill er.
-        waveguideUr(1, 1) {mustBeValidErUr} = 1;    % Waveguide fill ur.
+        waveguideEr(1, 1) {nLayerForward.mustBeValidErUr} = 1;      % Waveguide fill er.
+        waveguideUr(1, 1) {nLayerForward.mustBeValidErUr} = 1;      % Waveguide fill ur.
         modesTE(:, 1) {mustBeInteger, mustBeNonnegative};   % List of TE0n modes (vector of n).
+        convergenceAbsTol(1, 1) {mustBePositive} = 0.001;   % Convergence tolerance value.
+
         interpolationPoints_kRho(1, 1) {mustBePositive, mustBeInteger} = 2^12;  % Number of points for lookup table along kRho.
         integralPointsFixed_kRho(1, 1) {mustBePositive, mustBeInteger} = 300;   % Number of points for fixed point integral along kRho.
-        integralInitialSegmentCount(1, 1) {mustBePositiveOddInteger} = 9;       % Number of segments to start with in adaptive integral.
-        convergenceAbsTol(1, 1) {mustBePositive} = 0.001;                       % Convergence tolerance value.
+        integralInitialSegmentCount(1, 1) {nLayerForward.mustBePositiveOddInteger} = 9; % Number of segments to start with in adaptive integral.
     end
     properties (GetAccess = public, SetAccess = private)
         numModes;           % Number of modes considered (of form TE0n).
@@ -101,9 +102,7 @@ classdef nLayerCircularTE < nLayerForward
     end
     methods (Access=public)
         [outputLabels] = getOutputLabels(O);
-
         setWaveguideDimensions(O, waveguideA, waveguideB);
-
         recomputeInterpolants(O);
     end
     methods (Access=private)
@@ -155,25 +154,4 @@ classdef nLayerCircularTE < nLayerForward
 
 end
 
-%% Property Validation Functions
-function mustBePositiveOddInteger(num)
-    mustBeInteger(num);
-    mustBePositive(num);
-    if mod(num, 2) ~= 1
-        throwAsCaller(MException("MATLAB:mustBePositiveOddInteger", ...
-            "Value must be a positive odd integer."));
-    end
-end
-
-function mustBeValidErUr(er)
-    mustBeFinite(er);
-    if real(er) < 1
-        throwAsCaller(MException("nLayer:InvalidErUr", ...
-            "The real part must be 1 or more."));
-    end
-    if imag(er) > 0
-        throwAsCaller(MException("nLayer:InvalidErUr", ...
-            "The imaginary part must be nonnegative."));
-    end
-end
 

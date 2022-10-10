@@ -56,30 +56,46 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
         checkStructureValues(1, 1) logical = true;          % Whether to check ranges of er, ur, and thk.
     end
     
-    %% Virtual Protected member function definitions
+    %% Class Functions
     methods (Abstract, Access=protected)
         [gam] = calculate_impl(O, f, er, ur, thk);
     end
-    
-    %% Virtual Public member function definitions
     methods (Abstract, Access=public)
         [outputLabels] = getOutputLabels(O);
     end
-    
-    %% Public member function definitions (implemented in separate files)
     methods (Access=public)
         [gam] = calculate(O, f, er, ur, thk);
         [er, ur, thk] = changeStructureConductivity(O, f, er, ur, thk, sigma);
     end
-    
-    %% Public static function definitions (implemented in separate files)
     methods (Static, Access=public)
         [nodes, weights, errorWeights] = gaussKronrod(numSegs, a, b);
         [nodes, weights, errorWeights] = fejer2(orderN, a, b);
         [q] = integralVectorized(fun, a, b, options);
-        
+
         [er, ur, thk] = validateStructure(f, er, ur, thk, options);
         [structureString, figureString] = printStructure(er, ur, thk, options);
+    end
+    methods (Static, Access=public)
+        function mustBeValidErUr(er)
+            mustBeFinite(er);
+            if real(er) < 1
+                throwAsCaller(MException("nLayer:InvalidErUr", ...
+                    "The real part must be 1 or more."));
+            end
+            if imag(er) > 0
+                throwAsCaller(MException("nLayer:InvalidErUr", ...
+                    "The imaginary part must be nonnegative."));
+            end
+        end
+
+        function mustBePositiveOddInteger(num)
+            mustBeInteger(num);
+            mustBePositive(num);
+            if mod(num, 2) ~= 1
+                throwAsCaller(MException("MATLAB:mustBePositiveOddInteger", ...
+                    "Value must be a positive odd integer."));
+            end
+        end
     end
 
 end

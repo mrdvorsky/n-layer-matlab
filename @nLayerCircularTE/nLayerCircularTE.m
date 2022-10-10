@@ -1,9 +1,10 @@
 classdef nLayerCircularTE < nLayerForward
     %NLAYERCIRCULARTE Implementation of nLayerForward for circular waveguides TE0n modes.
     % This class can be used to calculate the reflection coefficient seen
-    % by a circular waveguide looking into a multilayer structure. Note
-    % that the units of all parameters should match that of the speed of
-    % light specified by the speedOfLight parameter (default is mm GHz).
+    % by a circular waveguide looking into a multilayer structure, in
+    % addition to the full mode S-parameter matrix. Note that the units of
+    % all parameters should match that of the speed of light specified by
+    % the speedOfLight parameter (default is mm GHz).
     %
     % Example Usage:
     %   NL = nLayerCircularTE(numModes, waveguideR=5.8);
@@ -70,8 +71,8 @@ classdef nLayerCircularTE < nLayerForward
 
     properties (GetAccess = public, SetAccess = public)
         waveguideR(1, 1) {mustBePositive} = 1;      % Waveguide radius.
-        waveguideEr(1, 1) {nLayerForward.mustBeValidErUr} = 1;      % Waveguide fill er.
-        waveguideUr(1, 1) {nLayerForward.mustBeValidErUr} = 1;      % Waveguide fill ur.
+        waveguideEr(1, 1) {nLayerForward.mustBeValidErUr} = 1;  % Waveguide fill er.
+        waveguideUr(1, 1) {nLayerForward.mustBeValidErUr} = 1;  % Waveguide fill ur.
         modesTE(:, 1) {mustBeInteger, mustBeNonnegative};   % List of TE0n modes (vector of n).
         convergenceAbsTol(1, 1) {mustBePositive} = 0.001;   % Convergence tolerance value.
 

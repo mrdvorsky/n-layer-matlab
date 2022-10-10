@@ -1,14 +1,15 @@
 classdef nLayerCircularTM < nLayerForward
     %NLAYERCIRCULARTM Implementation of nLayerForward for circular waveguides TM0n modes.
-    % This class can be used to calculate the reflection coefficient seen
-    % by a circular waveguide looking into a multilayer structure. Note
-    % that the units of all parameters should match that of the speed of
-    % light specified by the speedOfLight parameter (default is mm GHz).
+    % This class can be used to calculate the reflection coefficient(s)
+    % seen by a circular waveguide looking into a multilayer structure, in
+    % addition to the full mode S-parameter matrix. Note that the units of
+    % all parameters should match that of the speed of light specified by
+    % the speedOfLight parameter (default is mm GHz).
     %
     % Example Usage:
-    %   NL = nLayerCircularTM(numModes, waveguideR=5.8);
-    %   NL = nLayerCircularTM(numModes, waveguideR=5.8, verbosity=1);
-    %   NL = nLayerCircularTM(numModes, waveguideR=5.8e-3, ...
+    %   NL = nLayerCircularTM(numModes, waveguideR=4.5);
+    %   NL = nLayerCircularTM(numModes, waveguideR=4.5, verbosity=1);
+    %   NL = nLayerCircularTM(numModes, waveguideR=4.5e-3, ...
     %       speedOfLight=299.79e6);
     %   NL = nLayerCircularTM(maxM, maxN, waveguideBand="ka", ...
     %       prop1=val1, prop2=val2, ...);
@@ -69,12 +70,15 @@ classdef nLayerCircularTM < nLayerForward
     % Author: Matt Dvorsky
 
     properties (GetAccess = public, SetAccess = public)
-        waveguideR(1, 1) {mustBePositive} = 1;  % Waveguide radius.
+        waveguideR(1, 1) {mustBePositive} = 1;      % Waveguide radius.
+        waveguideEr(1, 1) {nLayerForward.mustBeValidErUr} = 1;  % Waveguide fill er.
+        waveguideUr(1, 1) {nLayerForward.mustBeValidErUr} = 1;  % Waveguide fill ur.
         modesTM(:, 1) {mustBeInteger, mustBeNonnegative};   % List of TM0n modes (vector of n).
+        convergenceAbsTol(1, 1) {mustBePositive} = 0.001;   % Convergence tolerance value.
+
         interpolationPoints_kRho(1, 1) {mustBePositive, mustBeInteger} = 2^12;  % Number of points for lookup table along kRho.
         integralPointsFixed_kRho(1, 1) {mustBePositive, mustBeInteger} = 300;   % Number of points for fixed point integral along kRho.
-        integralInitialSegmentCount(1, 1) {mustBePositive, mustBeInteger} = 9;  % Number of segments to start with in adaptive integral.
-        convergenceAbsTol(1, 1) {mustBePositive} = 0.001;                       % Convergence tolerance value.
+        integralInitialSegmentCount(1, 1) {nLayerForward.mustBePositiveOddInteger} = 9; % Number of segments to start with in adaptive integral.
     end
     properties (GetAccess = public, SetAccess = private)
         numModes;           % Number of modes considered (of form TM0n).
@@ -99,9 +103,7 @@ classdef nLayerCircularTM < nLayerForward
     end
     methods (Access=public)
         [outputLabels] = getOutputLabels(O);
-
         setWaveguideDimensions(O, waveguideA, waveguideB);
-
         recomputeInterpolants(O);
     end
     methods (Access=private)

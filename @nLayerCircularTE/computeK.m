@@ -1,7 +1,7 @@
 function [kA, kB] = computeK(O, f)
 %COMPUTEK Computes kA and kB.
 % Computes the matrices kA and kB, which are used to compute the
-% unnormalized mode S-parameter matrix.
+% normalized mode S-parameter matrix.
 %
 % Inputs:
 %   f - vector of frequencies to consider.

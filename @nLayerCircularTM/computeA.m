@@ -1,7 +1,7 @@
 function [A] = computeA(O, f, er, ur, thk)
 %COMPUTEA Compute the matrix A for each frequency.
 % This function computes the matrix A as a function of each frequency
-% specified by f, which is used to compute the unnormalized mode
+% specified by f, which is used to compute the normalized mode
 % S-parameter matrix.
 %
 % Example Usage (for single frequency, unnormalized S-parameter matrix):

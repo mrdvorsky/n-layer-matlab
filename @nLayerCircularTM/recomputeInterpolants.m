@@ -10,7 +10,6 @@ function [] = recomputeInterpolants(O)
 %   modesTM;
 %   interpolationPoints_kRho;
 %   integralPointsFixed_kRho;
-%   integralPoints_kPhi;
 %   integralInitialSegmentCount;
 %
 % Example Usage:
@@ -19,15 +18,6 @@ function [] = recomputeInterpolants(O)
 %   NL.recomputeInterpolants();
 %
 % Author: Matt Dvorsky
-
-%% Check For Parameter Validity
-% This initial segment count for adaptive integration should be odd so
-% that the "integrandAhatP" function can use that fact to determine when
-% the first pass occurs. See "integrandAhatP" for more details.
-if mod(O.integralInitialSegmentCount, 2) == 0
-    error(strcat("Parameter 'integralInitialSegmentCount' must be an ", ...
-        "odd integer (current value: %d)."), O.integralInitialSegmentCount);
-end
 
 %% Calculate Mode Cutoffs
 O.numModes = numel(O.modesTM);

@@ -1,6 +1,6 @@
 function [gam] = calculate_impl(O, f, er, ur, thk)
-%CALCULATE_IMPL Calculate S11 for rectangular waveguide TE01 mode excitation.
-% Computes the reflection coefficient of the circular waveguide TE10 mode
+%CALCULATE_IMPL Calculate S11 for circular waveguide TE01 mode excitation.
+% Computes the reflection coefficient of the circular waveguide TE01 mode
 % when looking into a multilayer structure defined by er, ur, thk at the
 % frequencies defined by f.
 %
@@ -14,7 +14,7 @@ function [gam] = calculate_impl(O, f, er, ur, thk)
 %       same as the number of columns in er and ur. Last element can be
 %       inf to represent an infinite half-space.
 % Outputs:
-%   gam - Column vector of reflection coefficients for the TE10 mode. Same
+%   gam - Column vector of reflection coefficients for the TE01 mode. Same
 %       size as f.
 %
 % Author: Matt Dvorsky

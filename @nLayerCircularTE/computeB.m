@@ -1,7 +1,7 @@
 function [B] = computeB(O)
 %COMPUTEB Computes the matrix B.
 %   This function computes the matrix B, which is used to compute
-%   the unnormalized mode S-parameter matrix.
+%   the normalized mode S-parameter matrix.
 %
 % Example Usage (for single frequency, unnormalized S-parameter matrix):
 %   [A] = O.computeA(f(ii), er, ur, thk);

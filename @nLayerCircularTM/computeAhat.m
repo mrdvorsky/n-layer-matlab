@@ -1,7 +1,7 @@
 function [AeHat] = computeAhat(O, kRhoP)
 %COMPUTEAHAT Computes the matrix AeHat(kRho).
 %   This function computes the matrix AeHat(kRho) as a function of kRho.
-%   The outputs of this function can be used to compute the matrix Ah by
+%   The outputs of this function can be used to compute the matrix Ae by
 %   integrating over kRhoP over the interval [0, 1]. Note that the change
 %   of variables from kRhoP to kRho will be applied in this function
 %   automatically.

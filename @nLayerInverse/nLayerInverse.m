@@ -1,4 +1,4 @@
-classdef nLayerInverse < matlab.mixin.Copyable
+classdef nLayerInverse < matlab.mixin.Copyable & matlab.mixin.SetGetExactNames
     %NLAYERINVERSE Class to perform optimization on nLayerForward objects.
     % This class serves as an interface definition for all nLayer forward
     % calculator objects. These objects take in a multilayer structure
@@ -6,7 +6,7 @@ classdef nLayerInverse < matlab.mixin.Copyable
     % transmission coefficients). It also contains several useful utility
     % functions.
     %
-    % nLayerForward Properties:
+    % nLayerInverse Properties:
     %   speedOfLight (299.792458) - Speed of light (mm GHz). Must match
     %       units of distance and frequency used.
     %   verbosity (0) - A value of 0 should suppress console output.
@@ -17,11 +17,18 @@ classdef nLayerInverse < matlab.mixin.Copyable
     % Author: Matt Dvorsky
     
     properties (GetAccess = public, SetAccess = public)
-        localOptimizerOptions;
-        globalOptimizerOptions;
+        localOptimizerOptions ...               % Options object for local optimizer.
+            {mustBeA(localOptimizerOptions, "optim.options.SolverOptions")} ...
+            = optimoptions("lsqnonlin", Display="none");
+        globalOptimizerOptions(1, 1) ...        % Options object for global optimizer.
+            {mustBeA(globalOptimizerOptions, "optim.options.SolverOptions")} ...
+            = optimoptions("surrogateopt", Display="none");
+
+%         localOptimizerOptions;
+%         globalOptimizerOptions(1, 1);
         
-        useGlobalOptimizer = false;
-        useLocalOptimizer = true;
+        useGlobalOptimizer(1, 1) logical = false;   % Whether or not to use global optimizer.
+        useLocalOptimizer(1, 1) logical = true;     % Whether or not to use local optimizer.
         
         default_erRange = [1; 100];
         default_erpRange = [0.001; 10];
@@ -47,11 +54,9 @@ classdef nLayerInverse < matlab.mixin.Copyable
         urpRange;
         thkRange;
         
-        erInitialValue;
-        erpInitialValue;
-        urInitialValue;
-        urpInitialValue;
-        thkInitialValue;
+        erInitialValue(:, 1) {nLayerForward.mustBeValidErUr};
+        urInitialValue(:, 1) {nLayerForward.mustBeValidErUr};
+        thkInitialValue(:, 1) {mustBeNonnegative};
     end
     
     %% Function Declarations (implemented in separate files)
@@ -71,7 +76,7 @@ classdef nLayerInverse < matlab.mixin.Copyable
     
     %% Class constructor
     methods
-        function O = nLayerInverse(numLayers, options)
+        function O = nLayerInverse(numLayers, classProperties)
             %NLAYERRECTANGULAR Construct an instance of this class.
             % Example Usage:
             %   NLsolver = nLayerInverse();
@@ -83,28 +88,33 @@ classdef nLayerInverse < matlab.mixin.Copyable
             
             arguments
                 numLayers(1, 1) {mustBeInteger, mustBePositive};
-                options.Verbosity = 0;
-                options.LocalOptimizerOptions;
-                options.GlobalOptimizerOptions;
             end
-            
+            arguments (Repeating)
+                classProperties;
+            end
+
             %% Set Class Parameter Values
-            O.verbosity = options.Verbosity;
+            if mod(numel(classProperties), 2) ~= 0
+                error("Parameter and value arguments must come in pairs.");
+            end
+            for ii = 1:2:numel(classProperties)
+                set(O, classProperties{ii}, classProperties{ii + 1});
+            end
             
             %% Set Default Optimizer Options
-            if isfield(options, "LocalOptimizerOptions")
-                O.localOptimizerOptions = options.LocalOptimizerOptions;
-            else
-                O.localOptimizerOptions = optimoptions("lsqnonlin", ...
-                    Display="none");
-            end
+%             if isfield(options, "LocalOptimizerOptions")
+%                 O.localOptimizerOptions = options.LocalOptimizerOptions;
+%             else
+%                 O.localOptimizerOptions = optimoptions("lsqnonlin", ...
+%                     Display="none");
+%             end
             
-            if isfield(options, "GlobalOptimizerOptions")
-                O.globalOptimizerOptions = options.GlobalOptimizerOptions;
-            else
-                O.globalOptimizerOptions = optimoptions("surrogateopt", ...
-                    Display="none", PlotFcn="");
-            end
+%             if isfield(options, "GlobalOptimizerOptions")
+%                 O.globalOptimizerOptions = options.GlobalOptimizerOptions;
+%             else
+%                 O.globalOptimizerOptions = optimoptions("surrogateopt", ...
+%                     Display="none", PlotFcn="");
+%             end
             
             %% Set Number of Layers
             O.setLayerCount(numLayers);

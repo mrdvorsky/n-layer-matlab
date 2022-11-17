@@ -24,15 +24,15 @@ end
 if isfield(options, "ErValue")
     O.erInitialValue =  options.ErValue;
 end
-if isfield(options, "ErpValue")
-    O.erpInitialValue = options.ErpValue;
-end
+% if isfield(options, "ErpValue")
+%     O.erpInitialValue = options.ErpValue;
+% end
 if isfield(options, "UrValue")
     O.urInitialValue =  options.UrValue;
 end
-if isfield(options, "UrpValue")
-    O.urpInitialValue = options.UrpValue;
-end
+% if isfield(options, "UrpValue")
+%     O.urpInitialValue = options.UrpValue;
+% end
 if isfield(options, "ThkValue")
     O.thkInitialValue = options.ThkValue;
 end

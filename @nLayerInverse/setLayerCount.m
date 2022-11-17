@@ -20,9 +20,7 @@ O.urpRange = O.default_urpRange + 0*(1:layerCount);
 O.thkRange = O.default_thkRange + 0*(1:layerCount);
 
 O.erInitialValue = O.erRange(1, :);
-O.erpInitialValue = O.erpRange(1, :);
 O.urInitialValue = O.urRange(1, :);
-O.urpInitialValue = O.urpRange(1, :);
 O.thkInitialValue = O.thkRange(1, :);
 
 end

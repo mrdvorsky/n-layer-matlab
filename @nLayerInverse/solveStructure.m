@@ -12,12 +12,15 @@ arguments(Repeating)
     gam;
 end
 
+%% Validate nLayerInverse Object
+O.validate();
+
 %% Construct Linearized Ranges and Initial Guesses
 [xInitial, xMin, xMax] = O.constructInitialValuesAndRanges();
 
 %% Create Error Function
-errorFunctionVector = @(x) O.calculateError(x, NL, f, gam);
-errorFunctionScalar = @(x) O.calculateError(x, NL, f, gam, ...
+errorFunctionVector = @(x) nLayerInverse.calculateError(O, x, NL, f, gam);
+errorFunctionScalar = @(x) nLayerInverse.calculateError(O, x, NL, f, gam, ...
     VectorOutput=false);
 
 %% Set Verbosity for Optimizers
@@ -76,6 +79,16 @@ else
     if ~O.useGlobalOptimizer
         error("At least one optimizer must be enabled.");
     end
+end
+
+%% Check for Active Boundary Conditions
+bounds_eps = 1e-8;
+if any(abs(x - xMin) < bounds_eps) || any(abs(x - xMax) < bounds_eps)
+    warning("One or more parameters (er, ur, thk) of the final " + ...
+        "solved structure is stuck at a max or min, and thus the " + ...
+        "solution is likely incorrect. Either relax the min and " + ...
+        "max constraints or reduce the number of parameters " + ...
+        "being solved.")
 end
 
 %% Create Output

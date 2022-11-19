@@ -1,77 +1,56 @@
 function [xInitial, xMin, xMax] = constructInitialValuesAndRanges(O)
-%CONSTRUCTINITIALVALUESANDRANGES Summary of this function goes here
-%   Detailed explanation goes here
+%CONSTRUCTINITIALVALUESANDRANGES Linearizes initial values and ranges for optimizer.
+% Performs the conversion from structure parameters (er, ur, thk) to the
+% linearized real vector parameters taken in by the curve fitting
+% functions. This process makes use of the layersToSolve_{...} parameters
+% to determine which layers to be solved.
+%
+% This function also checks that the initial values being solved are
+% within the ranges specified by the rangeMin_{...} and rangeMax_{...}
+% parameters.
+%
+% Author: Matt Dvorsky
 
 arguments
     O;
 end
 
+%% Construct Initial Values and Ranges
+erp  =  real(O.initialValue_er( O.layersToSolve_erp));
+erpp = -imag(O.initialValue_er( O.layersToSolve_erpp));
+urp  =  real(O.initialValue_ur( O.layersToSolve_urp));
+urpp = -imag(O.initialValue_ur( O.layersToSolve_urpp));
+thk  =       O.initialValue_thk(O.layersToSolve_thk);
+
+erpMin  = O.rangeMin_erp( O.layersToSolve_erp);
+erppMin = O.rangeMin_erpp(O.layersToSolve_erpp);
+urpMin  = O.rangeMin_urp( O.layersToSolve_urp);
+urppMin = O.rangeMin_urpp(O.layersToSolve_urpp);
+thkMin  = O.rangeMin_thk( O.layersToSolve_thk);
+
+erpMax  = O.rangeMax_erp( O.layersToSolve_erp);
+erppMax = O.rangeMax_erpp(O.layersToSolve_erpp);
+urpMax  = O.rangeMax_urp( O.layersToSolve_urp);
+urppMax = O.rangeMax_urpp(O.layersToSolve_urpp);
+thkMax  = O.rangeMax_thk( O.layersToSolve_thk);
+
+%% Apply Thickness Constraints
+
+%% Assemble Output
+xInitial = [erp, erpp, urp, urpp, thk].';
+xMin = [erpMin, erppMin, urpMin, urppMin, thkMin].';
+xMax = [erpMax, erppMax, urpMax, urppMax, thkMax].';
+
 %% Check Value Bounds
-if ~isempty(O.erLayersToSolve)
-    if any(O.erInitialValue(O.erLayersToSolve) < O.erRange(1, :) ...
-            | O.erInitialValue(O.erLayersToSolve) > O.erRange(2, :))
-        error("An element of 'erInitialValue' is outside the range specified by 'erRange'.");
-    end
+if any(xInitial < xMin) || any(xInitial > xMax)
+    error("One or more structure parameters (er, ur, thk) that " + ...
+        "are being solved for is outside the range specified.");
 end
 
-if ~isempty(O.erpLayersToSolve)
-    if any(O.erpInitialValue(O.erpLayersToSolve) < O.erpRange(1, :) ...
-            | O.erpInitialValue(O.erpLayersToSolve) > O.erpRange(2, :))
-        error("An element of 'erpInitialValue' is outside the range specified by 'erpRange'.");
-    end
-end
-
-if ~isempty(O.urLayersToSolve)
-    if any(O.urInitialValue(O.urLayersToSolve) < O.urRange(1, :) ...
-            | O.urInitialValue(O.urLayersToSolve) > O.urRange(2, :))
-        error("An element of 'urInitialValue' is outside the range specified by 'urRange'.");
-    end
-end
-
-if ~isempty(O.urpLayersToSolve)
-    if any(O.urpInitialValue(O.urpLayersToSolve) < O.urpRange(1, :) ...
-            | O.urpInitialValue(O.urpLayersToSolve) > O.urpRange(2, :))
-        error("An element of 'urpInitialValue' is outside the range specified by 'urpRange'.");
-    end
-end
-
-if ~isempty(O.thkLayersToSolve)
-    if any(O.thkInitialValue(O.thkLayersToSolve) < O.thkRange(1, :) ...
-            | O.thkInitialValue(O.thkLayersToSolve) > O.thkRange(2, :))
-        error("An element of 'thkInitialValue' is outside the range specified by 'thkRange'.");
-    end
-end
-
-if any(~isfinite(O.thkInitialValue(O.thkLayersToSolve)))
+if any(~isfinite(thk))
     error("Last layer thickness cannot be infinite if it is being solved.");
 end
 
-%% Construct Initial Values and Ranges
-erInitialValue  = O.erInitialValue( 1, O.erLayersToSolve);
-erpInitialValue = O.erpInitialValue(1, O.erpLayersToSolve);
-urInitialValue = O.urInitialValue(1, O.urLayersToSolve);
-urpInitialValue = O.urpInitialValue(1, O.urpLayersToSolve);
-thkInitialValue = O.thkInitialValue(1, O.thkLayersToSolve);
-
-erMin  = (O.erRange( 1, O.erLayersToSolve));
-erpMin = (O.erpRange(1, O.erpLayersToSolve));
-urMin  = (O.urRange( 1, O.urLayersToSolve));
-urpMin = (O.urpRange(1, O.urpLayersToSolve));
-thkMin = O.thkRange(1, O.thkLayersToSolve);
-
-erMax  = (O.erRange( 2, O.erLayersToSolve));
-erpMax = (O.erpRange(2, O.erpLayersToSolve));
-urMax  = (O.urRange( 2, O.urLayersToSolve));
-urpMax = (O.urpRange(2, O.urpLayersToSolve));
-thkMax = O.thkRange(2, O.thkLayersToSolve);
-
-%% Assemble Output
-% Transformation of er and erp is done to improve convergence. If this is
-% changed, make sure to make the corresponding change in the
-% "extractStructure" function and the min and max values above.
-xInitial = [(erInitialValue), (erpInitialValue), (urInitialValue), (urpInitialValue), thkInitialValue].';
-xMin   = [erMin,   erpMin, urMin, urpMin, thkMin].';
-xMax   = [erMax,   erpMax, urMax, urpMax, thkMax].';
-
 end
+
 

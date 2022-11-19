@@ -50,7 +50,7 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
     %
     % Author: Matt Dvorsky
     
-    properties (GetAccess = public, SetAccess = public)
+    properties (Access=public)
         speedOfLight(1, 1) {mustBePositive} = 299.792458;   % Speed of light (default is mm GHz).
         verbosity(1, 1) {mustBeNonnegative} = 0;            % Verbosity level. Set to zero for no console output.
         checkStructureValues(1, 1) logical = true;          % Whether to check ranges of er, ur, and thk.
@@ -76,26 +76,8 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
         [structureString, figureString] = printStructure(er, ur, thk, options);
     end
     methods (Static, Access=public)
-        function mustBeValidErUr(er)
-            mustBeFinite(er);
-            if real(er) < 1
-                throwAsCaller(MException("nLayer:InvalidErUr", ...
-                    "The real part must be 1 or more."));
-            end
-            if imag(er) > 0
-                throwAsCaller(MException("nLayer:InvalidErUr", ...
-                    "The imaginary part must be nonnegative."));
-            end
-        end
-
-        function mustBePositiveOddInteger(num)
-            mustBeInteger(num);
-            mustBePositive(num);
-            if mod(num, 2) ~= 1
-                throwAsCaller(MException("MATLAB:mustBePositiveOddInteger", ...
-                    "Value must be a positive odd integer."));
-            end
-        end
+        [] = mustBeValidErUr(er);
+        [] = mustBePositiveOddInteger(num);
     end
 
 end

@@ -1,102 +1,70 @@
-function [er, ur, thk, varargout] = solveStructure(O, NL, f, gam)
-%SOLVESTRUCTURE Summary of this function goes here
-%   Detailed explanation goes here
+function [varargout] = solveStructure(O, NL, f, gam)
+%SOLVESTRUCTURE Perform curve fitting to solve for structure parameters.
+% This function takes triplets of nLayerForward objects, frequency vectors,
+% and measurements, and tries to find the missing structure parameters of
+% er, ur, thk using curve fitting to minimize the rms values of
+% 'NL.calculate(er, ur, thk) - gam' for each triplet.
+% 
+% Each NL object can be different, as long as 'NL.calculate(f, ...)'
+% returns an array with the same size as 'gam'. The first dimension of
+% 'gam' must have a size match the number of elements in 'f'.
+%
+% Example Usage (simple case, 2 layer infinite halfspace):
+%   NLsolver.setInitialValues(Er=[1, 4-1j], Thk=[10, inf]);
+%   NLsolver.setLayersToSolve(Erp=[2], Erpp=[2]);
+%   [Params, Gamma, Uncert] = NLsolver.solveStructure(NL, f, gam);
+%
+% Example Usage (for multi-band open-ended measurements):
+%   NLsolver.setInitialValues(Er=[1, 4-1j], Thk=[1, 10]);
+%   NLsolver.setLayersToSolve(Erp=[2], Erpp=[2], Thk=[1, 2]);
+%   [Params, Gamma, Uncert] = NLsolver.solveStructure(...
+%       NL1, f1, gam1, ...
+%       NL2, f2, gam2);
+%
+% Inputs:
+%   NL (Repeating) - A valid nLayerForward object.
+%   f (Repeating) - Vector of frequencies to pass to NL.
+%   gam (Repeating) - Measurements to fit. Size must match the output size
+%       of 'NL.calculate(f, er, ur, thk)'.
+%
+% Outputs:
+%   Parameters - Struct containing the structure parameters (er, ur, thk),
+%       and simulated measurements (gam) for each input set.
+%   Gamma - Cell array of simulated measurements (i.e., the value of
+%       'NL.calculate(f, er, ur, thk)').
+%   Uncertainty - Struct containing the calculated output parmeter
+%       uncertainties for each input set.
+%
+% Author: Matt Dvorsky
 
 arguments
     O;
 end
-
 arguments(Repeating)
-    NL;
-    f(:, 1);
-    gam;
+    NL(1, 1) {mustBeA(NL, "nLayerForward")};
+    f(:, 1) {mustBeNonempty};
+    gam(:, :) {mustBeCorrectGamSize(f, gam)};
 end
 
-%% Validate nLayerInverse Object
-O.validate();
+%% Perform Curve Fitting Using 'solveStructureMultiple'
+inputParams = [repmat({O}, 1, numel(NL)); NL; f; gam];
+[varargout{1:nargout}] = nLayerInverse.solveStructureMultiple(inputParams{:});
 
-%% Construct Linearized Ranges and Initial Guesses
-[xInitial, xMin, xMax] = O.constructInitialValuesAndRanges();
-
-%% Create Error Function
-errorFunctionVector = @(x) nLayerInverse.calculateError(O, x, NL, f, gam);
-errorFunctionScalar = @(x) nLayerInverse.calculateError(O, x, NL, f, gam, ...
-    VectorOutput=false);
-
-%% Set Verbosity for Optimizers
-globalOptimizerOptions = O.globalOptimizerOptions;
-if O.verbosity > 0
-    globalOptimizerOptions = optimoptions(O.globalOptimizerOptions, ...
-        Display="iter");
+if nargout >= 1
+    varargout{1} = varargout{1}{1};     % Get first element of Params.
 end
 
-localOptimizerOptions = O.localOptimizerOptions;
-if O.verbosity > 0
-    localOptimizerOptions = optimoptions(O.localOptimizerOptions, ...
-        Display="iter");
 end
 
-%% Run Global Optimizer
-if O.useGlobalOptimizer
-    switch class(globalOptimizerOptions)
-        case "optim.options.GaOptions"
-            xInitial = ga(errorFunctionScalar, numel(xInitial), ...
-                [], [], [], [], xMin, xMax, [], globalOptimizerOptions);
-        case "optim.options.Particleswarm"
-            xInitial = particleswarm(errorFunctionScalar, numel(xInitial), ...
-                xMin, xMax, globalOptimizerOptions);
-        case "optim.options.PatternsearchOptions"
-            xInitial = patternsearch(errorFunctionScalar, xInitial, ...
-                [], [], [], [], xMin, xMax, [], globalOptimizerOptions);
-        case "optim.options.SimulannealbndOptions"
-            xInitial = simulannealbnd(errorFunctionScalar, xInitial, ...
-                xMin, xMax, globalOptimizerOptions);
-        case "optim.options.Surrogateopt"
-            xInitial = surrogateopt(errorFunctionScalar, ...
-                xMin, xMax, [], [], [], [], [], globalOptimizerOptions);
-        otherwise
-            error("Global optimizer '%s' not supported.", ...
-                class(globalOptimizerOptions));
+
+function mustBeCorrectGamSize(f, gam)
+    if iscell(f)    % Fix MATLAB bug.
+        currentInd = find(cellfun(@(x) numel(x) > 0, f), 1, "last");
+        f = f{currentInd};
     end
-end
-
-%% Run Local Optimizer
-if O.useLocalOptimizer
-    switch class(localOptimizerOptions)
-        case "optim.options.Lsqnonlin"
-            x = lsqnonlin(errorFunctionVector, xInitial, xMin, xMax, ...
-                localOptimizerOptions);
-        case "optim.options.Fmincon"
-            x = fmincon(errorFunctionScalar, xInitial, ...
-                [], [], [], [], xMin, xMax, [], localOptimizerOptions);
-        otherwise
-            error("Local optimizer '%s' not supported.", ...
-                class(localOptimizerOptions));
+    if numel(f) ~= size(gam)
+        throwAsCaller(MException("nLayerInverse:mustBeCorrectGamSize", ...
+            "First dimension of the measurements array must have size " + ...
+            "equal to the number of frequencies (%d).", numel(f)));
     end
-else
-    x = xInitial;
-    
-    if ~O.useGlobalOptimizer
-        error("At least one optimizer must be enabled.");
-    end
-end
-
-%% Check for Active Boundary Conditions
-bounds_eps = 1e-8;
-if any(abs(x - xMin) < bounds_eps) || any(abs(x - xMax) < bounds_eps)
-    warning("One or more parameters (er, ur, thk) of the final " + ...
-        "solved structure is stuck at a max or min, and thus the " + ...
-        "solution is likely incorrect. Either relax the min and " + ...
-        "max constraints or reduce the number of parameters " + ...
-        "being solved.")
-end
-
-%% Create Output
-[er, ur, thk] = O.extractStructure(x, f);
-
-%% Assign Gamma
-for ii = 1:(nargout - 3)
-    varargout{ii} = NL{ii}.calculate(f{ii}, er, ur, thk);
-end
-
 end

@@ -18,20 +18,22 @@ gamMeas1 = gamActual + (sqrt(0.5) .* noiseStd) ...
     .* complex(randn(size(f)), randn(size(f)));
 
 %% Solve for Structure
-NLsolver = nLayerInverse(2, verbosity=0);
+NLsolver = nLayerInverse(2, verbosity=1);
 NLsolver.setLayersToSolve(Erp=[2], Erpp=[], Thk=[1]);
 NLsolver.setInitialValues(Er=er, Thk=thk);
-NLsolver.useGlobalOptimizer = false;
 
-NLsolver.rangeMax_thk(1) = 0.5;
+% NLsolver.useGlobalOptimizer = true;
+% NLsolver.rangeMax_thk(1, :) = 1;
+% NLsolver.rangeMax_erp(1, :) = 10;
+% NLsolver.rangeMax_erpp(1, :) = 1;
 
 NLsolver.printStructureParameters(ShowLimits=true, Title="Case 1: Input");
 
 tic;
-[er, ur, thk, gam] = NLsolver.solveStructure(NL, f, gamMeas1);
+[Params, Gamma, Uncert] = NLsolver.solveStructure(NL, f, gamMeas1, NL, f, gamMeas1);
 toc;
 
-NLsolver.printStructureParameters(er, ur, thk, Title="Case 1: Output");
+NLsolver.printStructureParameters(Params, Title="Case 1: Output");
 
 % NLsolver.computeParameterUncertainty(NL, f, NoiseStd=noiseStd);
 

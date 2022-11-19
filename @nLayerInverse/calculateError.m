@@ -9,7 +9,7 @@ function [gamError, gamErrorComplex] = calculateError(NLsolver, x, NL, f, gamAct
 % Author: Matt Dvorsky
 
 arguments
-    NLsolver;
+    NLsolver(:, 1) cell;
     x(:, 1);
     NL(:, 1) cell;
     f(:, 1) cell;
@@ -17,23 +17,21 @@ arguments
     options.VectorOutput = true;
 end
 
-%% Construct Multilayer Structure
-[er, ur, thk] = NLsolver.extractStructure(x, f);
-
-%% Calculate Gamma
-gam = cell(length(NL), 1);
+%% Calculate Gamma for Each Structure
+gam = cell(numel(NLsolver), 1);
 try
-    for ii = 1:length(NL)
+    for ii = 1:numel(NLsolver)
+        [er, ur, thk] = NLsolver{ii}.extractStructure(x, f);
         gam{ii} = NL{ii}.calculate(f{ii}, er, ur, thk);
     end
 catch ex
     error("Failed to evaluate structure because: %s\n%s", ex.message, ...
-        NLsolver.printStructureParameters(er, ur, thk, Title="Failed to Converge"));
+        NLsolver{ii}.printStructureParameters(er, ur, thk, Title="Failed to Converge"));
 end
 
 %% Calculate Error
-gamErrorComplex = cell(length(NL), 1);
-for ii = 1:length(NL)
+gamErrorComplex = cell(numel(NLsolver), 1);
+for ii = 1:numel(NLsolver)
     gamErrorComplex{ii} = gam{ii}(:) - gamActual{ii}(:);
 end
 

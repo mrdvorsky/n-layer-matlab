@@ -1,21 +1,34 @@
-function [varargout] = printStructureParameters(O, er, ur, thk, formatOptions, options)
+function [varargout] = printStructureParameters(O, Parameters, Uncertainty, formatOptions, options)
 %PRINTSTRUCTUREPARAMETERS Display multilayer structure solver parameters.
-%   Detailed explanation goes here
+% Prints the structure parameters for an nLayerInverse object. By default,
+% uses the initial values from the nLayerInverse object. If a 'Parameters'
+% struct is passed in (e.g., from the 'solveStructure' function), those
+% values will be shown instead.
+%
+% Additionally, an 'Uncertainty' can be passed in to show uncertainty
+% values (e.g., from the 'solveStructure' function).
+%
+% Example Usage:
+%   NLsolver.printStructureParameters(Title="title", ShowLimits=true);
+%   [Params, ~, Uncert] = NLsolver.solveStructure(...);
+%   NLsolver.printStructureParams(Params);
+%   NLsolver.printStructureParams(Params, Uncert);
+%
+% Author: Matt Dvorsky
 
 arguments
     O;
-    er(1, :) = [];
-    ur(1, :) = [];
-    thk(1, :) = [];
+    Parameters(1, 1) {mustBeA(Parameters, "struct")} = struct();
+    Uncertainty(1, 1) {mustBeA(Uncertainty, "struct")} = struct();
     
-    formatOptions.ShowLimits(1, 1) {mustBeNumericOrLogical} = false;
-    formatOptions.ShowInitialValues(1, 1) {mustBeNumericOrLogical} = true;
+    formatOptions.ShowLimits(1, 1) logical = false;
+    formatOptions.ShowInitialValues(1, 1) logical = true;
     formatOptions.SolveParameterFormatString {mustBeTextScalar} = "{%s}";
     
     options.Title {mustBeTextScalar} = "Solver Structure Parameters";
     options.BackingConductivity {mustBePositive} = inf;
     options.ThkUnitLabel {mustBeTextScalar} = "mm";
-    options.ConductivityUnitLabel {mustBeTextScalar} = "S/m";
+    options.ConductivityUnitLabel {mustBeTextScalar} = "S/mm";
     
     options.Width(1, 1) {mustBeInteger, mustBePositive} = 72;
     options.ThkWidth(1, 1) {mustBeInRange(options.ThkWidth, 0, 1)} = 0.3;
@@ -30,10 +43,14 @@ end
 O.validate();
 
 %% Get Values of er, ur, and thk
-if isempty(thk)
+if isempty(fieldnames(Parameters))
     er = O.initialValue_er;
     ur = O.initialValue_ur;
     thk = O.initialValue_thk;
+else
+    er = Parameters.er;
+    ur = Parameters.ur;
+    thk = Parameters.thk;
 end
 
 %% Check Inputs

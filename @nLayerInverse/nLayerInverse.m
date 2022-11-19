@@ -45,7 +45,7 @@ classdef nLayerInverse < matlab.mixin.Copyable & matlab.mixin.SetGetExactNames
             = optimoptions("lsqnonlin", Display="none");
         globalOptimizerOptions(1, 1) ...                        % Options object for global optimizer.
             {mustBeA(globalOptimizerOptions, "optim.options.SolverOptions")} ...
-            = optimoptions("surrogateopt", Display="none");
+            = optimoptions("surrogateopt", Display="none", PlotFcn="");
     end
     properties (GetAccess=public, SetAccess=private)
         layerCount(1, 1) {mustBeInteger, mustBePositive} = 1;   % Number of layers in the structure.
@@ -58,7 +58,7 @@ classdef nLayerInverse < matlab.mixin.Copyable & matlab.mixin.SetGetExactNames
         setInitialValues(O, options);
         setRanges(O, options);
 
-        [er, ur, thk, varargout] = solveStructure(O, NL, f, gam);
+        [varargout] = solveStructure(O, NL, f, gam);
 
         [erError, urError, thkError] = computeParameterUncertainty(O, er, ur, thk);
         [varargout] = printStructureParameters(O, options);
@@ -69,7 +69,7 @@ classdef nLayerInverse < matlab.mixin.Copyable & matlab.mixin.SetGetExactNames
         [er, ur, thk] = extractStructure(O, x, f);
     end
     methods (Static, Access=public)
-        [] = solveStructureMulti(NLsolver, NL, f, gam);
+        [Params, Gamma, Uncert] = solveStructureMultiple(NLsolver, NL, f, gam);
     end
     methods (Static, Access=private)
         [gamError, gamErrorComplex] = calculateError(...

@@ -69,7 +69,7 @@ classdef nLayerCircularTM < nLayerForward
     %
     % Author: Matt Dvorsky
 
-    properties (GetAccess = public, SetAccess = public)
+    properties (Access=public)
         waveguideR(1, 1) {mustBePositive} = 1;      % Waveguide radius.
         waveguideEr(1, 1) {nLayerForward.mustBeValidErUr} = 1;  % Waveguide fill er.
         waveguideUr(1, 1) {nLayerForward.mustBeValidErUr} = 1;  % Waveguide fill ur.
@@ -80,11 +80,11 @@ classdef nLayerCircularTM < nLayerForward
         integralPointsFixed_kRho(1, 1) {mustBePositive, mustBeInteger} = 300;   % Number of points for fixed point integral along kRho.
         integralInitialSegmentCount(1, 1) {nLayerForward.mustBePositiveOddInteger} = 9; % Number of segments to start with in adaptive integral.
     end
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess=public, SetAccess=private)
         numModes;           % Number of modes considered (of form TM0n).
         modeCutoffs;        % Cutoff wavenumbers of TM0n modes.
     end
-    properties (Access = private)
+    properties (Access=private)
         integralScaleFactor;    % Scale factor for change of varibles from kRho [0, inf) to kRhoP [0, 1].
 
         table_AeHat;        % Interpolation table for AeHat(kRhoP).

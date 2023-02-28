@@ -38,25 +38,25 @@ gamMeas1 = gamActual1 + (sqrt(0.5) .* noiseStd) ...
     .* complex(randn(size(f1)), randn(size(f1)));
 
 %% Solve for Structure
-NLsolver = nLayerInverse(2, Verbosity=0);
-NLsolver.setLayersToSolve(ErLayers=[2], ErpLayers=[2], ThkLayers=[1]);
-NLsolver.setInitialValues(ErValue=[1, 4], ErpValue=[0.0, 0.05], ThkValue=[0.5, 0.5]);
+NLsolver = nLayerInverse(2, verbosity=0);
+NLsolver.setLayersToSolve(Erp=[2], Erpp=[2], Thk=[1]);
+NLsolver.setInitialValues(Er=[1, 4 - 0.05j], Thk=[0.5, 0.5]);
 NLsolver.useGlobalOptimizer = false;
 
 NLsolver.printStructureParameters(ShowLimits=true, Title="Case 1: Input");
 
 tic;
-[er, ur, thk, gam] = NLsolver.solveStructure(NL1, f1, gamMeas1);
+[Params, Gamma, Uncert] = NLsolver.solveStructure(NL1, f1, gamMeas1);
 toc;
 
-NLsolver.printStructureParameters(er, ur, thk, Title="Case 1: Output");
+NLsolver.printStructureParameters(Params, Uncert, Title="Case 1: Output");
 
 NLsolver.computeParameterUncertainty(NL1, f1, NoiseStd=noiseStd);
 
 %% Plot
-% figure;
-% nLayerViewer(er, thk, NL1, f1);
-% hold on;
-% plot(gamMeas1, "", Linewidth=1.5);
-% legend("Fit", "Measured");
+figure;
+nLayerViewer(Params.er, Params.thk, NL1, f1);
+hold on;
+plot(gamMeas1, "", Linewidth=1.5);
+legend("Fit", "Measured");
 

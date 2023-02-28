@@ -23,39 +23,39 @@ close all;
 
 
 %% Create Measurement Data
-% Example 1 
-f1 = linspace(26.5, 40, 21).';
-er1 = [1 - 0.0j, 4 - 0.05j];
-thk1 = [0.5, 0.5];
-noiseStd = 0.001;
+f = linspace(26.5, 40, 21).';
+er = [1, 0.5 - 0.05j];
+ur = [1, 1 - 0.01j];
+thk = [0.5, 0.5];
 
-NL1 = nLayerRectangular(3, 2, waveguideBand="ka");
-NL1.printStructure(er1, [], thk1);
-tic;
-gamActual1 = NL1.calculate(f1, er1, [], thk1);
-toc;
+noiseStd = 0.01;
+
+NL = nLayerRectangular(3, 2, waveguideBand="ka", checkStructureValues=false);
+NL.printStructure(er, ur, thk);
+gamActual1 = NL.calculate(f, er, ur, thk);
 gamMeas1 = gamActual1 + (sqrt(0.5) .* noiseStd) ...
-    .* complex(randn(size(f1)), randn(size(f1)));
+    .* complex(randn(size(f)), randn(size(f)));
 
 %% Solve for Structure
-NLsolver = nLayerInverse(2, verbosity=0);
-NLsolver.setLayersToSolve(Erp=[2], Erpp=[2], Thk=[1]);
-NLsolver.setInitialValues(Er=[1, 4 - 0.05j], Thk=[0.5, 0.5]);
+NLsolver = nLayerInverse(2, verbosity=1);
+NLsolver.setLayersToSolve(Erp=[2], Erpp=[2], Urp=[2], Urpp=[2], Thk=[]);
+NLsolver.setRanges(ErpMin=[1, 0.01]);
+NLsolver.setInitialValues(Er=er, Ur=ur, Thk=thk);
 NLsolver.useGlobalOptimizer = false;
 
 NLsolver.printStructureParameters(ShowLimits=true, Title="Case 1: Input");
 
 tic;
-[Params, Gamma, Uncert] = NLsolver.solveStructure(NL1, f1, gamMeas1);
+[Params, Gamma, Uncert] = NLsolver.solveStructure(NL, f, gamMeas1);
 toc;
 
 NLsolver.printStructureParameters(Params, Uncert, Title="Case 1: Output");
 
-NLsolver.computeParameterUncertainty(NL1, f1, NoiseStd=noiseStd);
+NLsolver.computeParameterUncertainty(NL, f, NoiseStd=noiseStd);
 
 %% Plot
 figure;
-nLayerViewer(Params.er, Params.thk, NL1, f1);
+nLayerViewer(Params.er, Params.thk, NL, f);
 hold on;
 plot(gamMeas1, "", Linewidth=1.5);
 legend("Fit", "Measured");

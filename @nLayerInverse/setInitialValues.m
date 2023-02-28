@@ -12,12 +12,9 @@ function [] = setInitialValues(O, options)
 
 arguments
     O;
-    options.Er (1, :) {nLayerForward.mustBeValidErUr, ...
-        mustBeValidInitialValues(options.Er, O)}  = O.initialValue_er;
-    options.Ur (1, :) {nLayerForward.mustBeValidErUr, ...
-        mustBeValidInitialValues(options.Ur, O)}  = O.initialValue_ur;
-    options.Thk(1, :) {mustBeNonnegative, ...
-        mustBeValidInitialValues(options.Thk, O)} = O.initialValue_thk;
+    options.Er (1, :) {mustBeValidInitialValues(options.Er, O)}  = O.initialValue_er;
+    options.Ur (1, :) {mustBeValidInitialValues(options.Ur, O)}  = O.initialValue_ur;
+    options.Thk(1, :) {mustBeValidInitialValues(options.Thk, O)} = O.initialValue_thk;
 end
 
 %% Assign Initial Values

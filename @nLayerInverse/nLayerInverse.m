@@ -19,21 +19,21 @@ classdef nLayerInverse < matlab.mixin.Copyable & matlab.mixin.SetGetExactNames
         layersToSolve_urpp(:, 1) {mustBeInteger, mustBePositive} = [];  % Layer indices to solve for urpp.
         layersToSolve_thk(:, 1)  {mustBeInteger, mustBePositive} = [];  % Layer indices to solve for thk.
         
-        rangeMin_erp(1, :)  {mustBeGreaterThanOrEqual(rangeMin_erp, 1)} = 1;    % Minimum erp per layer.
-        rangeMin_erpp(1, :) {mustBeNonnegative} = 0.0001;                       % Minimum erpp per layer.
-        rangeMin_urp(1, :)  {mustBeGreaterThanOrEqual(rangeMin_urp, 1)} = 1;    % Minimum urp per layer.
-        rangeMin_urpp(1, :) {mustBeNonnegative} = 0;                            % Minimum urpp per layer.
-        rangeMin_thk(1, :)  {mustBeNonnegative} = 0;                            % Minimum thk per layer.
+        rangeMin_erp(1, :)  {mustBeReal} = 1;       % Minimum erp per layer.
+        rangeMin_erpp(1, :) {mustBeReal} = 0.0001;  % Minimum erpp per layer.
+        rangeMin_urp(1, :)  {mustBeReal} = 1;       % Minimum urp per layer.
+        rangeMin_urpp(1, :) {mustBeReal} = 0;       % Minimum urpp per layer.
+        rangeMin_thk(1, :)  {mustBeReal} = 0;       % Minimum thk per layer.
         
-        rangeMax_erp(1, :)  {mustBeGreaterThanOrEqual(rangeMax_erp, 1)} = inf;  % Minimum erp per layer.
-        rangeMax_erpp(1, :) {mustBeNonnegative} = inf;                          % Minimum erpp per layer.
-        rangeMax_urp(1, :)  {mustBeGreaterThanOrEqual(rangeMax_urp, 1)} = inf;  % Minimum urp per layer.
-        rangeMax_urpp(1, :) {mustBeNonnegative} = inf;                          % Minimum urpp per layer.
-        rangeMax_thk(1, :)  {mustBeNonnegative} = inf;                          % Minimum thk per layer.
+        rangeMax_erp(1, :)  {mustBeReal} = inf;     % Maximum erp per layer.
+        rangeMax_erpp(1, :) {mustBeReal} = inf;     % Maximum erpp per layer.
+        rangeMax_urp(1, :)  {mustBeReal} = inf;     % Maximum urp per layer.
+        rangeMax_urpp(1, :) {mustBeReal} = inf;     % Maximum urpp per layer.
+        rangeMax_thk(1, :)  {mustBeReal} = inf;     % Maximum thk per layer.
 
-        initialValue_er(1, :) {nLayerForward.mustBeValidErUr} = 1 - 0.0001j;    % Structure er values.
-        initialValue_ur(1, :) {nLayerForward.mustBeValidErUr} = 1;              % Structure ur values.
-        initialValue_thk(1, :) {mustBeNonnegative} = 0;                         % Structure thk values.
+        initialValue_er(1, :) {} = 1 - 0.0001j;     % Structure er values.
+        initialValue_ur(1, :) {} = 1;               % Structure ur values.
+        initialValue_thk(1, :) {mustBeReal} = 0;    % Structure thk values.
 
         verbosity(1, 1) {mustBeInteger, mustBeNonnegative} = 0; % Verbosity level. Set to 0 for no output.
 

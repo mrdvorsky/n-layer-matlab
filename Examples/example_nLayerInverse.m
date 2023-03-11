@@ -31,7 +31,6 @@ thk = [0.5, 0.5];
 noiseStd = 0.01;
 
 NL = nLayerRectangular(3, 2, waveguideBand="ka", checkStructureValues=false);
-NL.printStructure(er, ur, thk);
 gamActual1 = NL.calculate(f, er, ur, thk);
 gamMeas1 = gamActual1 + (sqrt(0.5) .* noiseStd) ...
     .* complex(randn(size(f)), randn(size(f)));
@@ -46,7 +45,7 @@ NLsolver.useGlobalOptimizer = false;
 NLsolver.printStructureParameters(ShowLimits=true, Title="Case 1: Input");
 
 tic;
-[Params, Gamma, Uncert] = NLsolver.solveStructure(NL, f, gamMeas1);
+[Params, Gamma, Uncert] = NLsolver.solveStructure(NL, f, gamMeas1(:, :));
 toc;
 
 NLsolver.printStructureParameters(Params, Uncert, Title="Case 1: Output");
@@ -55,8 +54,8 @@ NLsolver.computeParameterUncertainty(NL, f, NoiseStd=noiseStd);
 
 %% Plot
 figure;
-nLayerViewer(Params.er, Params.thk, NL, f);
+nLayerViewer(Params.er, Params.ur, Params.thk, NL, f);
 hold on;
-plot(gamMeas1, "", Linewidth=1.5);
-legend("Fit", "Measured");
+h = plot(gamMeas1(:, :), ":", Linewidth=1.5);
+set(h, {'DisplayName'}, cellstr(compose("%s (Meas)", NL.getOutputLabels().')));
 

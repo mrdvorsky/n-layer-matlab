@@ -1,4 +1,4 @@
-function [varargout] = nLayerViewer(er, thk, NL, f, options)
+function [varargout] = nLayerViewer(er, ur, thk, NL, f, options)
 %NLAYERVIEWER Function to open NLayer Viewer in a new figure window.
 % This function allows users to compute multiple NLayer solvers and
 % plot them to be viewed and compared. The sliders update in real-time
@@ -6,13 +6,15 @@ function [varargout] = nLayerViewer(er, thk, NL, f, options)
 %
 % Example Usage:
 %   figure;
-%   nlayerViewer(er, thk, NL, f);
-%   nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
-%   handles = nlayerViewer(er, thk, NL1, f1, NL2, f2, ...);
-%   handles = nlayerViewer(er, thk, NL1, f1, ..., Legend=["1", ...]);
+%   nlayerViewer(er, ur, thk, NL, f);
+%   nlayerViewer(er, ur, thk, NL1, f1, NL2, f2, ...);
+%   handles = nlayerViewer(er, ur, thk, NL1, f1, NL2, f2, ...);
+%   handles = nlayerViewer(er, ur, thk, NL1, f1, ..., Legend=["1", ...]);
 %
 % Inputs:
 %   er - Vector of default complex permittivities for each layer. These are
+%       default values displayed for each layer.
+%   ur - Vector of default complex permeabilities for each layer. These are
 %       default values displayed for each layer.
 %   thk - Vector of default layer thicknesses. Must have the same lenth as
 %       er. Last value should be inf for infinite half-space.
@@ -33,6 +35,11 @@ function [varargout] = nLayerViewer(er, thk, NL, f, options)
 %       size of the variable is dependent on the number of layers
 %       defined.
 %   ErpBounds [0.01, 10]) - Bounds of the dielectric loss (erp). The size
+%       of the variable is dependent on the number of layers defined.
+%   UrBounds ([1, 10]) - Bounds of the magnetic constant (ur). The
+%       size of the variable is dependent on the number of layers
+%       defined.
+%   UrpBounds [0.01, 10]) - Bounds of the magnetic loss (urp). The size
 %       of the variable is dependent on the number of layers defined.
 %   ThkBounds [0.1, 100]) - Bounds of the thickness (thk). The size of the
 %       variable is dependent on the number of layers defined.
@@ -59,6 +66,7 @@ function [varargout] = nLayerViewer(er, thk, NL, f, options)
 
 arguments
     er  (1, :);
+    ur  (1, :);
     thk (1, :) {mustBeNonempty};
 end
 
@@ -76,25 +84,27 @@ arguments
     options.PlotPanelSize   (1, 1) {mustBeReal} = 0.6;
     options.PanelFontSize   (1, 1) {mustBeReal} = 10;
     options.FigureColor = [0.94, 0.94, 0.94];
-    
+
     % Specific Axis Sizes
     options.PlotAxisPosition   (1, 4) {mustBeReal} = [0.1, 0.03, 0.85, 0.9];
     options.StructureAxisSize  (1, 1) {mustBeReal};
-    
+
     % Slider parameters
     options.SliderXPos      (1, 1) {mustBeReal} = 0.15;
     options.SliderYPos      (1, 1) {mustBeReal} = 0.15;
     options.SliderLength    (1, 1) {mustBeReal} = 0.6;
     options.SliderWidth     (1, 1) {mustBeReal} = 0.12;
-    
+
     % Electrical property bounds
     options.ErBounds        (:, 2) {mustBePositive, mustBeFinite} = [1, 10];
     options.ErpBounds       (:, 2) {mustBePositive, mustBeFinite} = [0.01, 10];
+    options.UrBounds        (:, 2) {mustBePositive, mustBeFinite} = [1, 10];
+    options.UrpBounds       (:, 2) {mustBePositive, mustBeFinite} = [0.01, 10];
     options.ThkBounds       (:, 2) {mustBePositive, mustBeFinite} = [0.1, 100];
-    
+
     % NLayer settings
     options.GamInterp       (1, 1) {mustBeInteger, mustBePositive} = 10;
-    
+
     % Plot settings
     options.PlotLineWidth   (1, 1) {mustBeReal} = 1.5;
     options.PlotDotWidth    (1, 1) {mustBeReal} = 1.5;
@@ -103,6 +113,18 @@ end
 %% Check Inputs
 if ~isfield(options, "StructureAxisSize")
     options.StructureAxisSize = 0.1 + 0.1*length(thk);
+end
+
+if isempty(er)
+    er = 1 + 0*thk;
+elseif numel(er) == 1
+    er = er + 0*thk;
+end
+
+if isempty(ur)
+    ur = 1 + 0*thk;
+elseif numel(ur) == 1
+    ur = ur + 0*thk;
 end
 
 %% Create main figure and panels
@@ -120,13 +142,19 @@ plotPanel = uipanel(fig, BackgroundColor=options.FigureColor, ...
 sliderPanel = uipanel(fig, BackgroundColor=options.FigureColor, ...
     Position=[options.PlotPanelSize, 0, 1 - options.PlotPanelSize, 1]);
 
-erPanel = uipanel(sliderPanel, Position=[0, 2/3, 1, 1/3], Tag="er", ...
+erPanel = uipanel(sliderPanel, Position=[0, 4/5, 1, 1/5], Tag="er", ...
     FontSize=options.PanelFontSize, Title="Dielectric Constant (er)");
 
-erpPanel = uipanel(sliderPanel, Position=[0, 1/3, 1, 1/3], Tag="erp", ...
+erpPanel = uipanel(sliderPanel, Position=[0, 3/5, 1, 1/5], Tag="erp", ...
     FontSize=options.PanelFontSize, Title="Dielectric Loss (erp)");
 
-thkPanel = uipanel(sliderPanel, Position=[0, 0, 1, 1/3], Tag="thk", ...
+urPanel = uipanel(sliderPanel, Position=[0, 2/5, 1, 1/5], Tag="ur", ...
+    FontSize=options.PanelFontSize, Title="Magnetic Constant (ur)");
+
+urpPanel = uipanel(sliderPanel, Position=[0, 1/5, 1, 1/5], Tag="urp", ...
+    FontSize=options.PanelFontSize, Title="Magnetic Loss (urp)");
+
+thkPanel = uipanel(sliderPanel, Position=[0, 0, 1, 1/5], Tag="thk", ...
     FontSize=options.PanelFontSize, Title="Thickness (mm)");
 
 handles.plotPanel = plotPanel;
@@ -193,13 +221,16 @@ gamFitPlot = cell(numel(NL), 1);
 
 % Obtain initial parameters and calculate initial values
 for ii = 1:numel(NL)
-    gam = NL{ii}.calculate(f{ii}, er, [], thk);
-    gamFit = interp(gam, options.GamInterp);
-    
-    gamPlot{ii} = plot(plotAxis, gam, ".", Linewidth=options.PlotLineWidth, ...
-        HandleVisibility="off");
-    gamFitPlot{ii} = plot(plotAxis, gamFit, Linewidth=options.PlotLineWidth, ...
-        DisplayName = NL{ii}.getOutputLabels());
+    gam = NL{ii}.calculate(f{ii}, er, ur, thk);
+    gamFit = interpolateGamma(f{ii}, gam, options.GamInterp);
+
+    plotLabels = NL{ii}.getOutputLabels();
+    gamFitPlot{ii} = cell(size(gamFit(:, :), 2), 1);
+    for pp = 1:size(gamFit(:, :), 2)
+        gamFitPlot{ii}{pp} = plot(plotAxis, gamFit(:, pp), ...
+            Linewidth=options.PlotLineWidth, ...
+            DisplayName=plotLabels(pp));
+    end
 end
 
 if options.ShowLegend
@@ -227,17 +258,23 @@ createSlider = @(panel, ind, tag) uicontrol(Parent=panel, ...
 
 uiSliders.erSliders = cell(numLayers, 1);
 uiSliders.erpSliders = cell(numLayers, 1);
+uiSliders.urSliders = cell(numLayers, 1);
+uiSliders.urpSliders = cell(numLayers, 1);
 uiSliders.thkSliders = cell(numLayers, 1);
 uiSliders.erRange = options.ErBounds + zeros(numLayers, 2);
 uiSliders.erpRange = log10(options.ErpBounds) + zeros(numLayers, 2);
+uiSliders.urRange = options.UrBounds + zeros(numLayers, 2);
+uiSliders.urpRange = log10(options.UrpBounds) + zeros(numLayers, 2);
 uiSliders.thkRange = log10(options.ThkBounds) + zeros(numLayers, 2);
 
 for ii = 1:numLayers
     % Create sliders
-    uiSliders.erSliders{ii} = createSlider(erPanel, ii, sprintf("er-%d", ii));
+    uiSliders.erSliders{ii}  = createSlider(erPanel,  ii, sprintf("er-%d", ii));
     uiSliders.erpSliders{ii} = createSlider(erpPanel, ii, sprintf("erp-%d", ii));
+    uiSliders.urSliders{ii}  = createSlider(urPanel,  ii, sprintf("ur-%d", ii));
+    uiSliders.urpSliders{ii} = createSlider(urpPanel, ii, sprintf("urp-%d", ii));
     uiSliders.thkSliders{ii} = createSlider(thkPanel, ii, sprintf("thk-%d", ii));
-    
+
     % Preset initial values
     erSliderLoc = in_lerp(real(er(ii)), uiSliders.erRange(ii, :));
     if erSliderLoc > 1
@@ -247,7 +284,7 @@ for ii = 1:numLayers
     else
         uiSliders.erSliders{ii}.Value = erSliderLoc;
     end
-    
+
     erpSliderLoc = in_lerp(log10(abs(imag(er(ii)))), uiSliders.erpRange(ii, :));
     if erpSliderLoc > 1
         uiSliders.erpSliders{ii}.Value = 1;
@@ -256,7 +293,25 @@ for ii = 1:numLayers
     else
         uiSliders.erpSliders{ii}.Value = erpSliderLoc;
     end
-    
+
+    urSliderLoc = in_lerp(real(ur(ii)), uiSliders.urRange(ii, :));
+    if urSliderLoc > 1
+        uiSliders.urSliders{ii}.Value = 1;
+    elseif urSliderLoc < 0
+        uiSliders.urSliders{ii}.Value = 0;
+    else
+        uiSliders.urSliders{ii}.Value = urSliderLoc;
+    end
+
+    urpSliderLoc = in_lerp(log10(abs(imag(ur(ii)))), uiSliders.urpRange(ii, :));
+    if urpSliderLoc > 1
+        uiSliders.urpSliders{ii}.Value = 1;
+    elseif urpSliderLoc < 0
+        uiSliders.urpSliders{ii}.Value = 0;
+    else
+        uiSliders.urpSliders{ii}.Value = urpSliderLoc;
+    end
+
     thkSliderLoc = in_lerp(log10(thk(ii)), uiSliders.thkRange(ii, :));
     if thkSliderLoc > 1
         uiSliders.thkSliders{ii}.Value = 1;
@@ -287,6 +342,10 @@ createTopLabel(erPanel);
 createBottomLabel(erPanel);
 createTopLabel(erpPanel);
 createBottomLabel(erpPanel);
+createTopLabel(urPanel);
+createBottomLabel(urPanel);
+createTopLabel(urpPanel);
+createBottomLabel(urpPanel);
 createTopLabel(thkPanel);
 
 %% Create edit field
@@ -296,6 +355,12 @@ uiEditField.erCV = cell(numLayers, 1);
 uiEditField.erpLB = cell(numLayers, 1);
 uiEditField.erpUB = cell(numLayers, 1);
 uiEditField.erpCV = cell(numLayers, 1);
+uiEditField.urLB = cell(numLayers, 1);
+uiEditField.urUB = cell(numLayers, 1);
+uiEditField.urCV = cell(numLayers, 1);
+uiEditField.urpLB = cell(numLayers, 1);
+uiEditField.urpUB = cell(numLayers, 1);
+uiEditField.urpCV = cell(numLayers, 1);
 uiEditField.thkLB = cell(numLayers, 1);
 uiEditField.thkUB = cell(numLayers, 1);
 uiEditField.thkCV = cell(numLayers, 1);
@@ -305,11 +370,19 @@ for ii = 1:numLayers
     uiEditField.erLB{ii} = LBValueField(erPanel, ii, lerp(0, uiSliders.erRange(ii, :)));
     uiEditField.erUB{ii} = UBValueField(erPanel, ii, lerp(1, uiSliders.erRange(ii, :)));
     uiEditField.erCV{ii} = CVValueField(erPanel, ii, real(er(ii)));
-    
+
     uiEditField.erpLB{ii} = LBValueField(erpPanel, ii, 10.^lerp(0, uiSliders.erpRange(ii, :)));
     uiEditField.erpUB{ii} = UBValueField(erpPanel, ii, 10.^lerp(1, uiSliders.erpRange(ii, :)));
     uiEditField.erpCV{ii} = CVValueField(erpPanel, ii, abs(imag(er(ii))));
-    
+
+    uiEditField.urLB{ii} = LBValueField(urPanel, ii, lerp(0, uiSliders.urRange(ii, :)));
+    uiEditField.urUB{ii} = UBValueField(urPanel, ii, lerp(1, uiSliders.urRange(ii, :)));
+    uiEditField.urCV{ii} = CVValueField(urPanel, ii, real(ur(ii)));
+
+    uiEditField.urpLB{ii} = LBValueField(urpPanel, ii, 10.^lerp(0, uiSliders.urpRange(ii, :)));
+    uiEditField.urpUB{ii} = UBValueField(urpPanel, ii, 10.^lerp(1, uiSliders.urpRange(ii, :)));
+    uiEditField.urpCV{ii} = CVValueField(urpPanel, ii, abs(imag(ur(ii))));
+
     uiEditField.thkLB{ii} = LBValueField(thkPanel, ii, 10.^lerp(0, uiSliders.thkRange(ii, :)));
     uiEditField.thkUB{ii} = UBValueField(thkPanel, ii, 10.^lerp(1, uiSliders.thkRange(ii, :)));
     uiEditField.thkCV{ii} = CVValueField(thkPanel, ii, thk(ii));
@@ -324,12 +397,18 @@ for ii = 1:numLayers
     % Set callbacks
     uiSliders.erSliders{ii}.Callback = valueChange;
     uiSliders.erpSliders{ii}.Callback = valueChange;
+    uiSliders.urSliders{ii}.Callback = valueChange;
+    uiSliders.urpSliders{ii}.Callback = valueChange;
     uiSliders.thkSliders{ii}.Callback = valueChange;
-    
+
     % Set listeners
     addlistener(uiSliders.erSliders{ii}, "Value", "PostSet", ...
         @(~, eventdata) sliderValueChanged(eventdata.AffectedObject, eventdata));
     addlistener(uiSliders.erpSliders{ii}, "Value", "PostSet", ...
+        @(~, eventdata) sliderValueChanged(eventdata.AffectedObject, eventdata));
+    addlistener(uiSliders.urSliders{ii}, "Value", "PostSet", ...
+        @(~, eventdata) sliderValueChanged(eventdata.AffectedObject, eventdata));
+    addlistener(uiSliders.urpSliders{ii}, "Value", "PostSet", ...
         @(~, eventdata) sliderValueChanged(eventdata.AffectedObject, eventdata));
     addlistener(uiSliders.thkSliders{ii}, "Value", "PostSet", ...
         @(~, eventdata) sliderValueChanged(eventdata.AffectedObject, eventdata));
@@ -353,8 +432,9 @@ function sliderValueChanged(hObject, ~)
 handles = guidata(hObject);
 
 % Extract value from slider and current value edit field
-[er, erp, thk] = valueReader(handles);
-[er_slider, erp_slider, thk_slider] = valueExtractor(handles);
+[er, erp, ur, urp, thk] = valueReader(handles);
+[er_slider, erp_slider, ur_slider, urp_slider, thk_slider] = ...
+    valueExtractor(handles);
 
 panel = extractBefore(hObject.Tag, "-");
 layer = str2double(extractAfter(hObject.Tag, "-"));
@@ -367,12 +447,18 @@ switch panel
     case "erp"
         handles.uiEditField.erpCV{layer}.String = erp_slider(layer);
         erp(layer) = erp_slider(layer);
+    case "ur"
+        handles.uiEditField.urCV{layer}.String = ur_slider(layer);
+        ur(layer) = ur_slider(layer);
+    case "urp"
+        handles.uiEditField.urpCV{layer}.String = urp_slider(layer);
+        urp(layer) = urp_slider(layer);
     case "thk"
         handles.uiEditField.thkCV{layer}.String = thk_slider(layer);
         thk(layer) = thk_slider(layer);
 end
 
-handles = plotGam(handles, er, erp, thk);
+handles = plotGam(handles, er, erp, ur, urp, thk);
 
 % Store data into figure
 guidata(hObject, handles);
@@ -422,6 +508,27 @@ if ~isnan(lowerBound)
                 handles.uiSliders.erpRange(layer,1) = log10(currentValue);
             end
             guidata(hObject, handles);
+        case "ur"
+            currentValue = str2double(handles.uiEditField.urCV{layer}.String);
+            if lowerBound < 1
+                hObject.String = num2str(1);
+                handles.uiSliders.urRange(layer,1) = 1;
+            elseif lowerBound <= currentValue
+                handles.uiSliders.urRange(layer,1) = lowerBound;
+            else
+                hObject.String = num2str(currentValue);
+                handles.uiSliders.urRange(layer,1) = currentValue;
+            end
+            guidata(hObject, handles);
+        case "urp"
+            currentValue = str2double(handles.uiEditField.urpCV{layer}.String);
+            if lowerBound <= currentValue
+                handles.uiSliders.urpRange(layer,1) = log10(lowerBound);
+            else
+                hObject.String = num2str(currentValue);
+                handles.uiSliders.urpRange(layer,1) = log10(currentValue);
+            end
+            guidata(hObject, handles);
         case "thk"
             currentValue = str2double(handles.uiEditField.thkCV{layer}.String);
             if lowerBound <= currentValue
@@ -438,6 +545,10 @@ else
             hObject.String = num2str(handles.uiSliders.erRange(layer,1));
         case "erp"
             hObject.String = num2str(10.^(handles.uiSliders.erpRange(layer,1)));
+        case "ur"
+            hObject.String = num2str(handles.uiSliders.urRange(layer,1));
+        case "urp"
+            hObject.String = num2str(10.^(handles.uiSliders.urpRange(layer,1)));
         case "thk"
             hObject.String = num2str(10.^(handles.uiSliders.thkRange(layer,1)));
     end
@@ -468,38 +579,62 @@ if ~isnan(upperBound)
     switch panel
         case "er"
             currentValue = str2double(handles.uiEditField.erCV{layer}.String);
-            
+
             if upperBound >= currentValue
                 handles.uiSliders.erRange(layer,2) = upperBound;
             else
                 hObject.String = num2str(currentValue);
                 handles.uiSliders.erRange(layer,2) = currentValue;
             end
-            
+
             guidata(hObject, handles);
             handles.uiSliders.erSliders{layer}.Value = in_lerp(currentValue, handles.uiSliders.erRange(layer, :));
         case "erp"
             currentValue = str2double(handles.uiEditField.erpCV{layer}.String);
-            
+
             if upperBound >= currentValue
                 handles.uiSliders.erpRange(layer,2) = log10(upperBound);
             else
                 hObject.String = num2str(currentValue);
                 handles.uiSliders.erpRange(layer,2) = log10(currentValue);
             end
-            
+
             guidata(hObject, handles);
             handles.uiSliders.erpSliders{layer}.Value = in_lerp(log10(currentValue), handles.uiSliders.erpRange(layer, :));
+        case "ur"
+            currentValue = str2double(handles.uiEditField.urCV{layer}.String);
+
+            if upperBound >= currentValue
+                handles.uiSliders.urRange(layer,2) = upperBound;
+            else
+                hObject.String = num2str(currentValue);
+                handles.uiSliders.urRange(layer,2) = currentValue;
+            end
+
+            guidata(hObject, handles);
+            handles.uiSliders.urSliders{layer}.Value = in_lerp(currentValue, handles.uiSliders.urRange(layer, :));
+        case "urp"
+            currentValue = str2double(handles.uiEditField.urpCV{layer}.String);
+
+            if upperBound >= currentValue
+                handles.uiSliders.urpRange(layer,2) = log10(upperBound);
+            else
+                hObject.String = num2str(currentValue);
+                handles.uiSliders.urpRange(layer,2) = log10(currentValue);
+            end
+
+            guidata(hObject, handles);
+            handles.uiSliders.urpSliders{layer}.Value = in_lerp(log10(currentValue), handles.uiSliders.urpRange(layer, :));
         case "thk"
             currentValue = str2double(handles.uiEditField.thkCV{layer}.String);
-            
+
             if upperBound >= currentValue
                 handles.uiSliders.thkRange(layer,2) = log10(upperBound);
             else
                 hObject.String = num2str(currentValue);
                 handles.uiSliders.thkRange(layer,2) = log10(currentValue);
             end
-            
+
             guidata(hObject, handles);
             handles.uiSliders.thkSliders{layer}.Value = in_lerp(log10(currentValue), handles.uiSliders.thkRange(layer, :));
     end
@@ -509,6 +644,10 @@ else
             hObject.String = num2str(handles.uiSliders.erRange(layer,2));
         case "erp"
             hObject.String = num2str(10.^(handles.uiSliders.erpRange(layer,2)));
+        case "ur"
+            hObject.String = num2str(handles.uiSliders.urRange(layer,2));
+        case "urp"
+            hObject.String = num2str(10.^(handles.uiSliders.urpRange(layer,2)));
         case "thk"
             hObject.String = num2str(10.^(handles.uiSliders.thkRange(layer,2)));
     end
@@ -540,16 +679,16 @@ currentValue = str2double(hObject.String);
 isOutsideBounds = 0;
 
 if ~isnan(currentValue) || isreal(currentValue)
-    [er, erp, thk] = valueReader(handles);
-    
+    [er, erp, ur, urp, thk] = valueReader(handles);
+
     switch panel
         case "er"
             if currentValue < 1
                 hObject.String = num2str(lerp(uiSliders.erSliders{layer}.Value, uiSliders.erRange(layer, :)));
             end
-            
+
             sliderValue = in_lerp(currentValue, uiSliders.erRange(layer, :));
-            
+
             if sliderValue >= 0 && sliderValue <= 1
                 uiSliders.erSliders{layer}.Value = sliderValue;
             elseif sliderValue < 0
@@ -563,7 +702,7 @@ if ~isnan(currentValue) || isreal(currentValue)
             end
         case "erp"
             sliderValue = in_lerp(log10(currentValue), uiSliders.erpRange(layer, :));
-            
+
             if sliderValue >= 0 && sliderValue <= 1
                 uiSliders.erpSliders{layer}.Value = sliderValue;
             elseif sliderValue < 0
@@ -575,9 +714,41 @@ if ~isnan(currentValue) || isreal(currentValue)
             else
                 hObject.String = num2str(lerp(uiSliders.erpSliders{layer}.Value, uiSliders.erpRange(layer, :)));
             end
+        case "ur"
+            if currentValue < 1
+                hObject.String = num2str(lerp(uiSliders.urSliders{layer}.Value, uiSliders.urRange(layer, :)));
+            end
+
+            sliderValue = in_lerp(currentValue, uiSliders.urRange(layer, :));
+
+            if sliderValue >= 0 && sliderValue <= 1
+                uiSliders.urSliders{layer}.Value = sliderValue;
+            elseif sliderValue < 0
+                uiSliders.urSliders{layer}.Value = 0;
+                isOutsideBounds = 1;
+            elseif sliderValue > 1
+                uiSliders.urSliders{layer}.Value = 1;
+                isOutsideBounds = 1;
+            else
+                hObject.String = num2str(lerp(uiSliders.urSliders{layer}.Value, uiSliders.urRange(layer, :)));
+            end
+        case "urp"
+            sliderValue = in_lerp(log10(currentValue), uiSliders.urpRange(layer, :));
+
+            if sliderValue >= 0 && sliderValue <= 1
+                uiSliders.urpSliders{layer}.Value = sliderValue;
+            elseif sliderValue < 0
+                uiSliders.urpSliders{layer}.Value = 0;
+                isOutsideBounds = 1;
+            elseif sliderValue > 1
+                uiSliders.urpSliders{layer}.Value = 1;
+                isOutsideBounds = 1;
+            else
+                hObject.String = num2str(lerp(uiSliders.urpSliders{layer}.Value, uiSliders.urpRange(layer, :)));
+            end
         case "thk"
             sliderValue = in_lerp(log10(currentValue), uiSliders.thkRange(layer, :));
-            
+
             if sliderValue >= 0 && sliderValue <= 1
                 uiSliders.thkSliders{layer}.Value = sliderValue;
             elseif sliderValue < 0
@@ -596,6 +767,10 @@ else
             hObject.String = num2str(lerp(uiSliders.erSliders{layer}.Value, uiSliders.erRange(layer, :)));
         case "erp"
             hObject.String = num2str(10.^lerp(uiSliders.erpSliders{layer}.Value, uiSliders.erpRange(layer, :)));
+        case "ur"
+            hObject.String = num2str(lerp(uiSliders.urSliders{layer}.Value, uiSliders.urRange(layer, :)));
+        case "urp"
+            hObject.String = num2str(10.^lerp(uiSliders.urpSliders{layer}.Value, uiSliders.urpRange(layer, :)));
         case "thk"
             hObject.String = num2str(10.^lerp(uiSliders.thkSliders{layer}.Value, uiSliders.thkRange(layer, :)));
     end
@@ -607,13 +782,17 @@ if isOutsideBounds
             er(layer) = currentValue;
         case "erp"
             erp(layer) = currentValue;
+        case "ur"
+            ur(layer) = currentValue;
+        case "urp"
+            urp(layer) = currentValue;
         case "thk"
             thk(layer) = currentValue;
     end
     hObject.String = currentValue;
 end
 
-handles = plotGam(handles, er, erp, thk);
+handles = plotGam(handles, er, erp, ur, urp, thk);
 
 handles.uiSliders = uiSliders;
 
@@ -643,7 +822,7 @@ else
     handles.uiEditField.thkUB{layer}.Enable = "on";
 end
 
-[er, erp, thk] = valueExtractor(handles);
+[er, erp, ur, urp, thk] = valueExtractor(handles);
 
 panel = extractBefore(hObject.Tag, "-");
 layer = str2double(extractAfter(hObject.Tag, "-"));
@@ -653,11 +832,15 @@ switch panel
         handles.uiEditField.erCV{layer}.String = er(layer);
     case "erp"
         handles.uiEditField.erpCV{layer}.String = erp(layer);
+    case "ur"
+        handles.uiEditField.urCV{layer}.String = ur(layer);
+    case "urp"
+        handles.uiEditField.urpCV{layer}.String = urp(layer);
     case "thk"
         handles.uiEditField.thkCV{layer}.String = thk(layer);
 end
 
-handles = plotGam(handles, er, erp, thk);
+handles = plotGam(handles, er, erp, ur, urp, thk);
 
 % Store data into figure
 guidata(hObject, handles);
@@ -674,28 +857,34 @@ m = (v - range(1))./(range(end) - range(1));
 end
 
 function [v_arr] = lerp_arr(m, range)
-v_arr = range(:,1) + m.*(range(:,end) - range(:,1));
+v_arr = range(:, 1) + m.*(range(:, end) - range(:, 1));
 end
 
 %% Value extractor
-function [er, erp, thk] = valueExtractor(handles)
+function [er, erp, ur, urp, thk] = valueExtractor(handles)
 valueExtracted = @(s) s.Value;
 er = lerp_arr(cellfun(valueExtracted, handles.uiSliders.erSliders), handles.uiSliders.erRange);
 erp = 10.^lerp_arr(cellfun(valueExtracted, handles.uiSliders.erpSliders), handles.uiSliders.erpRange);
+ur = lerp_arr(cellfun(valueExtracted, handles.uiSliders.urSliders), handles.uiSliders.urRange);
+urp = 10.^lerp_arr(cellfun(valueExtracted, handles.uiSliders.urpSliders), handles.uiSliders.urpRange);
 thk = 10.^lerp_arr(cellfun(valueExtracted, handles.uiSliders.thkSliders), handles.uiSliders.thkRange);
 end
 
 %% Value reader from current value edit field
-function [er, erp, thk] = valueReader(handles)
+function [er, erp, ur, urp, thk] = valueReader(handles)
 % Read current value from edit field which is string stored in cell array
 valueRead = @(s) s.String;
 er_str = cellfun(valueRead, handles.uiEditField.erCV, UniformOutput=false);
 erp_str = cellfun(valueRead, handles.uiEditField.erpCV, UniformOutput=false);
+ur_str = cellfun(valueRead, handles.uiEditField.urCV, UniformOutput=false);
+urp_str = cellfun(valueRead, handles.uiEditField.urpCV, UniformOutput=false);
 thk_str = cellfun(valueRead, handles.uiEditField.thkCV, UniformOutput=false);
 
 % Convert string to number
 er = cellfun(@str2double, er_str);
 erp = cellfun(@str2double, erp_str);
+ur = cellfun(@str2double, ur_str);
+urp = cellfun(@str2double, urp_str);
 thk = cellfun(@str2double, thk_str);
 end
 
@@ -755,8 +944,9 @@ end
 end
 
 %% Calculate and plot S-Parameters
-function handles = plotGam(handles, er, erp, thk)
+function handles = plotGam(handles, er, erp, ur, urp, thk)
 er_in = er - 1j*erp;
+ur_in = ur - 1j*urp;
 thk_in = thk;
 
 if handles.isInfHalfPlane.Value
@@ -764,17 +954,24 @@ if handles.isInfHalfPlane.Value
 end
 
 for ii = 1:size(handles.NL, 2)
-    gam = handles.NL{ii}.calculate(handles.f{ii}, er_in.', [], thk_in.');
-    gamFit = interp(gam, 10);
-    
-    handles.gamFitPlot{ii}.XData = real(gamFit);
-    handles.gamFitPlot{ii}.YData = imag(gamFit);
-    
-    handles.gamPlot{ii}.XData = real(gam);
-    handles.gamPlot{ii}.YData = imag(gam);
+    gam = handles.NL{ii}.calculate(handles.f{ii}, er_in.', ur_in.', thk_in.');
+    gamFit = interpolateGamma(handles.f{ii}, gam, handles.options.GamInterp);
+
+    for pp = 1:size(gamFit(:, :), 2)
+        handles.gamFitPlot{ii}{pp}.XData = real(gamFit(:, pp));
+        handles.gamFitPlot{ii}{pp}.YData = imag(gamFit(:, pp));
+    end
 end
 
 [~, handles.structureText.String] = ...
-    handles.NL{1}.printStructure(er_in, [], thk_in, Title="");
+    handles.NL{1}.printStructure(er_in, ur_in, thk_in, Title="");
 
 end
+
+%% Gamma Interpolation Function
+function gamInterp = interpolateGamma(f, gam, interpFactor)
+gamInterp = interp1(linspace(0, 1, numel(f)).', gam, ...
+    linspace(0, 1, (numel(f) - 1)*interpFactor + 1).');
+end
+
+

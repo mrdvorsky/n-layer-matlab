@@ -103,11 +103,12 @@ arguments
     options.ThkBounds       (:, 2) {mustBePositive, mustBeFinite} = [0.1, 100];
 
     % NLayer settings
-    options.GamInterp       (1, 1) {mustBeInteger, mustBePositive} = 10;
+    options.GamInterpFactor (1, 1) {mustBeInteger, mustBePositive} = 10;
 
     % Plot settings
     options.PlotLineWidth   (1, 1) {mustBeReal} = 1.5;
-    options.PlotDotWidth    (1, 1) {mustBeReal} = 1.5;
+    options.PlotMarkerSize  (1, 1) {mustBeReal} = 5;
+    options.PlotMarkerType  {mustBeTextScalar} = ".";
 end
 
 %% Check Inputs
@@ -222,14 +223,17 @@ gamFitPlot = cell(numel(NL), 1);
 % Obtain initial parameters and calculate initial values
 for ii = 1:numel(NL)
     gam = NL{ii}.calculate(f{ii}, er, ur, thk);
-    gamFit = interpolateGamma(f{ii}, gam, options.GamInterp);
+    gamFit = interpolateGamma(f{ii}, gam, options.GamInterpFactor);
 
     plotLabels = NL{ii}.getOutputLabels();
     gamFitPlot{ii} = cell(size(gamFit(:, :), 2), 1);
     for pp = 1:size(gamFit(:, :), 2)
         gamFitPlot{ii}{pp} = plot(plotAxis, gamFit(:, pp), ...
             Linewidth=options.PlotLineWidth, ...
-            DisplayName=plotLabels(pp));
+            DisplayName=plotLabels(pp), ...
+            Marker=options.PlotMarkerType, ...
+            MarkerSize=options.PlotMarkerSize, ...
+            MarkerIndices=1:options.GamInterpFactor:size(gamFit, 1));
     end
 end
 
@@ -958,7 +962,7 @@ end
 
 for ii = 1:size(handles.NL, 2)
     gam = handles.NL{ii}.calculate(handles.f{ii}, er_in.', ur_in.', thk_in.');
-    gamFit = interpolateGamma(handles.f{ii}, gam, handles.options.GamInterp);
+    gamFit = interpolateGamma(handles.f{ii}, gam, handles.options.GamInterpFactor);
 
     for pp = 1:size(gamFit(:, :), 2)
         handles.gamFitPlot{ii}{pp}.XData = real(gamFit(:, pp));
@@ -973,8 +977,15 @@ end
 
 %% Gamma Interpolation Function
 function gamInterp = interpolateGamma(f, gam, interpFactor)
+
+if numel(f) <= 1
+    gamInterp = gam;
+    return;
+end
+
 gamInterp = interp1(linspace(0, 1, numel(f)).', gam, ...
-    linspace(0, 1, (numel(f) - 1)*interpFactor + 1).');
+    linspace(0, 1, (numel(f) - 1)*interpFactor + 1).', "spline");
+
 end
 
 

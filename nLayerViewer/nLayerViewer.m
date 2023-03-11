@@ -142,10 +142,10 @@ plotPanel = uipanel(fig, BackgroundColor=options.FigureColor, ...
 sliderPanel = uipanel(fig, BackgroundColor=options.FigureColor, ...
     Position=[options.PlotPanelSize, 0, 1 - options.PlotPanelSize, 1]);
 
-erPanel = uipanel(sliderPanel, Position=[0, 4/5, 1, 1/5], Tag="erp", ...
+erPanel = uipanel(sliderPanel, Position=[0, 4/5, 1, 1/5], Tag="er", ...
     FontSize=options.PanelFontSize, Title="Dielectric Constant (er)");
 
-erpPanel = uipanel(sliderPanel, Position=[0, 3/5, 1, 1/5], Tag="erpp", ...
+erpPanel = uipanel(sliderPanel, Position=[0, 3/5, 1, 1/5], Tag="erp", ...
     FontSize=options.PanelFontSize, Title="Dielectric Loss (erp)");
 
 urPanel = uipanel(sliderPanel, Position=[0, 2/5, 1, 1/5], Tag="ur", ...
@@ -492,9 +492,9 @@ if ~isnan(lowerBound)
     switch panel
         case "er"
             currentValue = str2double(handles.uiEditField.erCV{layer}.String);
-            if lowerBound < 1
+            if lowerBound < 0
                 hObject.String = num2str(1);
-                handles.uiSliders.erRange(layer,1) = 1;
+                handles.uiSliders.erRange(layer,1) = 0;
             elseif lowerBound <= currentValue
                 handles.uiSliders.erRange(layer,1) = lowerBound;
             else
@@ -513,9 +513,9 @@ if ~isnan(lowerBound)
             guidata(hObject, handles);
         case "ur"
             currentValue = str2double(handles.uiEditField.urCV{layer}.String);
-            if lowerBound < 1
+            if lowerBound < 0
                 hObject.String = num2str(1);
-                handles.uiSliders.urRange(layer,1) = 1;
+                handles.uiSliders.urRange(layer,1) = 0;
             elseif lowerBound <= currentValue
                 handles.uiSliders.urRange(layer,1) = lowerBound;
             else

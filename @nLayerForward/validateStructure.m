@@ -47,17 +47,21 @@ end
 %% Check Values of er, ur, and thk
 if options.CheckStructureValues
     if ~all(real(er) >= 1, "all") || ~all(real(ur) >= 1, "all")
-        error("The real parts of er and ur must be greater than 1.");
+        error("The real parts of er and ur must be greater than 1. " + ...
+            "To disable this check, set 'checkStructureValues' to false.");
     end
     if ~all(imag(er) <= 0, "all") || ~all(imag(ur) <= 0, "all")
-        error("The imaginary parts of er and ur must be nonpositive.");
+        error("The imaginary parts of er and ur must be nonpositive. " + ...
+            "To disable this check, set 'checkStructureValues' to false.");
     end
     if ~all(thk >= 0)
-        error("All elements of thk must be nonnegative.");
+        error("All elements of thk must be nonnegative. " + ...
+            "To disable this check, set 'checkStructureValues' to false.");
     end
-    if ~all(isfinite(thk(1:end - 1)))
-        error("All elements of thk except the last must be finite.");
-    end
+end
+
+if ~all(isfinite(thk(1:end - 1)))
+    error("All elements of thk except the last must be finite.");
 end
 
 %% Check Dimensions of f, er, ur, and thk

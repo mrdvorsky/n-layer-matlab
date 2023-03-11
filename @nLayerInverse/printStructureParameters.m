@@ -5,8 +5,8 @@ function [varargout] = printStructureParameters(O, Parameters, Uncertainty, form
 % struct is passed in (e.g., from the 'solveStructure' function), those
 % values will be shown instead.
 %
-% Additionally, an 'Uncertainty' can be passed in to show uncertainty
-% values (e.g., from the 'solveStructure' function).
+% Additionally, an 'Uncertainty' struct can be passed in to show
+% uncertainty values (e.g., from the 'solveStructure' function).
 %
 % Example Usage:
 %   NLsolver.printStructureParameters(Title="title", ShowLimits=true);
@@ -66,35 +66,58 @@ elseif size(options.FormatString, 2) ~= 5
     error("'size(FormatString, 2)' must be either 1 or 5.");
 end
 
+%% Add Uncertainty Labels
+options.AdditionalText = strings(0);
+if ~isempty(fieldnames(Uncertainty))
+    UncertaintyText = strings(length(thk), 3, 1);
+    
+    for ii = 1:length(thk)
+        UncertaintyText(ii, 1, 1) = sprintf("     +-(%s)", ...
+            sprintf(options.FormatString(ii, 1), Uncertainty.thk(ii)));
+        
+        UncertaintyText(ii, 2, 1) = sprintf("    +-(%s + j%s)", ...
+            sprintf(options.FormatString(ii, 3), real(Uncertainty.er(ii))), ...
+            sprintf(options.FormatString(ii, 4), imag(Uncertainty.er(ii))));
+        
+        UncertaintyText(ii, 3, 1) = sprintf("    +-(%s + j%s)", ...
+            sprintf(options.FormatString(ii, 4), real(Uncertainty.ur(ii))), ...
+            sprintf(options.FormatString(ii, 5), imag(Uncertainty.ur(ii))));
+    end
+
+    options.AdditionalText = cat(3, options.AdditionalText, UncertaintyText);
+end
+
 %% Add Limits for Each Parameter
 if formatOptions.ShowLimits
-    options.AdditionalText = strings(length(thk), 3, 2);
+    LimitsText = strings(length(thk), 3, 2);
     
     for ii = 1:length(thk)
         % Lower Limit
-        options.AdditionalText(ii, 1, 1) = sprintf(" [%s,", ...
+        LimitsText(ii, 1, 1) = sprintf(" %s,", ...
             sprintf(options.FormatString(ii, 1), O.rangeMin_thk(ii)));
         
-        options.AdditionalText(ii, 2, 1) = sprintf(" [%s - j%s,", ...
+        LimitsText(ii, 2, 1) = sprintf(" [%s - j%s,", ...
             sprintf(options.FormatString(ii, 2), O.rangeMin_erp(ii)), ...
             sprintf(options.FormatString(ii, 3), O.rangeMin_erpp(ii)));
         
-        options.AdditionalText(ii, 3, 1) = sprintf(" [%s - j%s,", ...
+        LimitsText(ii, 3, 1) = sprintf(" [%s - j%s,", ...
             sprintf(options.FormatString(ii, 4), O.rangeMin_urp(ii)), ...
             sprintf(options.FormatString(ii, 5), O.rangeMin_urpp(ii)));
         
         % Upper Limit
-        options.AdditionalText(ii, 1, 2) = sprintf("  %s]", ...
+        LimitsText(ii, 1, 2) = sprintf("  %s]", ...
             sprintf(options.FormatString(ii, 1), O.rangeMax_thk(ii)));
         
-        options.AdditionalText(ii, 2, 2) = sprintf("  %s - j%s]", ...
+        LimitsText(ii, 2, 2) = sprintf("  %s - j%s]", ...
             sprintf(options.FormatString(ii, 2), O.rangeMax_erp(ii)), ...
             sprintf(options.FormatString(ii, 3), O.rangeMax_erpp(ii)));
         
-        options.AdditionalText(ii, 3, 2) = sprintf("  %s - j%s]", ...
+        LimitsText(ii, 3, 2) = sprintf("  %s - j%s]", ...
             sprintf(options.FormatString(ii, 4), O.rangeMax_urp(ii)), ...
             sprintf(options.FormatString(ii, 5), O.rangeMax_urpp(ii)));
     end
+
+    options.AdditionalText = cat(3, options.AdditionalText, LimitsText);
 end
 
 %% Customize Parameters that are Being Solved

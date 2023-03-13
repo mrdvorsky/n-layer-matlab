@@ -3,7 +3,7 @@ function [varargout] = solveStructure(O, NL, f, gam)
 % This function takes triplets of nLayerForward objects, frequency vectors,
 % and measurements, and tries to find the missing structure parameters of
 % er, ur, thk using curve fitting to minimize the rms values of
-% 'NL.calculate(er, ur, thk) - gam' for each triplet.
+% 'NL.calculate(f, er, ur, thk) - gam' for each triplet.
 % 
 % Each NL object can be different, as long as 'NL.calculate(f, ...)'
 % returns an array with the same size as 'gam'. The first dimension of
@@ -43,7 +43,7 @@ end
 arguments(Repeating)
     NL(1, 1) {mustBeA(NL, "nLayerForward")};
     f(:, 1) {mustBeNonempty};
-    gam(:, :) {mustBeCorrectGamSize(f, gam)};
+    gam {mustBeCorrectGamSize(f, gam)};
 end
 
 %% Perform Curve Fitting Using 'solveStructureMultiple'
@@ -62,7 +62,7 @@ function mustBeCorrectGamSize(f, gam)
         currentInd = find(cellfun(@(x) numel(x) > 0, f), 1, "last");
         f = f{currentInd};
     end
-    if numel(f) ~= size(gam)
+    if numel(f) ~= size(gam, 1)
         throwAsCaller(MException("nLayerInverse:mustBeCorrectGamSize", ...
             "First dimension of the measurements array must have size " + ...
             "equal to the number of frequencies (%d).", numel(f)));

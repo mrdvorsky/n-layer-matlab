@@ -3,7 +3,8 @@ function [Parameters, Gamma, Uncertainty] = solveStructureMultiple(NLsolver, NL,
 % This function takes quadruplets of nLayerInverse objects, nLayerForward
 % objects, frequency vectors, and measurements, and tries to find the
 % missing structure parameters of er, ur, thk to minimize the sum of the
-% rms values of 'NL.calculate(er, ur, thk) - gam' for each quadruplets.
+% rms values of 'NL.calculate(f, er, ur, thk) - gam' for each set of
+% quadruplets.
 %
 % This function is similar to the 'nLayerInverse.solveStructure' function
 % except that each input set can have a different NLsolver object. See
@@ -28,7 +29,7 @@ function [Parameters, Gamma, Uncertainty] = solveStructureMultiple(NLsolver, NL,
 %   NLsolver2.setInitialValues(Er=[1, 4-0.1j, 1], Thk=[40, 10, 40]);
 %   NLsolver1.setLayersToSolve(Erp=[2], Erpp=[2]);
 %   NLsolver2.setLayersToSolve(Erp=[2], Erpp=[2]);
-%   [Params, Uncert] = nLayerInverse.solveStructureMultiple(...
+%   [Params, Gamma, Uncert] = nLayerInverse.solveStructureMultiple(...
 %       NLsolver1, NL1, f1, gam1, ...
 %       NLsolver2, NL2, f2, gam2);
 %
@@ -37,7 +38,7 @@ function [Parameters, Gamma, Uncertainty] = solveStructureMultiple(NLsolver, NL,
 %   NLsolver2.setInitialValues(Er=[1, 2-0.01j], Thk=[10, 20]);
 %   NLsolver1.setLayersToSolve(Erp=[2], Erpp=[2], Thk=[2]);
 %   NLsolver2.setLayersToSolve(Erp=[2], Erpp=[2], Thk=[2]);
-%   [Params, Uncert] = nLayerInverse.solveStructureMultiple(...
+%   [Params, Gamma, Uncert] = nLayerInverse.solveStructureMultiple(...
 %       NLsolver1, NL, f, gam1, ...
 %       NLsolver2, NL, f, gam2);
 %
@@ -69,7 +70,7 @@ arguments (Repeating)
     NLsolver(1, 1) {mustBeA(NLsolver, "nLayerInverse")};
     NL(1, 1) {mustBeA(NL, "nLayerForward")};
     f(:, 1) {mustBeNonempty};
-    gam(:, :) {mustBeCorrectGamSize(f, gam)};
+    gam {mustBeCorrectGamSize(f, gam)};
 end
 
 %% Validate nLayerInverse Objects
@@ -193,7 +194,7 @@ function mustBeCorrectGamSize(f, gam)
         currentInd = find(cellfun(@(x) numel(x) > 0, f), 1, "last");
         f = f{currentInd};
     end
-    if numel(f) ~= size(gam)
+    if numel(f) ~= size(gam, 1)
         throwAsCaller(MException("nLayerInverse:mustBeCorrectGamSize", ...
             "First dimension of the measurements array must have size " + ...
             "equal to the number of frequencies (%d).", numel(f)));

@@ -1,51 +1,59 @@
 function [Uncertainty] = computeParameterUncertainty(O, NL, f, options)
-%COMPUTEPARAMETERUNCERTAINTY Summary of this function goes here
-%   Detailed explanation goes here
+%COMPUTEPARAMETERUNCERTAINTY Calculates uncertainty in parameter estimates.
+% Computes the uncertainty in the structure values that are solved for
+% using the "solveStructure" function. This function works similar to the
+% "solveStructure" function, except it takes pairs of an nLayerForward
+% object and a frequency vector (with no measurements).
+%
+% Example Usage (simple case, 2 layer infinite halfspace):
+%   NLsolver.setInitialValues(Er=[1, 4-1j], Thk=[10, inf]);
+%   NLsolver.setLayersToSolve(Erp=[2], Erpp=[2]);
+%   [Uncert] = NLsolver.computeParameterUncertainty(NL, f, gam, ...
+%       NoiseStd=0.03);
+%
+% Example Usage (for multi-band open-ended measurements):
+%   NLsolver.setInitialValues(Er=[1, 4-1j], Thk=[1, 10]);
+%   NLsolver.setLayersToSolve(Erp=[2], Erpp=[2], Thk=[1, 2]);
+%   [Uncert] = NLsolver.computeParameterUncertainty(...
+%       NL1, f1, gam1, ...
+%       NL2, f2, gam2, ...
+%       NoiseStd=0.03);
+%
+% This function is mostly useful for predicting the parameter uncertainty
+% given a specific multilayered structure measurement setup. The
+% uncertainty is calculated assuming a specific uncertainty in the
+% measurement parameters, specified using the "NoiseStd" named parameter,
+% which has a default value of -40 dB or 0.01.
+%
+% Inputs:
+%   NL (Repeating) - A valid nLayerForward object.
+%   f (Repeating) - Vector of frequencies to pass to NL.
+%
+% Outputs:
+%   Uncertainty - Cell array of structs containing the calculated output
+%       parmeter uncertainties for each input set.
+%
+% Author: Matt Dvorsky
 
 arguments
     O;
 end
 
 arguments(Repeating)
-    NL;
-    f(:, 1);
+    NL(1, 1) {mustBeA(NL, "nLayerForward")};
+    f(:, 1) {mustBeNonempty};
 end
 
 arguments
-    options.NoiseStd = 0.001;
+    options.NoiseStd = 0.01;
 end
 
-%% Construct Linearized Ranges and Initial Guesses
-O.validate();
-[xInitial, ~, ~] = O.constructInitialValuesAndRanges();
+%% Calculate Uncertainty Using "computeParameterUncertaintyMultiple"
+inputParams = [repmat({O}, 1, numel(NL)); NL; f];
+[Uncertainty] = nLayerInverse.computeParameterUncertaintyMultiple(...
+    inputParams{:}, NoiseStd=options.NoiseStd);
 
-[~, gam] = O.calculateError({O}, xInitial, NL, f, num2cell(zeros(length(NL), 1)));
-
-%% Create Error Function
-errorFunctionVector = @(x) O.calculateError({O}, x, NL, f, gam);
-
-%% Calculate Jacobian
-[~, ~, ~, ~, ~, ~, J]  = lsqnonlin(errorFunctionVector, xInitial, [], [], ...
-    optimoptions(O.localOptimizerOptions, Display="none"));
-
-%% Compute Uncertainty from Jacobian
-hess = inv(full(J).' * full(J)) .* 0.5 * options.NoiseStd.^2;
-xUncertainty = sqrt(diag(hess));
-
-[er, ur, thk] = O.extractStructure(xInitial, f);
-[Uncertainty.erLower, Uncertainty.urLower, Uncertainty.thkLower] = ...
-    O.extractStructure(xInitial - xUncertainty, f);
-[Uncertainty.erUpper, Uncertainty.urUpper, Uncertainty.thkUpper] = ...
-    O.extractStructure(xInitial + xUncertainty, f);
-
-Uncertainty.er  = complex(...
-    max(abs(real(er  - Uncertainty.erLower)),  abs(real(er  - Uncertainty.erUpper))), ...
-    max(abs(imag(er  - Uncertainty.erLower)),  abs(imag(er  - Uncertainty.erUpper))));
-Uncertainty.ur  = complex(...
-    max(abs(real(ur  - Uncertainty.urLower)),  abs(real(ur  - Uncertainty.urUpper))), ...
-    max(abs(imag(ur  - Uncertainty.urLower)),  abs(imag(ur  - Uncertainty.urUpper))));
-Uncertainty.thk = ...
-    max(abs(thk - Uncertainty.thkLower), abs(thk - Uncertainty.thkUpper));
+Uncertainty = Uncertainty{1};   % Get first element of Uncertainty.
 
 end
 

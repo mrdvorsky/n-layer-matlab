@@ -1,4 +1,4 @@
-function [Parameters, Gamma, Uncertainty] = solveStructureMultiple(NLsolver, NL, f, gam)
+function [Parameters, Gamma, Uncertainty] = solveStructureMultiple(NLsolver, NL, f, gam, options)
 %SOLVESTRUCTUREMULTI Perform simultaneous curve fitting on multiple nLayerInverse objects.
 % This function takes quadruplets of nLayerInverse objects, nLayerForward
 % objects, frequency vectors, and measurements, and tries to find the
@@ -64,6 +64,12 @@ function [Parameters, Gamma, Uncertainty] = solveStructureMultiple(NLsolver, NL,
 %   Uncertainty - Cell array of structs containing the calculated output
 %       parmeter uncertainties for each input set.
 %
+% Named Arguments:
+%   NoiseStdMin (0.001) - Minimum uncertainty value to assume for the
+%       measurement data when calculating the Uncertainty struct. If the
+%       RMS difference between the fit and the measurements is less than
+%       NoiseStdMin, NoiseStdMin will be used instead.
+%
 % Author: Matt Dvorsky
 
 arguments (Repeating)
@@ -71,6 +77,10 @@ arguments (Repeating)
     NL(1, 1) {mustBeA(NL, "nLayerForward")};
     f(:, 1) {mustBeNonempty};
     gam {mustBeCorrectGamSize(f, gam)};
+end
+
+arguments
+    options.NoiseStdMin(1, 1) {mustBeNonnegative} = 0.001;
 end
 
 %% Validate nLayerInverse Objects
@@ -112,19 +122,19 @@ if NLsolver{1}.useGlobalOptimizer
     end
     switch class(globalOptimizerOptions)
         case "optim.options.GaOptions"
-            xInitial = ga(errorFunctionScalar, numel(xInitial), ...
+            [xInitial, fit_res] = ga(errorFunctionScalar, numel(xInitial), ...
                 [], [], [], [], xMin, xMax, [], globalOptimizerOptions);
         case "optim.options.Particleswarm"
-            xInitial = particleswarm(errorFunctionScalar, numel(xInitial), ...
+            [xInitial, fit_res] = particleswarm(errorFunctionScalar, numel(xInitial), ...
                 xMin, xMax, globalOptimizerOptions);
         case "optim.options.PatternsearchOptions"
-            xInitial = patternsearch(errorFunctionScalar, xInitial, ...
+            [xInitial, fit_res] = patternsearch(errorFunctionScalar, xInitial, ...
                 [], [], [], [], xMin, xMax, [], globalOptimizerOptions);
         case "optim.options.SimulannealbndOptions"
-            xInitial = simulannealbnd(errorFunctionScalar, xInitial, ...
+            [xInitial, fit_res] = simulannealbnd(errorFunctionScalar, xInitial, ...
                 xMin, xMax, globalOptimizerOptions);
         case "optim.options.Surrogateopt"
-            xInitial = surrogateopt(errorFunctionScalar, ...
+            [xInitial, fit_res] = surrogateopt(errorFunctionScalar, ...
                 xMin, xMax, [], [], [], [], [], globalOptimizerOptions);
         otherwise
             error("Global optimizer '%s' not supported.", ...
@@ -136,10 +146,10 @@ end
 if NLsolver{1}.useLocalOptimizer
     switch class(localOptimizerOptions)
         case "optim.options.Lsqnonlin"
-            x = lsqnonlin(errorFunctionVector, xInitial(:), xMin, xMax, ...
+            [x, fit_res] = lsqnonlin(errorFunctionVector, xInitial(:), xMin, xMax, ...
                 localOptimizerOptions);
         case "optim.options.Fmincon"
-            x = fmincon(errorFunctionScalar, xInitial(:), ...
+            [x, fit_res] = fmincon(errorFunctionScalar, xInitial(:), ...
                 [], [], [], [], xMin, xMax, [], localOptimizerOptions);
         otherwise
             error("Local optimizer '%s' not supported.", ...
@@ -183,7 +193,9 @@ end
 
 %% Create Uncertainty Output
 if nargin >= 3
-    Uncertainty = struct();
+    inputParams = [NLsolver; NL; f];
+    Uncertainty = nLayerInverse.computeParameterUncertaintyMultiple(...
+        inputParams{:}, noiseStd=max(sqrt(fit_res), options.NoiseStdMin));
 end
 
 end

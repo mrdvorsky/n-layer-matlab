@@ -32,7 +32,7 @@ tic;
 [Params, Gamma, Uncert] = NLsolver.solveStructure(NL, f, gamMeas);
 toc;
 
-Uncert = NLsolver.computeParameterUncertainty(NL, f, NoiseStd=noiseStd);
+% Uncert = NLsolver.computeParameterUncertainty(NL, f, NoiseStd=noiseStd);
 
 NLsolver.printStructureParameters(Params, Uncert, Title="Output");
 

@@ -33,6 +33,9 @@ function [Uncertainty] = computeParameterUncertainty(O, NL, f, options)
 %   Uncertainty - Cell array of structs containing the calculated output
 %       parmeter uncertainties for each input set.
 %
+% Named Arguments:
+%   NoiseStd (0.01) - Uncertainty value to use for the measurement data.
+%
 % Author: Matt Dvorsky
 
 arguments
@@ -45,7 +48,7 @@ arguments(Repeating)
 end
 
 arguments
-    options.NoiseStd = 0.01;
+    options.NoiseStd(1, 1) {mustBeNonnegative} = 0.01;
 end
 
 %% Calculate Uncertainty Using "computeParameterUncertaintyMultiple"

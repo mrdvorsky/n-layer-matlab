@@ -1,4 +1,4 @@
-function [varargout] = solveStructure(O, NL, f, gam)
+function [varargout] = solveStructure(O, NL, f, gam, options)
 %SOLVESTRUCTURE Perform curve fitting to solve for structure parameters.
 % This function takes triplets of nLayerForward objects, frequency vectors,
 % and measurements, and tries to find the missing structure parameters of
@@ -35,23 +35,38 @@ function [varargout] = solveStructure(O, NL, f, gam)
 %   Uncertainty - Struct containing the calculated output parmeter
 %       uncertainties for each input set.
 %
+% Named Arguments:
+%   NoiseStdMin (0.001) - Minimum uncertainty value to assume for the
+%       measurement data when calculating the Uncertainty struct. If the
+%       RMS difference between the fit and the measurements is less than
+%       NoiseStdMin, NoiseStdMin will be used instead.
+%
 % Author: Matt Dvorsky
 
 arguments
     O;
 end
+
 arguments(Repeating)
     NL(1, 1) {mustBeA(NL, "nLayerForward")};
     f(:, 1) {mustBeNonempty};
     gam {mustBeCorrectGamSize(f, gam)};
 end
 
+arguments
+    options.NoiseStdMin(1, 1) {mustBeNonnegative} = 0.001;
+end
+
 %% Perform Curve Fitting Using 'solveStructureMultiple'
 inputParams = [repmat({O}, 1, numel(NL)); NL; f; gam];
-[varargout{1:nargout}] = nLayerInverse.solveStructureMultiple(inputParams{:});
+[varargout{1:nargout}] = nLayerInverse.solveStructureMultiple(...
+    inputParams{:}, NoiseStdMin=options.NoiseStdMin);
 
 if nargout >= 1
     varargout{1} = varargout{1}{1};     % Get first element of Params.
+end
+if nargout >= 3
+    varargout{3} = varargout{3}{1};     % Get first element of Uncert.
 end
 
 end

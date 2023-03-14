@@ -58,7 +58,7 @@ classdef nLayerInverse < matlab.mixin.Copyable & matlab.mixin.SetGetExactNames
         setInitialValues(O, options);
         setRanges(O, options);
 
-        [varargout] = solveStructure(O, NL, f, gam);
+        [varargout] = solveStructure(O, NL, f, gam, options);
 
         [Uncert] = computeParameterUncertainty(O, NL, f, options);
         [varargout] = printStructureParameters(O, Parameters, Uncertainty, formatOptions, options);
@@ -69,7 +69,7 @@ classdef nLayerInverse < matlab.mixin.Copyable & matlab.mixin.SetGetExactNames
         [er, ur, thk] = extractStructure(O, x, f);
     end
     methods (Static, Access=public)
-        [Params, Gamma, Uncert] = solveStructureMultiple(NLsolver, NL, f, gam);
+        [Params, Gamma, Uncert] = solveStructureMultiple(NLsolver, NL, f, gam, options);
         [Uncert] = computeParameterUncertaintyMultiple(NLsolver, NL, f, options);
     end
     methods (Static, Access=private)

@@ -1,68 +1,35 @@
-function [] = recomputeInterpolants(O, options)
+function [] = recomputeInterpolants(O)
 %RECOMPUTEINTERPOLANTS Recompute interpolation functions, structs, etc.
-% This function should be called anytime any critical parameter is changed,
-% and must be called before calling calculate. This function is
-% automatically called after creating an nLayerRectangular object.
-%
-% List of critical parameters:
-%   waveguideA;
-%   waveguideB;
-%   speedOfLight;
-%   modesTE;
-%   interpolationPoints_kRho;
-%   integralPointsFixed_kRho;
-%   integralPoints_kPhi;
-%   integralInitialSegmentCount;
-%
-% Example Usage:
-%   NL = nLayerRectangular(...);
-%   NL.*criticalParameter* = *newValue*;
-%   NL.recomputeInterpolants();
+% This function is called whenever a parameter changes that would change
+% the mode spectrums.
 %
 % Author: Matt Dvorsky
 
 arguments
     O;
-
-    options.SpecEx_TE(:, 1) {mustBeA(options.SpecEx_TE, "cell")} = {};
-    options.SpecEy_TE(:, 1) {mustBeA(options.SpecEy_TE, "cell")} = {};
-    options.SpecEx_TM(:, 1) {mustBeA(options.SpecEx_TM, "cell")} = {};
-    options.SpecEy_TM(:, 1) {mustBeA(options.SpecEy_TM, "cell")} = {};
-    options.SpecEx_Hybrid(:, 1) {mustBeA(options.SpecEx_Hybrid, "cell")} = {};
-    options.SpecEy_Hybrid(:, 1) {mustBeA(options.SpecEy_Hybrid, "cell")} = {};
-
-    options.ModeSymmetryX {mustBeMember(options.ModeSymmetryX, ...
-        ["None", "Even", "Odd"])} = "None";
-    options.ModeSymmetryY {mustBeMember(options.ModeSymmetryY, ...
-        ["None", "Even", "Odd"])} = "None";
-    options.ModeSymmetryAxial {mustBeMember(options.ModeSymmetryAxial, ...
-        ["None", "TE", "TM"])} = "None";
-
-    options.IntegralScaleFactor(1, 1) {mustBePositive} = 1;
 end
 
-%% Check Input Mode Sizes
-[options.SpecEx_TE, options.SpecEy_TE] = ...
-    checkSpectrumSizes(options.SpecEx_TE, options.SpecEy_TE);
-[options.SpecEx_TM, options.SpecEy_TM] = ...
-    checkSpectrumSizes(options.SpecEx_TM, options.SpecEy_TM);
-[options.SpecEx_Hybrid, options.SpecEy_Hybrid] = ...
-    checkSpectrumSizes(options.SpecEx_Hybrid, options.SpecEy_Hybrid);
+%% Get Waveguide Mode Specifications
+modeStruct = O.defineWaveguideModes();
 
-%% Update Mode Counts
-O.numModes_TE = numel(options.SpecEx_TE);
-O.numModes_TM = numel(options.SpecEx_TM);
-O.numModes_Hybrid = numel(options.SpecEx_Hybrid);
+%% Update Mode Counts and Cutoffs
+O.numModes_TE = numel(modeStruct.SpecEx_TE);
+O.numModes_TM = numel(modeStruct.SpecEx_TM);
+O.numModes_Hybrid = numel(modeStruct.SpecEx_Hybrid);
 O.numModes = O.numModes_TE + O.numModes_TM + O.numModes_Hybrid;
 
+O.cutoffBeta_TE = modeStruct.CutoffBeta_TE;
+O.cutoffBeta_TM = modeStruct.CutoffBeta_TM;
+O.cutoffBeta_Hybrid = modeStruct.CutoffBeta_Hybrid;
+
 %% Update Integral Scale Factor
-O.integralScaleFactor = options.IntegralScaleFactor;
+O.integralScaleFactor = modeStruct.IntegralScaleFactor;
 
 %% Compute Ahat at all possible values of kRhoP
 kRhoP(:, 1) = linspace(0, 1, O.interpolationPoints_kRho);
 
 % Compute AhHat and AeHat at kRhoP coordinates.
-[AhHat, AeHat] = O.computeAhat(kRhoP, options);
+[AhHat, AeHat] = O.computeAhat(kRhoP, modeStruct);
 
 % Combine AeHat and AhHat into one array for faster interpolation.
 % Store in a table that is used in the "integrandAhat" function.
@@ -76,7 +43,7 @@ O.table_AheHat = cat(4, AhHat, AeHat);
 [kRhoP, weights, errWeights] = O.fejer2(O.integralPointsFixed_kRho, 0, 1);
 
 % Compute AhHat and AeHat at kRhoP coordinates.
-[AhHat, AeHat] = O.computeAhat(kRhoP, options);
+[AhHat, AeHat] = O.computeAhat(kRhoP, modeStruct);
 
 % Store computed matrices. Also, precompute kRho using kRhoP. These are
 % used in the "computeA" function.
@@ -96,7 +63,7 @@ O.fixed_errorAeHat = AeHat .* errWeights;
     O.integralInitialSegmentCount, 0, 1);
 
 % Compute AhHat and AeHat at kRhoP coordinates.
-[AhHat, AeHat] = O.computeAhat(kRhoP, options);
+[AhHat, AeHat] = O.computeAhat(kRhoP, modeStruct);
 
 % Store computed matrices. Also, precompute kRho using kRhoP. These are
 % used in the "integrandAhat" function.
@@ -108,19 +75,5 @@ end
 
 
 
-%% Input Argument Checking
-function [specEx, specEy] = checkSpectrumSizes(specEx, specEy)
 
-if isempty(specEx) && ~isempty(specEy)
-    specEx = repmat({@(~, ~, ~, ~) 0}, numel(specEy), 1);
-end
-if isempty(specEy) && ~isempty(specEx)
-    specEy = repmat({@(~, ~, ~, ~) 0}, numel(specEx), 1);
-end
-if numel(specEx) ~= numel(specEy)
-    error("Mode spectrum arguments for Ex and Ey must " + ...
-        "be cell arrays of the same size or one must be empty.");
-end
-
-end
 

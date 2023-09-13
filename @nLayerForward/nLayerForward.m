@@ -71,6 +71,7 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
         [nodes, weights, errorWeights] = gaussKronrod(numSegs, a, b);
         [nodes, weights, errorWeights] = fejer2(orderN, a, b);
         [q] = integralVectorized(fun, a, b, options);
+        [] = checkClassProperties(O, classProperties);
 
         [er, ur, thk] = validateStructure(f, er, ur, thk, options);
         [structureString, figureString] = printStructure(er, ur, thk, options);

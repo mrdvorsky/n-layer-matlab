@@ -6,13 +6,9 @@ function [waveguideA, waveguideB] = setWaveguideBand(O, band, options)
 % UnitScaleFactor optional parameter, which will be used as a multiplier to
 % determine the new values of O.waveguideA and O.waveguideB.
 %
-% After calling this function, the "recomputeInterpolants" function should
-% be called before calling "calculate".
-%
 % Example Usage:
 %   NL = nLayerRectangular(...);
 %   NL.setWaveguideBand(band, UnitScaleFactor=0.001);
-%   NL.recomputeInterpolants();
 %
 % Inputs:
 %   band - Case-insensitive waveguide band designator.

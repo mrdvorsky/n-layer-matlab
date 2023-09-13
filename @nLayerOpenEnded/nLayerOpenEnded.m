@@ -1,34 +1,15 @@
 classdef nLayerOpenEnded < nLayerForward
-    %NLAYEROPENENDED Implementation of nLayerForward for rectangular waveguides.
+    %NLAYEROPENENDED Implementation of nLayerForward for general open-ended waveguides.
     % This class can be used to calculate the reflection coefficient seen
-    % by a rectangular waveguide looking into a multilayer structure. Note
-    % that the units of all parameters should match that of the speed of
-    % light specified by the speedOfLight parameter (default is mm GHz).
+    % by an arbitrary waveguide looking into a multilayer structure. This
+    % class is meant to be subclassed, where the subclass defines the modes
+    % to be considered.
     %
-    % Example Usage:
-    %   NL = nLayerRectangular(maxM, maxN, waveguideBand="x");
-    %   NL = nLayerRectangular(maxM, maxN, waveguideA=7.112, waveguideB=3.556);
-    %   NL = nLayerRectangular(maxM, maxN, speedOfLight=299.79e6, ...
-    %       waveguideA=7.112e-3, waveguideB=3.556e-3);
-    %   NL = nLayerRectangular(maxM, maxN, waveguideBand="ka", ...
-    %       prop1=val1, prop2=val2, ...);
+    % Note that the units of all parameters should match that of the speed
+    % of light specified by the speedOfLight parameter (default is mm GHz).
     %
-    %   gam = NL.calculate(f, er, ur, thk);
-    %   gam = NL.calculate(f, er, [], thk);
-    %   gam = NL.calculate(f, [], ur, thk);
-    %   gam = NL.calculate(f, er, [], thk, BackingConductivity=sigma);
-    %
-    % nLayerRectangular Properties:
-    %   waveguideA - Waveguide broad dimension.
-    %   waveguideB - Waveguide narrow dimension.
+    % nLayerOpenEnded Properties:
     %   speedOfLight (299.792458) - Speed of light (default is mm GHz).
-    %   modesTE - List of TEmn modes to consider (in rows of [m, n]). The
-    %       ports for the S-parameters will be in the order specified by
-    %       modesTE, followed by modesTM.
-    %   modesTM (read-only) - List of TMmn modes to consider (in rows of 
-    %       [m, n]). This is automatically generated from modesTE. It will
-    %       be in the same order after removing invalid TM modes.
-    %   numModes (read-only) - Number of modes (numTE + numTM) to consider.
     %   verbosity (0) - Verbosity level. Set to 1 for basic command line
     %       output. Set to 2 for a per-frequency output.
     %   convergenceAbsTol (0.001) - Default tolerance for reflection
@@ -48,45 +29,9 @@ classdef nLayerOpenEnded < nLayerForward
     %       function. If true, this function will throw errors if
     %       non-physical values of er, ur, or thk are passed in.
     %
-    % There are a number of parameters that can be modified to change the
-    % behavior. However, after changing any of the following parameters,
-    % the member function "recomputeInterpolants()" must be called. This
-    % function is automatically called upon construction of the object.
-    % For Example:
-    %   NL = nLayerRectangular(maxM, maxN, Band="x");
-    %   NL.modesTE = [1, 0; 1, 2; 3, 0; 3, 2];
-    %   NL.integralPointsFixed_kRho = 100;
-    %   NL.recomputeInterpolants(); % This line is necessary in this case.
-    %   [...] = NL.calculate(...);
-    %
-    % List of the critical parameters referenced above:
-    %   waveguideA;
-    %   waveguideB;
-    %   speedOfLight;
-    %   modesTE;
-    %   interpolationPoints_kRho;
-    %   integralPointsFixed_kRho;
-    %   integralPoints_kPhi;
-    %   integralInitialSegmentCount;
-    %
-    % Any of the above properties can also be directly specified in the
-    % class constructor: NL = nLayerRectangular(..., prop=val, ...).
-    % Constructing using this method avoids the requirement of having to
-    % call "recomputeInterpolants()" manually.
-    %
     % Author: Matt Dvorsky
 
     properties (GetAccess=public, SetAccess=public)
-        modeSpectrumEx_TE(:, 1) = {};
-        modeSpectrumEy_TE(:, 1) = {};
-        modeSpectrumEx_TM(:, 1) = {};
-        modeSpectrumEy_TM(:, 1) = {};
-        modeSpectrumEx_Hybrid(:, 1) = {};
-        modeSpectrumEy_Hybrid(:, 1) = {};
-
-        modeBetaCutoffTE(1, :) = [];
-        modeBetaCutoffTM(1, :) = [];
-
         waveguideEr(1, 1) = 1;
         waveguideUr(1, 1) = 1;
 
@@ -95,21 +40,21 @@ classdef nLayerOpenEnded < nLayerForward
         integralPoints_kPhi(1, 1) {mustBePositive, mustBeInteger} = 50;         % Number of points for fixed point integral along kPhi.
         integralInitialSegmentCount(1, 1) {mustBePositive, mustBeInteger} = 9;  % Number of segments to start with in adaptive integral.
         convergenceAbsTol(1, 1) {mustBePositive} = 0.001;                       % Convergence tolerance value.
-
-        integralScaleFactor = 1;    % Scale factor for change of varibles from kRho [0, inf) to kRhoP [0, 1].
     end
-    properties (GetAccess=public, SetAccess=private)
+    properties (GetAccess=public, SetAccess=protected)
         numModes;           % Total number of modes considered (TE + TM + Hybrid).
         numModes_TE;        % Number of TE modes considered.
         numModes_TM;        % Number of TM modes considered.
         numModes_Hybrid;    % Number of Hybrid modes considered.
+
+        cutoffBeta_TE(:, 1) = [];
+        cutoffBeta_TM(:, 1) = [];
+        cutoffBeta_Hybrid(:, 1) = [];
     end
     properties (Access=private)
-        
+        integralScaleFactor = 1;    % Scale factor for change of varibles from kRho [0, inf) to kRhoP [0, 1].
 
         table_AheHat;       % Interpolation tables for AhHat(kRhoP) and AeHat(kRhoP).
-
-        matrix_B;
 
         fixed_kRho;         % Fixed-point integral coordindates kRho.
         fixed_AhHat;        % Fixed-point integral weights for AhHat(kRhoP).
@@ -123,56 +68,27 @@ classdef nLayerOpenEnded < nLayerForward
     end
 
     %% Class Functions
+    methods (Abstract, Access=protected)
+        [modeStruct] = defineWaveguideModes(O);
+    end
     methods (Access=protected)
         [gam] = calculate_impl(O, f, er, ur, thk);
     end
     methods (Access=public)
         [outputLabels] = getOutputLabels(O);
-
-        [modesTE, modesTM] = setModes(O, maxM, maxN);
-        [waveguideA, waveguideB] = setWaveguideBand(O, band, options);
-
-        recomputeInterpolants(O);
     end
-    methods (Access=private)
+    methods (Access=protected)
         [A] = computeA(O, f, er, ur, thk);
-        [B] = computeB(O);
-        [kA, kB] = computeK(O, f);
+        [K] = computeK(O, f);
 
         [AhHat, AeHat] = computeAhat(O, kRhoP);
         [Ahat] = integrandAhat(O, kRhoP, k0, er, ur, thk);
+
+        recomputeInterpolants(O, options);
     end
     methods (Static, Access=public)
+        [modeStruct] = createModeStruct(options);
         [Gamma0h, Gamma0e] = computeGamma0(kRho, k0, er, ur, thk);
-    end
-
-    %% Class constructor
-    methods
-        function O = nLayerOpenEnded(classProperties)
-            %NLAYERRECTANGULAR Construct an instance of this class.
-            % Example Usage:
-            %   See example usage in main class documentation. Note that
-            %   all public class properties can be specified as a named
-            %   argument to the constructor (e.g., as "verbosity=1").
-            %
-            % Inputs:
-            %   maxM - Highest index m of TEmn and TMmn modes to consider.
-            %   maxN - Highest index n of TEmn and TMmn modes to consider.
-
-            arguments (Repeating)
-                classProperties;
-            end
-
-            %% Set Class Parameter Values
-            if mod(numel(classProperties), 2) ~= 0
-                error("Parameter and value arguments must come in pairs.");
-            end
-            for ii = 1:2:numel(classProperties)
-                set(O, classProperties{ii}, classProperties{ii + 1});
-            end
-
-%             O.recomputeInterpolants();
-        end
     end
 
 end

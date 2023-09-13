@@ -28,18 +28,18 @@ end
 %% Mode Coefficients
 k0 = 2*pi .* f ./ O.speedOfLight;
 
-betaC_TE = conj(sqrt(k0.^2 .* O.waveguideEr .* O.waveguideUr - O.modeBetaCutoffTE.^2));
-betaC_TM = conj(sqrt(k0.^2 .* O.waveguideEr .* O.waveguideUr - O.modeBetaCutoffTM.^2));
+betaCutoff_TE = conj(sqrt(k0.^2 .* O.waveguideEr .* O.waveguideUr - O.cutoffBeta_TE.^2));
+betaCutoff_TM = conj(sqrt(k0.^2 .* O.waveguideEr .* O.waveguideUr - O.cutoffBeta_TM.^2));
 
-betaC_TE = complex(real(betaC_TE), -abs(imag(betaC_TE)));
-betaC_TM = complex(real(betaC_TM), -abs(imag(betaC_TM)));
+betaCutoff_TE = complex(real(betaCutoff_TE), -abs(imag(betaCutoff_TE)));
+betaCutoff_TM = complex(real(betaCutoff_TM), -abs(imag(betaCutoff_TM)));
 
-%% Compute kA and kB
+%% Compute K
 % Assemble output vectors. See above note about row vectors vs matrices.
-betaC_TE_over_k0 = betaC_TE ./ (O.waveguideUr .* k0);
-betaC_TM_over_k0 = betaC_TM ./ k0;
+betaC_TE_over_k0 = betaCutoff_TE ./ (O.waveguideUr .* k0);
+betaC_TM_over_k0 = betaCutoff_TM ./ (O.waveguideEr .* k0);
 
-K = sqrt([1./betaC_TE_over_k0, betaC_TM_over_k0]);
+K = sqrt([1./betaC_TE_over_k0; betaC_TM_over_k0]);
 K = K .* pagetranspose(K);
 
 end

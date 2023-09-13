@@ -3,7 +3,7 @@ clear;
 close all;
 
 %% Inputs
-er = [2.1 - 0.1j];
+er = [2.1 - 0.001j];
 ur = [1];
 thk = [10];
 
@@ -16,17 +16,17 @@ f = linspace(8.2, 12.4, 801);
 
 %% nLayerRectangular
 tic;
-NL1 = nLayerRectangular(3, 2, waveguideBand="x", convergenceAbsTol=1e-4, verbosity=1);
+NL1 = nLayerRectangularOld(3, 2, waveguideBand="x", convergenceAbsTol=1e-4, verbosity=1);
 toc;
 
 
 %% nLayerGeneral
-wgA = NL1.waveguideA/2;
-wgB = NL1.waveguideB/2;
+wgA = NL1.waveguideA/1;
+wgB = NL1.waveguideB/1;
 
 NL2 = nLayerOpenEnded(verbosity=1, convergenceAbsTol=1e-4);
 % NL2.waveguideEr = 4 - 0.4j;
-NL2.waveguideUr = 4 - 0.4j;
+% NL2.waveguideUr = 4 - 0.4j;
 
 modesTE = NL1.modesTE;
 for ii = 1:size(modesTE, 1)
@@ -39,11 +39,11 @@ for ii = 1:size(modesTE, 1)
     scaleFactor = pi / (betaC * sqrt(wgA*wgB)) ...
         ./ sqrt(1 + 0*(n == 0));
 
-    NL2.modeSpectrumTE_Hx{ii} = @(kx, ky, ~, ~) (m/wgA) * scaleFactor ...
-        .* S_int(kx, wgA, m) .* C_int(ky, wgB, n);
-
-    NL2.modeSpectrumTE_Hy{ii} = @(kx, ky, ~, ~) (n/wgB) * scaleFactor ...
+    modeSpectrumEx_TE{ii} = @(kx, ky, ~, ~) -(n/wgB) * scaleFactor ...
         .* C_int(kx, wgA, m) .* S_int(ky, wgB, n);
+
+    modeSpectrumEy_TE{ii} = @(kx, ky, ~, ~) (m/wgA) * scaleFactor ...
+        .* S_int(kx, wgA, m) .* C_int(ky, wgB, n);
 end
 
 modesTM = NL1.modesTM;
@@ -57,19 +57,23 @@ for ii = 1:size(modesTM, 1)
     scaleFactor = pi / (betaC * sqrt(wgA*wgB)) ...
         ./ sqrt(1 + 0*(n == 0));
 
-    NL2.modeSpectrumTM_Ex{ii} = @(kx, ky, ~, ~) (m/wgA) * scaleFactor ...
+    modeSpectrumEx_TM{ii} = @(kx, ky, ~, ~) (m/wgA) * scaleFactor ...
         .* C_int(kx, wgA, m) .* S_int(ky, wgB, n);
 
-    NL2.modeSpectrumTM_Ey{ii} = @(kx, ky, ~, ~) (n/wgB) * scaleFactor ...
+    modeSpectrumEy_TM{ii} = @(kx, ky, ~, ~) (n/wgB) * scaleFactor ...
         .* S_int(kx, wgA, m) .* C_int(ky, wgB, n);
 end
 
 
 
-NL2.integralScaleFactor = pi.^2 ./ wgA;
-
 tic;
-NL2.recomputeInterpolants();
+NL2.recomputeInterpolants(...
+    SpecEx_TE=modeSpectrumEx_TE, ...
+    SpecEy_TE=modeSpectrumEy_TE, ...
+    SpecEx_TM=modeSpectrumEx_TM, ...
+    SpecEy_TM=modeSpectrumEy_TM, ...
+    ModeSymmetryX="Even", ModeSymmetryY="Even", ...
+    IntegralScaleFactor=pi.^2 ./ wgA);
 toc;
 
 %% Calculate
@@ -87,12 +91,12 @@ zplane([]);
 grid on;
 legend(["Original", "New"]);
 
-figure;
-plot(f, real(gam2), "-", LineWidth=1.5);
-hold on;
-plot(f, imag(gam2), "-", LineWidth=1.5);
-grid on;
-legend(["Real", "Imag"]);
+% figure;
+% plot(f, real(gam2), "-", LineWidth=1.5);
+% hold on;
+% plot(f, imag(gam2), "-", LineWidth=1.5);
+% grid on;
+% legend(["Real", "Imag"]);
 
 
 

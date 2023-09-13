@@ -1,4 +1,4 @@
-function [kA, kB] = computeK(O, f)
+function [K] = computeK(O, f)
 %COMPUTEK Computes kA and kB.
 % Computes the matrices kA and kB, which are used to compute the
 % unnormalized mode S-parameter matrix.
@@ -34,23 +34,13 @@ betaC_TM = conj(sqrt(k0.^2 .* O.waveguideEr .* O.waveguideUr - O.modeBetaCutoffT
 betaC_TE = complex(real(betaC_TE), -abs(imag(betaC_TE)));
 betaC_TM = complex(real(betaC_TM), -abs(imag(betaC_TM)));
 
-%% Compute kA and kB Submatrices
-% Note that instead of right multiplying by the diagonal matrices KA and
-% KB, we can instead multiply each column by the corresponding diagonal
-% element for better efficiency. Thus, kA and kB will be constructed as row
-% vectors instead of diagonal matrices.
-
-
-
 %% Compute kA and kB
 % Assemble output vectors. See above note about row vectors vs matrices.
 betaC_TE_over_k0 = betaC_TE ./ (O.waveguideUr .* k0);
 betaC_TM_over_k0 = betaC_TM ./ k0;
 
-
-kA = sqrt([1./betaC_TE_over_k0, betaC_TM_over_k0]);
-kA = kA .* pagetranspose(kA);
-kB = kA*0 + eye(O.numModes);
+K = sqrt([1./betaC_TE_over_k0, betaC_TM_over_k0]);
+K = K .* pagetranspose(K);
 
 end
 

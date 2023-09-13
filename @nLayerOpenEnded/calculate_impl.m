@@ -36,16 +36,24 @@ end
 %% Compute A, B, kA, and kB
 % The call to "O.computeA(...)" is computationally intensive.
 [A] = O.computeA(f, er, ur, thk);
-[B] = O.computeB();
-[kA, kB] = O.computeK(f);
+[K] = O.computeK(f);
 
 %% Calculate Reflection Coefficient at each Frequency
-gam = zeros(length(f), 1);
-for ff = 1:length(f)
-    Sj1 = ( A(:, :, ff).*kA(:, :, ff) + kB(:, :, ff)) ...
-        \ (-A(:, :, ff).*kA(:, :, ff) + kB(:, :, ff));
-    gam(ff) = Sj1(1);
-end
+% gam = zeros(length(f), 1);
+% for ff = 1:length(f)
+%     Sj1 = ( A(:, :, ff).*kA(:, :, ff) + kB(:, :, ff)) ...
+%         \ (-A(:, :, ff).*kA(:, :, ff) + kB(:, :, ff));
+%     gam(ff) = Sj1(1);
+% end
+
+%% Calculate S-parameter Matrix at each Frequency
+A_times_K = A.*K;
+idMat = eye(size(A, 1));
+
+Smn = pagemldivide(idMat + A_times_K, idMat - A_times_K);
+
+gam = Smn(1, 1, :);
+gam = gam(:);
 
 end
 

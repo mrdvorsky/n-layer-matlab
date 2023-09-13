@@ -1,4 +1,4 @@
-function [AhHat, AeHat] = computeAhat(O, kRhoP)
+function [AhHat, AeHat] = computeAhat(O, kRhoP, modeStruct)
 %COMPUTEAHAT Computes the matrices AhHat(kRho) and AeHat(kRho).
 %   This function computes the matrices AhHat(kRho) and AeHat(kRho) as a
 %   function of kRho. The outputs of this function can be used to compute
@@ -22,120 +22,98 @@ function [AhHat, AeHat] = computeAhat(O, kRhoP)
 arguments
     O;
     kRhoP(:, 1);
+    modeStruct;
 end
 
 %% Integral Change of Variables
 % The integral needs to be evaluated from kRho = [0, inf). However, a change
 % of variables kRho = L(1 - kRhoP)/kRhoP is used here so that the interpolant
 % can be uniform in (0, 1].
-L = O.integralScaleFactor;
+L = modeStruct.IntegralScaleFactor;
 kRho = L * (1 - kRhoP) ./ kRhoP;
+
+% Fix kRho to never be infinite or zero. The integrands at these endpoints
+% will be set to zero later, so the specific values don't matter.
+kRho(kRhoP == 0) = nan;
+kRho(kRhoP == 1) = nan;
+kRho(kRhoP == 0) = max(kRho, [], "omitnan") * 1.01;
+kRho(kRhoP == 1) = min(kRho, [], "omitnan") * 0.99;
 
 % Weighting function to account for change of variables.
 weights_kRho = L ./ (kRhoP.^2);
 
-%% Compute Integrals Over kPhi at All Values of kRho
+%% Compute Weights and Nodes for Integral Over kPhi
 % Use 4th dimension for integration over kPhi
 [kPhi(1, 1, 1, :), weights_kPhi(1, 1, 1, :)] = ...
     O.fejer2(O.integralPoints_kPhi, 0, 0.5*pi);
 weights_kPhi = 4*weights_kPhi;
+
+if strcmp(modeStruct.ModeSymmetryX, "None")
+    kPhi = cat(4, kPhi, kPhi + 0.5*pi);
+    weights_kPhi = 0.5 * cat(4, weights_kPhi, weights_kPhi);
+end
+
+if strcmp(modeStruct.ModeSymmetryY, "None")
+    kPhi = cat(4, kPhi, -flip(kPhi));
+    weights_kPhi = 0.5 * cat(4, weights_kPhi, flip(weights_kPhi));
+end
+
+if ~strcmp(modeStruct.ModeSymmetryAxial, "None")
+    kPhi = 0;
+    weights_kPhi = 2*pi;
+end
+
 kx = kRho .* cos(kPhi);
 ky = kRho .* sin(kPhi);
 
-%% Compute Mode Power Levels
-[kPhiPower(:, 1), weights_kPhiPower(:, 1)] = ...
-    O.fejer2(400, 0, 0.5*pi);
-weights_kPhiPower = 4*weights_kPhiPower;
-
-power_TE = ones(numel(O.modeSpectrumTE_Hx), 1);
-for ii = 1:numel(power_TE)
-    crossProdFun = @(kx, ky, kRho, kPhi) ...
-          O.modeSpectrumTE_Hx{ii}(kx, ky, kRho, kPhi).^2 ...
-        + O.modeSpectrumTE_Hy{ii}(kx, ky, kRho, kPhi).^2;
-    Bfun = @(kRho) integralOverKPhi(crossProdFun, kRho, kPhiPower, weights_kPhiPower);
-%     power_TE(ii) = integral(Bfun, 0, inf, RelTol=1e-6, AbsTol=0);
-    
-%     [nodes(1, :), weights(1, :)] = clenshawCurtisHalfOpen(1024, 1);
-    power_TE2(ii) = sum(Bfun(kRho.') .* weights_kRho.', "omitnan") ./ 4096;
-end
-power_TE2
-
-power_TM = ones(numel(O.modeSpectrumTM_Ex), 1);
-for ii = 1:numel(power_TM)
-    crossProdFun = @(kx, ky, kRho, kPhi) ...
-          O.modeSpectrumTM_Ex{ii}(kx, ky, kRho, kPhi).^2 ...
-          + O.modeSpectrumTM_Ey{ii}(kx, ky, kRho, kPhi).^2;
-    Bfun = @(kRho) integralOverKPhi(crossProdFun, kRho, kPhiPower, weights_kPhiPower);
-%     power_TM(ii) = integral(Bfun, 0, inf, RelTol=1e-6, AbsTol=0);
-
-    power_TM2(ii) = sum(Bfun(kRho.') .* weights_kRho.', "omitnan") ./ 4096;
-end
-power_TM2
-
 %% Compute Mode Spectrums
-% Calculate TE mode Hertzian potentials.
-specHxm = zeros(numel(kRho), numel(O.modeSpectrumTE_Hx), 1, numel(kPhi));
-specHym = zeros(numel(kRho), numel(O.modeSpectrumTE_Hy), 1, numel(kPhi));
-for ii = 1:numel(O.modeSpectrumTE_Hx)
-    specHxm(:, ii, 1, :) = O.modeSpectrumTE_Hx{ii}(kx, ky, kRho, kPhi) ...
-        + zeros(size(kx));
-    specHym(:, ii, 1, :) = O.modeSpectrumTE_Hy{ii}(kx, ky, kRho, kPhi) ...
-        + zeros(size(kx));
+% Calculate TE mode spectrums.
+modeSpecEx_TE = zeros(numel(kRho), numel(modeStruct.SpecEx_TE), 1, numel(kPhi));
+modeSpecEy_TE = zeros(numel(kRho), numel(modeStruct.SpecEy_TE), 1, numel(kPhi));
+for ii = 1:numel(modeStruct.SpecEx_TE)
+    modeSpecEx_TE(:, ii, 1, :) = zeros(size(kx)) ...
+        + modeStruct.SpecEx_TE{ii}(kx, ky, kRho, kPhi);
+    modeSpecEy_TE(:, ii, 1, :) = zeros(size(kx)) ...
+        + modeStruct.SpecEy_TE{ii}(kx, ky, kRho, kPhi);
 end
-specHxn = reshape(specHxm, size(specHxm, [1, 3, 2, 4]));
-specHyn = reshape(specHym, size(specHym, [1, 3, 2, 4]));
 
-% Calculate TM mode Hertzian potentials.
-specExm = zeros(numel(kRho), numel(O.modeSpectrumTM_Ex), 1, numel(kPhi));
-specEym = zeros(numel(kRho), numel(O.modeSpectrumTM_Ey), 1, numel(kPhi));
-for ii = 1:numel(O.modeSpectrumTM_Ex)
-    specExm(:, ii, 1, :) = O.modeSpectrumTM_Ex{ii}(kx, ky, kRho, kPhi) ...
-        ./ sqrt(abs(power_TM(ii))) + zeros(size(kx));
-    specEym(:, ii, 1, :) = O.modeSpectrumTM_Ey{ii}(kx, ky, kRho, kPhi) ...
-        ./ sqrt(abs(power_TM(ii))) + zeros(size(kx));
+% Calculate TM mode spectrums.
+modeSpecEx_TM = zeros(numel(kRho), numel(modeStruct.SpecEx_TM), 1, numel(kPhi));
+modeSpecEy_TM = zeros(numel(kRho), numel(modeStruct.SpecEy_TM), 1, numel(kPhi));
+for ii = 1:numel(modeStruct.SpecEx_TM)
+    modeSpecEx_TM(:, ii, 1, :) = zeros(size(kx)) ...
+        + modeStruct.SpecEx_TM{ii}(kx, ky, kRho, kPhi);
+    modeSpecEy_TM(:, ii, 1, :) = zeros(size(kx)) ...
+        + modeStruct.SpecEy_TM{ii}(kx, ky, kRho, kPhi);
 end
-specExn = reshape(specExm, size(specExm, [1, 3, 2, 4]));
-specEyn = reshape(specEym, size(specEym, [1, 3, 2, 4]));
+
+% Calculate Hybrid mode spectrums.
+modeSpecEx_Hybrid = zeros(numel(kRho), numel(modeStruct.SpecEx_Hybrid), 1, numel(kPhi));
+modeSpecEy_Hybrid = zeros(numel(kRho), numel(modeStruct.SpecEy_Hybrid), 1, numel(kPhi));
+for ii = 1:numel(modeStruct.SpecEx_Hybrid)
+    modeSpecEx_Hybrid(:, ii, 1, :) = zeros(size(kx)) ...
+        + modeStruct.SpecEx_Hybrid{ii}(kx, ky, kRho, kPhi);
+    modeSpecEy_Hybrid(:, ii, 1, :) = zeros(size(kx)) ...
+        + modeStruct.SpecEy_Hybrid{ii}(kx, ky, kRho, kPhi);
+end
+
+%% Combine Modes
+modeSpecExm = cat(2, modeSpecEx_TE, modeSpecEx_TM, modeSpecEx_Hybrid);
+modeSpecEym = cat(2, modeSpecEy_TE, modeSpecEy_TM, modeSpecEy_Hybrid);
+
+modeSpecExn = reshape(modeSpecExm, size(modeSpecExm, [1, 3, 2, 4]));
+modeSpecEyn = reshape(modeSpecEym, size(modeSpecEym, [1, 3, 2, 4]));
 
 %% Compute Ahat
-AhhhHat = innerProduct(weights_kPhi .* (ky.*specHym + kx.*specHxm), (ky.*specHyn + kx.*specHxn), 4) ./ kRho;
-AhheHat = innerProduct(weights_kPhi .* (ky.*specHym + kx.*specHxm), (ky.*specExn - kx.*specEyn), 4) ./ kRho;
-AhehHat = innerProduct(weights_kPhi .* (ky.*specExm - kx.*specEym), (ky.*specHyn + kx.*specHxn), 4) ./ kRho;
-AheeHat = innerProduct(weights_kPhi .* (ky.*specExm - kx.*specEym), (ky.*specExn - kx.*specEyn), 4) ./ kRho;
+AhHat = weights_kRho .* innerProduct(weights_kPhi .* ...
+    (ky.*modeSpecExm - kx.*modeSpecEym), ...
+    (ky.*modeSpecExn - kx.*modeSpecEyn), ...
+    4) ./ kRho;
 
-AehhHat = innerProduct(weights_kPhi .* (kx.*specHym - ky.*specHxm), (kx.*specHyn - ky.*specHxn), 4) ./ kRho;
-AeheHat = innerProduct(weights_kPhi .* (kx.*specHym - ky.*specHxm), (kx.*specExn + ky.*specEyn), 4) ./ kRho;
-AeehHat = innerProduct(weights_kPhi .* (kx.*specExm + ky.*specEym), (kx.*specHyn - ky.*specHxn), 4) ./ kRho;
-AeeeHat = innerProduct(weights_kPhi .* (kx.*specExm + ky.*specEym), (kx.*specExn + ky.*specEyn), 4) ./ kRho;
-
-%% Compute B
-Bhh = mean(sum(weights_kPhi .* specHxm .* specHxn, 4) .* kRho, 1, "omitnan") ...
-    + mean(innerProduct(weights_kPhi .* specHym, specHyn, 4) .* kRho, 1, "omitnan");
-Bhe = mean(innerProduct(weights_kPhi .* specHym, specExn, 4) .* kRho, 1, "omitnan") ...
-    - mean(innerProduct(weights_kPhi .* specHxm, specEyn, 4) .* kRho, 1, "omitnan");
-Beh = mean(innerProduct(weights_kPhi .* specHym, specExn, 4) .* kRho, 1, "omitnan") ...
-    - mean(innerProduct(weights_kPhi .* specHxm, specEyn, 4) .* kRho, 1, "omitnan");
-Bee = mean(innerProduct(weights_kPhi .* specExm, specExn, 4) .* kRho, 1, "omitnan") ...
-    + mean(innerProduct(weights_kPhi .* specEym, specEyn, 4) .* kRho, 1, "omitnan");
-
-% O.matrix_B = [squeeze(Bhh), squeeze(Bhe); ...
-%         squeeze(Beh), squeeze(Bee)];
-% matB = O.matrix_B
-
-%% Assemble Output Matrices
-AhHat = weights_kRho .* cat(2, ...
-    cat(3, AhhhHat, AhheHat), ...
-    cat(3, AhehHat, AheeHat));
-AeHat = weights_kRho .* cat(2, ...
-    cat(3, AehhHat, AeheHat), ...
-    cat(3, AeehHat, AeeeHat));
-
-% AhHat = weights_kRho .* cat(2, ...
-%     cat(3, O.waveguideUr.*AhhhHat, AhheHat), ...
-%     cat(3, O.waveguideUr.*AhehHat, AheeHat));
-% AeHat = weights_kRho .* cat(2, ...
-%     cat(3, O.waveguideUr.*AehhHat, AeheHat), ...
-%     cat(3, O.waveguideUr.*AeehHat, AeeeHat));
+AeHat = weights_kRho .* innerProduct(weights_kPhi .* ...
+    (kx.*modeSpecExm + ky.*modeSpecEym), ...
+    (kx.*modeSpecExn + ky.*modeSpecEyn), ...
+    4) ./ kRho;
 
 %% Fix Nans Caused by Singularities At Endpoints
 AhHat(kRhoP == 0, :, :) = 0;
@@ -146,14 +124,4 @@ AeHat(kRhoP == 1, :, :) = 0;
 
 end
 
-%% Function to Integrate Over kPhi
-function [integralResult] = integralOverKPhi(fun, kRho, kPhi, weights_kPhi)
-
-kx = kRho .* cos(kPhi);
-ky = kRho .* sin(kPhi);
-
-% kPhi and weights_kPhi should be vectors along the 2nd dimension.
-integralResult = kRho .* sum(fun(kx, ky, kRho, kPhi) .* weights_kPhi, 1);
-
-end
 

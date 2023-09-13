@@ -77,10 +77,12 @@ classdef nLayerOpenEnded < nLayerForward
     % Author: Matt Dvorsky
 
     properties (GetAccess=public, SetAccess=public)
-        modeSpectrumTE_Hx(:, 1) = {};
-        modeSpectrumTE_Hy(:, 1) = {};
-        modeSpectrumTM_Ex(:, 1) = {};
-        modeSpectrumTM_Ey(:, 1) = {};
+        modeSpectrumEx_TE(:, 1) = {};
+        modeSpectrumEy_TE(:, 1) = {};
+        modeSpectrumEx_TM(:, 1) = {};
+        modeSpectrumEy_TM(:, 1) = {};
+        modeSpectrumEx_Hybrid(:, 1) = {};
+        modeSpectrumEy_Hybrid(:, 1) = {};
 
         modeBetaCutoffTE(1, :) = [];
         modeBetaCutoffTM(1, :) = [];
@@ -97,7 +99,10 @@ classdef nLayerOpenEnded < nLayerForward
         integralScaleFactor = 1;    % Scale factor for change of varibles from kRho [0, inf) to kRhoP [0, 1].
     end
     properties (GetAccess=public, SetAccess=private)
-        numModes;       % Number of modes considered (TE + TM).
+        numModes;           % Total number of modes considered (TE + TM + Hybrid).
+        numModes_TE;        % Number of TE modes considered.
+        numModes_TM;        % Number of TM modes considered.
+        numModes_Hybrid;    % Number of Hybrid modes considered.
     end
     properties (Access=private)
         

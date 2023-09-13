@@ -1,4 +1,4 @@
-classdef nLayerRectangular < nLayerForward
+classdef nLayerRectangularOld < nLayerForward
     %NLAYERRECTANGULAR Implementation of nLayerForward for rectangular waveguides.
     % This class can be used to calculate the reflection coefficient seen
     % by a rectangular waveguide looking into a multilayer structure. Note
@@ -133,7 +133,7 @@ classdef nLayerRectangular < nLayerForward
 
     %% Class constructor
     methods
-        function O = nLayerRectangular(maxM, maxN, classProperties)
+        function O = nLayerRectangularOld(maxM, maxN, classProperties)
             %NLAYERRECTANGULAR Construct an instance of this class.
             % Example Usage:
             %   See example usage in main class documentation. Note that

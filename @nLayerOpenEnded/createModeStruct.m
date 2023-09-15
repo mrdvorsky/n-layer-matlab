@@ -38,6 +38,8 @@ arguments
         ["None", "TE", "TM"])} = "None";
 
     modeStruct.IntegralScaleFactor(1, 1) {mustBePositive} = 1;
+
+    modeStruct.CheckModeScalingAndOrthogonality(1, 1) logical = true;
 end
 
 %% Check Inputs

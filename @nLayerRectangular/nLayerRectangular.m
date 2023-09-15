@@ -40,10 +40,12 @@ classdef nLayerRectangular < nLayerOpenEnded
         waveguideA(1, 1) {mustBePositive} = 1;              % Waveguide broad dimension.
         waveguideB(1, 1) {mustBePositive} = 0.5;            % Waveguide narrow dimension.
         modes_TE(:, 2) {mustBeInteger, mustBeNonnegative};  % List of TEmn modes in rows of [m, n].
+        modes_TM(:, 2) {mustBeInteger, mustBeNonnegative};  % List of TMmn modes in rows of [m, n].
     end
     properties (GetAccess=public, SetAccess=private)
-        modes_TM;               % List of TMmn modes in rows of [m, n].
-        waveguideBand = "";     % Waveguide band identifier.
+        waveguideBand = "";         % Waveguide band identifier.
+        modeSymmetryX = "Even";     % Mode symmetry specification along x-axis.
+        modeSymmetryY = "Odd";      % Mode symmetry specification along y-axis.
     end
 
     %% Class Functions

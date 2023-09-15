@@ -11,12 +11,15 @@ f = linspace(8.2, 12.4, 801);
 
 %% nLayerRectangularOld
 tic;
-NL1 = nLayerRectangularOld(3, 2, waveguideBand="x", convergenceAbsTol=1e-4, verbosity=1);
+NL1 = nLayerRectangularOld(3, 2, waveguideBand="x", ...
+    convergenceAbsTol=1e-4, verbosity=1);
 toc;
 
 %% nLayerRectangular
 tic;
-NL2 = nLayerRectangular(3, 2, waveguideBand="x", convergenceAbsTol=1e-4, verbosity=1);
+NL2 = nLayerRectangular(3, 2, waveguideBand="x", ...
+    convergenceAbsTol=1e-4, verbosity=1, ...
+    modeSymmetryX="Even");
 toc;
 
 %% Calculate

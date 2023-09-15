@@ -32,15 +32,17 @@ end
 L = modeStruct.IntegralScaleFactor;
 kRho = L * (1 - kRhoP) ./ kRhoP;
 
+% Weighting function to account for change of variables.
+weights_kRho = L ./ (kRhoP.^2);
+
 % Fix kRho to never be infinite or zero. The integrands at these endpoints
-% will be set to zero later, so the specific values don't matter.
+% are always zero, so the specific values don't matter. We can force the
+% endpoints to be zero by setting the weights at the endpoints to zero.
 kRho(kRhoP == 0) = nan;
 kRho(kRhoP == 1) = nan;
 kRho(kRhoP == 0) = max(kRho, [], "omitnan") * 1.01;
 kRho(kRhoP == 1) = min(kRho, [], "omitnan") * 0.99;
-
-% Weighting function to account for change of variables.
-weights_kRho = L ./ (kRhoP.^2);
+weights_kRho(kRhoP == 0 | kRhoP == 1) = 0;
 
 %% Compute Weights and Nodes for Integral Over kPhi
 % Use 4th dimension for integration over kPhi
@@ -101,6 +103,8 @@ end
 modeSpecExm = cat(2, modeSpecEx_TE, modeSpecEx_TM, modeSpecEx_Hybrid);
 modeSpecEym = cat(2, modeSpecEy_TE, modeSpecEy_TM, modeSpecEy_Hybrid);
 
+% Zero out endpoints.
+
 modeSpecExn = reshape(modeSpecExm, size(modeSpecExm, [1, 3, 2, 4]));
 modeSpecEyn = reshape(modeSpecEym, size(modeSpecEym, [1, 3, 2, 4]));
 
@@ -116,11 +120,31 @@ AeHat = weights_kRho .* innerProduct(weights_kPhi .* ...
     4) ./ kRho;
 
 %% Fix Nans Caused by Singularities At Endpoints
-AhHat(kRhoP == 0, :, :) = 0;
-AeHat(kRhoP == 0, :, :) = 0;
+% AhHat(kRhoP == 0, :, :) = 0;
+% AeHat(kRhoP == 0, :, :) = 0;
+% 
+% AhHat(kRhoP == 1, :, :) = 0;
+% AeHat(kRhoP == 1, :, :) = 0;
 
-AhHat(kRhoP == 1, :, :) = 0;
-AeHat(kRhoP == 1, :, :) = 0;
+%% Check Mode Scaling and Orthogonality
+if modeStruct.CheckModeScalingAndOrthogonality
+    modeCrossMatrix = squeeze(mean(weights_kRho .* sum(weights_kPhi ...
+        .* (modeSpecExm.*modeSpecExn + modeSpecEym.*modeSpecEyn) ...
+        .* kRho, 4), 1));
+
+    if any(abs(modeCrossMatrix - eye(size(modeCrossMatrix))) > 0.0001, "all")
+        warning("One or more modes may be scaled incorrectly, " + ...
+            "or one or more pairs of modes may not be orthogonal. " + ...
+            "The mode cross inner product matrix is shown below, " + ...
+            "which should be approximately equal to the identity " + ...
+            "matrix. \n\nModeCrossInnerProductMatrix =\n\n" + ...
+            "%s\n Note that the S-parameter matrix will be " + ...
+            "incorrect if this issue is not fixed. To disable " + ...
+            "this warning, set the 'CheckModeScalingAndOrthogonality' " + ...
+            "flag to false in the 'defineWaveguideModes' function.\n", ...
+            formattedDisplayText(modeCrossMatrix));
+    end
+end
 
 end
 

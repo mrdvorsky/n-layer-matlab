@@ -29,8 +29,7 @@ for ii = 1:size(modes_TE, 1)
 
     cutoffBeta_TE(ii) = hypot(m*pi/wgA, n*pi/wgB);
 
-    scaleFactor = pi / (cutoffBeta_TE(ii) * sqrt(wgA*wgB)) ...
-        ./ sqrt(1 + 0*(n == 0));
+    scaleFactor = pi / (cutoffBeta_TE(ii) * sqrt(wgA*wgB));
 
     modeSpectrumEx_TE{ii} = @(kx, ky, ~, ~) -(n/wgB) * scaleFactor ...
         .* C_int(kx, wgA, m) .* S_int(ky, wgB, n);
@@ -49,8 +48,7 @@ for ii = 1:size(modes_TM, 1)
 
     cutoffBeta_TM(ii) = hypot(m*pi/wgA, n*pi/wgB);
 
-    scaleFactor = pi / (cutoffBeta_TM(ii) * sqrt(wgA*wgB)) ...
-        ./ sqrt(1 + 0*(n == 0));
+    scaleFactor = pi / (cutoffBeta_TM(ii) * sqrt(wgA*wgB));
 
     modeSpectrumEx_TM{ii} = @(kx, ky, ~, ~) (m/wgA) * scaleFactor ...
         .* C_int(kx, wgA, m) .* S_int(ky, wgB, n);
@@ -65,10 +63,17 @@ modeStruct = O.createModeStruct(...
     SpecEy_TE=modeSpectrumEy_TE, ...
     SpecEx_TM=modeSpectrumEx_TM, ...
     SpecEy_TM=modeSpectrumEy_TM, ...
-    cutoffBeta_TE=cutoffBeta_TE, ...
-    cutoffBeta_TM=cutoffBeta_TM, ...
-    ModeSymmetryX="Even", ModeSymmetryY="Odd", ...
+    CutoffBeta_TE=cutoffBeta_TE, ...
+    CutoffBeta_TM=cutoffBeta_TM, ...
+    ModeSymmetryX="None", ModeSymmetryY="None", ...
     IntegralScaleFactor=(pi.^2 ./ wgA));
+
+%% Disable Mode Scaling and Orthogonality Check
+% The following line can be uncommented after debugging and verifying that
+% all modes are orthogonal and are scaled properly, but should be enabled
+% during development.
+
+% modeStruct.CheckModeScalingAndOrthogonality = false;
 
 end
 
@@ -81,7 +86,10 @@ if m == 0
     v = 0;
     return;
 end
+
 v = sqrt( pi ) * m .* sinc((0.5/pi) .* (a.*k - pi*m)) ./ (k  + m.*pi./a);
+% v = sqrt( pi ) * m .* (0.25./pi) ...
+%     .* (sinc((0.5/pi) .* (a.*k - pi*m)) - sinc((0.5/pi) .* (a.*k + pi*m)));
 
 end
 

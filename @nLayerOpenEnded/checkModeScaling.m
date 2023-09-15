@@ -1,27 +1,21 @@
-function [AhHat, AeHat] = computeAhat(O, kRhoP, modeStruct)
-%COMPUTEAHAT Computes the matrices AhHat(kRho) and AeHat(kRho).
-%   This function computes the matrices AhHat(kRho) and AeHat(kRho) as a
-%   function of kRho. The outputs of this function can be used to compute
-%   the matrices Ah and Ae, respectively by integrating over kRhoP over the
-%   interval [0, 1]. Note that the change of variables from kRhoP to kRho
-%   will be applied in this function automatically.
-%
-% Example Usage:
-%   [AhHat, AeHat] = O.computeAhat(kRhoP);
+function [modeCrossMatrix] = checkModeScaling(modeStruct)
+%CHECKMODESCALING Computes the mode cross inner product matrix.
+% This function computes and returns the cross mode inner product matrix,
+% which should be an identity matrix if the modes are orthogonal and scaled
+% properly, as is required by nLayerOpenEnded. Use this function during
+% development to check that the modes are proper by verifying that the
+% output is the identity matrix (within numerical precision).
 %
 % Inputs:
-%   kRhoP - A vector of kRhoP coordinates (coordinate transform of kRho).
-%       Values should be in the interval [0, 1].
+%   modeStruct - Mode structure created by the "createModeStruct" function.
+%
 % Outputs:
-%   AhHat, AeHat - Matrices computed as a function of kRhoP that can be
-%       used to compute the matrix A (i.e., Ah + Ae). The size will be
-%       numel(kRhoP) by O.numModes by O.numModes.
+%   modeCrossMatrix - Output matrix. Check that this is equal to the
+%       identity matrix (within numerical precision).
 %
 % Author: Matt Dvorsky
 
 arguments
-    O;
-    kRhoP(:, 1);
     modeStruct;
 end
 

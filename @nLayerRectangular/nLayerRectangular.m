@@ -22,10 +22,8 @@ classdef nLayerRectangular < nLayerOpenEnded
     %   waveguideA - Waveguide broad dimension.
     %   waveguideB - Waveguide narrow dimension.
     %   speedOfLight (299.792458) - Speed of light (default is mm GHz).
-    %   modesTE - List of TEmn modes to consider (in rows of [m, n]).
-    %   modesTM (read-only) - List of TMmn modes to consider (in rows of 
-    %       [m, n]). This is automatically generated from modesTE. It will
-    %       be in the same order after removing invalid TM modes.
+    %   modes_TE - List of TEmn modes to consider (in rows of [m, n]).
+    %   modes_TM - List of TMmn modes to consider (in rows of [m, n]).
     %   verbosity (0) - Verbosity level. Set to 1 for basic command line
     %       output. Set to 2 for a per-frequency output.
     %   convergenceAbsTol (0.001) - Default tolerance for reflection

@@ -82,6 +82,14 @@ end
 
 %% Compute A Using Adaptive Integration
 % Use adaptive integration to compute A at the remaining frequencies.
+
+propStruct.table_AheHat = O.table_AheHat;
+propStruct.init_kRho = O.init_kRho;
+propStruct.init_AhHat = O.init_AhHat;
+propStruct.init_AeHat = O.init_AeHat;
+propStruct.interpolationPoints_kRho = O.interpolationPoints_kRho;
+propStruct.integralScaleFactor = O.integralScaleFactor;
+
 for ff = 1:length(k0)
     if ~fixedPointFrequency(ff)
         % Print message for each frequency if verbosity flag 2 or higher.
@@ -90,7 +98,7 @@ for ff = 1:length(k0)
         end
         
         A(:, :, :, ff) = O.integralVectorized(...
-            @(kRhoP) O.integrandAhat(kRhoP, k0(ff), er(ff, :), ur(ff, :), thk), ...
+            @(kRhoP) nLayerOpenEnded.integrandAhat(propStruct, kRhoP, k0(ff), er(ff, :), ur(ff, :), thk), ...
             0, 1, RelTol=O.convergenceAbsTol, Verbosity=(O.verbosity > 1), ...
             InitialIntervalCount=O.integralInitialSegmentCount);
     end

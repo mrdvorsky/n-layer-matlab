@@ -35,6 +35,10 @@ classdef nLayerOpenEnded < nLayerForward
         waveguideEr(1, 1) = 1;
         waveguideUr(1, 1) = 1;
 
+        outputModes_TE(:, 1) logical = [];
+        outputModes_TM(:, 1) logical = [];
+        outputModes_Hybrid(:, 1) logical = [];
+
         interpolationPoints_kRho(1, 1) {mustBePositive, mustBeInteger} = 2^12;  % Number of points for lookup table along kRho.
         integralPointsFixed_kRho(1, 1) {mustBePositive, mustBeInteger} = 300;   % Number of points for fixed point integral along kRho.
         integralPoints_kPhi(1, 1) {mustBePositive, mustBeInteger} = 50;         % Number of points for fixed point integral along kPhi.
@@ -51,7 +55,7 @@ classdef nLayerOpenEnded < nLayerForward
         cutoffBeta_TM(:, 1) = [];
         cutoffBeta_Hybrid(:, 1) = [];
     end
-    properties (Access=private)
+    properties (Access=private, Hidden)
         integralScaleFactor = 1;    % Scale factor for change of varibles from kRho [0, inf) to kRhoP [0, 1].
 
         table_AheHat;       % Interpolation tables for AhHat(kRhoP) and AeHat(kRhoP).
@@ -82,11 +86,12 @@ classdef nLayerOpenEnded < nLayerForward
         [K] = computeK(O, f);
 
         [AhHat, AeHat] = computeAhat(O, kRhoP);
-        [Ahat] = integrandAhat(O, kRhoP, k0, er, ur, thk);
+%         [Ahat] = integrandAhat(O, kRhoP, k0, er, ur, thk);
 
         recomputeInterpolants(O, options);
     end
     methods (Static, Access=public)
+        [Ahat] = integrandAhat(O, kRhoP, k0, er, ur, thk);
         [modeStruct] = createModeStruct(options);
         [Gamma0h, Gamma0e] = computeGamma0(kRho, k0, er, ur, thk);
     end

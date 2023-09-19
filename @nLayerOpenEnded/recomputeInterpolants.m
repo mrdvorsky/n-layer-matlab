@@ -30,6 +30,7 @@ kRhoP(:, 1) = linspace(0, 1, O.interpolationPoints_kRho);
 
 % Compute AhHat and AeHat at kRhoP coordinates.
 [AhHat, AeHat] = O.computeAhat(kRhoP, modeStruct);
+modeStruct.CheckModeScalingAndOrthogonality = false;
 
 % Combine AeHat and AhHat into one array for faster interpolation.
 % Store in a table that is used in the "integrandAhat" function.

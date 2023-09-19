@@ -19,6 +19,9 @@ modes_TM = O.modes_TM;
 numModes_TE = size(modes_TE, 1);
 numModes_TM = size(modes_TM, 1);
 
+modeSymmetryX = O.modeSymmetryX;
+modeSymmetryY = O.modeSymmetryY;
+
 %% Define Waveguide TE Modes
 modeSpectrumEx_TE = cell(numModes_TE, 1);
 modeSpectrumEy_TE = cell(numModes_TE, 1);
@@ -29,12 +32,14 @@ for ii = 1:size(modes_TE, 1)
 
     cutoffBeta_TE(ii) = hypot(m*pi/wgA, n*pi/wgB);
 
-    scaleFactor = pi / (cutoffBeta_TE(ii) * sqrt(wgA*wgB));
+    scaleX = -(n/wgB);
+    scaleY = (m/wgA);
+    scaleBoth = 1 ./ hypot(scaleX, scaleY);
 
-    modeSpectrumEx_TE{ii} = @(kx, ky, ~, ~) -(n/wgB) * scaleFactor ...
+    modeSpectrumEx_TE{ii} = @(kx, ky, ~, ~) scaleX .* scaleBoth ...
         .* C_int(kx, wgA, m) .* S_int(ky, wgB, n);
 
-    modeSpectrumEy_TE{ii} = @(kx, ky, ~, ~) (m/wgA) * scaleFactor ...
+    modeSpectrumEy_TE{ii} = @(kx, ky, ~, ~) scaleY .* scaleBoth ...
         .* S_int(kx, wgA, m) .* C_int(ky, wgB, n);
 end
 
@@ -48,14 +53,28 @@ for ii = 1:size(modes_TM, 1)
 
     cutoffBeta_TM(ii) = hypot(m*pi/wgA, n*pi/wgB);
 
-    scaleFactor = pi / (cutoffBeta_TM(ii) * sqrt(wgA*wgB));
+    scaleX = (m/wgA);
+    scaleY = (n/wgB);
+    scaleBoth = 1 ./ hypot(scaleX, scaleY);
 
-    modeSpectrumEx_TM{ii} = @(kx, ky, ~, ~) (m/wgA) * scaleFactor ...
+    modeSpectrumEx_TM{ii} = @(kx, ky, ~, ~) scaleX .* scaleBoth ...
         .* C_int(kx, wgA, m) .* S_int(ky, wgB, n);
 
-    modeSpectrumEy_TM{ii} = @(kx, ky, ~, ~) (n/wgB) * scaleFactor ...
+    modeSpectrumEy_TM{ii} = @(kx, ky, ~, ~) scaleY .* scaleBoth ...
         .* S_int(kx, wgA, m) .* C_int(ky, wgB, n);
 end
+
+%% Integral
+% int1 = integral(@(k) C_int(k, 1, 0).^2 + 0*k, -inf, inf)
+% int1 = integral(@(k) C_int(k, 2, 0).^2 + 0*k, -inf, inf)
+% int2 = integral(@(k) C_int(k, 2, 1).^2 + 0*k, -inf, inf)
+% int3 = integral(@(k) C_int(k, 1, 2).^2 + 0*k, -inf, inf)
+% int4 = integral(@(k) C_int(k, 2, 3).^2 + 0*k, -inf, inf)
+% 
+% int5 = integral(@(k) S_int(k, 1, 0).^2 + 0*k, -inf, inf)
+% int6 = integral(@(k) S_int(k, 2, 1).^2 + 0*k, -inf, inf)
+% int7 = integral(@(k) S_int(k, 1, 2).^2 + 0*k, -inf, inf)
+% int8 = integral(@(k) S_int(k, 2, 3).^2 + 0*k, -inf, inf)
 
 %% Construct Output Struct
 modeStruct = O.createModeStruct(...
@@ -65,7 +84,10 @@ modeStruct = O.createModeStruct(...
     SpecEy_TM=modeSpectrumEy_TM, ...
     CutoffBeta_TE=cutoffBeta_TE, ...
     CutoffBeta_TM=cutoffBeta_TM, ...
-    ModeSymmetryX="None", ModeSymmetryY="None", ...
+    OutputModes_TE=((1:numModes_TE) == 1), ...
+    OutputModes_TM=((1:numModes_TM) == 1), ...
+    ModeSymmetryX=modeSymmetryX, ...
+    ModeSymmetryY=modeSymmetryY, ...
     IntegralScaleFactor=(pi.^2 ./ wgA));
 
 %% Disable Mode Scaling and Orthogonality Check
@@ -81,24 +103,24 @@ end
 
 %% Integrals over Sin and Cos
 function v = S_int(k, a, m)
-
 if m == 0
     v = 0;
     return;
 end
-
-v = sqrt( pi ) * m .* sinc((0.5/pi) .* (a.*k - pi*m)) ./ (k  + m.*pi./a);
-% v = sqrt( pi ) * m .* (0.25./pi) ...
-%     .* (sinc((0.5/pi) .* (a.*k - pi*m)) - sinc((0.5/pi) .* (a.*k + pi*m)));
-
+v = sqrt(a*pi) * (0.5/pi) ...
+    .* (               sinc((0.5/pi) .* (a.*k - m.*pi)) ...
+    + (-1).^(m + 1) .* sinc((0.5/pi) .* (a.*k + m.*pi)) );
 end
+
 
 function v = C_int(k, a, m)
-
-v = sqrt(1/pi)*a * k .* sinc((0.5/pi) .* (a.*k - pi*m)) ./ (k  + m.*pi./a);
 if m == 0
-    v = v .* sqrt(0.5);
+    v = sqrt(0.5*a/pi) ...
+        .* sinc((0.5/pi) .* (a.*k));
+    return;
 end
-
+v = a .* sqrt(a/pi) .* (0.5/pi) .* k ./ m ...
+    .* (               sinc((0.5/pi) .* (a.*k - m.*pi)) ...
+    + (-1).^(m + 1) .* sinc((0.5/pi) .* (a.*k + m.*pi)) );
 end
 

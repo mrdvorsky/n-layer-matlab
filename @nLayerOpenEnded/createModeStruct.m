@@ -30,6 +30,10 @@ arguments
     modeStruct.CutoffBeta_TM(:, 1) = [];
     modeStruct.CutoffBeta_Hybrid(:, 1) = [];
 
+    modeStruct.OutputModes_TE(:, 1) logical = [];
+    modeStruct.OutputModes_TM(:, 1) logical = [];
+    modeStruct.OutputModes_Hybrid(:, 1) logical = [];
+
     modeStruct.ModeSymmetryX {mustBeMember(modeStruct.ModeSymmetryX, ...
         ["None", "Even", "Odd"])} = "None";
     modeStruct.ModeSymmetryY {mustBeMember(modeStruct.ModeSymmetryY, ...
@@ -52,6 +56,14 @@ end
     checkSpectrumSizes(modeStruct.SpecEx_Hybrid, modeStruct.SpecEy_Hybrid);
 
 % Check cutoff beta definitions.
+if (numel(modeStruct.OutputModes_TE) ~= numel(modeStruct.SpecEx_TE)) ...
+        || (numel(modeStruct.OutputModes_TM) ~= numel(modeStruct.SpecEx_TM)) ...
+        || (numel(modeStruct.OutputModes_Hybrid) ~= numel(modeStruct.SpecEx_Hybrid))
+    error("OutputModes arguments size must match size of " + ...
+        "corresponding mode spectrums");
+end
+
+% Check output mode inputs.
 if (numel(modeStruct.CutoffBeta_TE) ~= numel(modeStruct.SpecEx_TE)) ...
         || (numel(modeStruct.CutoffBeta_TM) ~= numel(modeStruct.SpecEx_TM)) ...
         || (numel(modeStruct.CutoffBeta_Hybrid) ~= numel(modeStruct.SpecEx_Hybrid))

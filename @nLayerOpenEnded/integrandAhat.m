@@ -45,21 +45,21 @@ function [AHat] = integrandAhat(O, kRhoP, k0, er, ur, thk)
 % The values of O.init_kRho, O.init_AhHat, and O.init_AeHat are computed
 % in the "recomputeInterpolants" member function.
 if numel(kRhoP) == numel(O.init_kRho)
-    [Gamma0h, Gamma0e] = O.computeGamma0(O.init_kRho, k0, er, ur, thk);
+    [Gamma0h, Gamma0e] = nLayerOpenEnded.computeGamma0(O.init_kRho, k0, er, ur, thk);
     AHat = Gamma0h .* O.init_AhHat + Gamma0e .* O.init_AeHat;
     return;
 end
 
 %% General Case (Linear Interpolation)
 kRho = O.integralScaleFactor * (1 - kRhoP) ./ kRhoP;
-[Gamma0h, Gamma0e] = O.computeGamma0(kRho, k0, er, ur, thk);
+[Gamma0h, Gamma0e] = nLayerOpenEnded.computeGamma0(kRho, k0, er, ur, thk);
 
-% Get indices and mixing factors for linear interpolation
+% Get indices and mixing factors for linear interpolation.
 fracInd = kRhoP * (O.interpolationPoints_kRho - 1) + 1;
 intInd = floor(fracInd);
 mixingFactor = fracInd - intInd;
 
-% Perform linear interpolation
+% Perform linear interpolation.
 vLower = O.table_AheHat(intInd, :, :, :);
 vHigher = O.table_AheHat(intInd + 1, :, :, :);
 interpolated_AheHat = vLower + mixingFactor .* (vHigher - vLower);

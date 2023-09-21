@@ -40,7 +40,7 @@ betaC_TE_over_k0 = betaCutoff_TE ./ (O.waveguideUr .* k0);
 betaC_TM_over_k0 = betaCutoff_TM ./ (O.waveguideEr .* k0);
 
 K = sqrt([1./betaC_TE_over_k0; betaC_TM_over_k0]);
-K = K .* pagetranspose(K);
+K = (K) .* (pagetranspose(K));
 
 end
 

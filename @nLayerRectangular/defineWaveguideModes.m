@@ -26,9 +26,12 @@ modeSymmetryY = O.modeSymmetryY;
 modeSpectrumEx_TE = cell(numModes_TE, 1);
 modeSpectrumEy_TE = cell(numModes_TE, 1);
 cutoffBeta_TE = zeros(numModes_TE, 1);
+modeLabels_TE = strings(numModes_TE, 1);
 for ii = 1:size(modes_TE, 1)
     m = modes_TE(ii, 1);
     n = modes_TE(ii, 2);
+
+    modeLabels_TE(ii) = sprintf("TE_{%d,%d}", m, n);
 
     cutoffBeta_TE(ii) = hypot(m*pi/wgA, n*pi/wgB);
 
@@ -47,9 +50,12 @@ end
 modeSpectrumEx_TM = cell(numModes_TM, 1);
 modeSpectrumEy_TM = cell(numModes_TM, 1);
 cutoffBeta_TM = zeros(numModes_TM, 1);
+modeLabels_TM = strings(numModes_TM, 1);
 for ii = 1:size(modes_TM, 1)
     m = modes_TM(ii, 1);
     n = modes_TM(ii, 2);
+
+    modeLabels_TM(ii) = sprintf("TM_{%d,%d}", m, n);
 
     cutoffBeta_TM(ii) = hypot(m*pi/wgA, n*pi/wgB);
 
@@ -85,7 +91,9 @@ modeStruct = O.createModeStruct(...
     CutoffBeta_TE=cutoffBeta_TE, ...
     CutoffBeta_TM=cutoffBeta_TM, ...
     OutputModes_TE=((1:numModes_TE) == 1), ...
-    OutputModes_TM=((1:numModes_TM) == 1), ...
+    OutputModes_TM=((1:numModes_TM) == -1), ...
+    ModeLabels_TE=modeLabels_TE, ...
+    ModeLabels_TM=modeLabels_TM, ...
     ModeSymmetryX=modeSymmetryX, ...
     ModeSymmetryY=modeSymmetryY, ...
     IntegralScaleFactor=(pi.^2 ./ wgA));
@@ -96,6 +104,11 @@ modeStruct = O.createModeStruct(...
 % during development.
 
 % modeStruct.CheckModeScalingAndOrthogonality = false;
+
+%% Plot Electric Fields
+% xPlot = 0.8 * wgA * linspace(-1, 1, 2001);
+% yPlot = 0.8 * wgB * linspace(-1, 1, 1001);
+% nLayerOpenEnded.plotFields(modeStruct, xPlot, yPlot);
 
 end
 

@@ -1,4 +1,4 @@
-function [gam] = calculate_impl(O, f, er, ur, thk)
+function [Smn] = calculate_impl(O, f, er, ur, thk)
 %CALCULATE_IMPL Calculate S11 for rectangular waveguide TE10 mode excitation.
 % Computes the reflection coefficient of the rectangular waveguide TE10
 % mode when looking into a multilayer structure defined by er, ur, thk at
@@ -29,7 +29,7 @@ end
 
 %% Check for Zero Thickness
 if all(thk == 0)
-    gam = complex(-ones(size(f)));
+    Smn = complex(-ones(size(f)));
     return;
 end
 
@@ -38,22 +38,15 @@ end
 [A] = O.computeA(f, er, ur, thk);
 [K] = O.computeK(f);
 
-%% Calculate Reflection Coefficient at each Frequency
-% gam = zeros(length(f), 1);
-% for ff = 1:length(f)
-%     Sj1 = ( A(:, :, ff).*kA(:, :, ff) + kB(:, :, ff)) ...
-%         \ (-A(:, :, ff).*kA(:, :, ff) + kB(:, :, ff));
-%     gam(ff) = Sj1(1);
-% end
-
 %% Calculate S-parameter Matrix at each Frequency
 A_times_K = A.*K;
 idMat = eye(size(A, 1));
 
 Smn = pagemldivide(idMat + A_times_K, idMat - A_times_K);
 
-gam = Smn(1, 1, :);
-gam = gam(:);
+%% Get S-parameter Submatrix
+outputModes_All = [O.outputModes_TE; O.outputModes_TM; O.outputModes_Hybrid];
+Smn = permute(Smn(outputModes_All, outputModes_All, :), [3, 1, 2]);
 
 end
 

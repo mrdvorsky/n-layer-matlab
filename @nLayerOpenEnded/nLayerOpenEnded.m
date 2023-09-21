@@ -72,28 +72,29 @@ classdef nLayerOpenEnded < nLayerForward
     end
 
     %% Class Functions
-    methods (Abstract, Access=protected)
-        [modeStruct] = defineWaveguideModes(O);
-    end
-    methods (Access=protected)
-        [gam] = calculate_impl(O, f, er, ur, thk);
-    end
     methods (Access=public)
         [outputLabels] = getOutputLabels(O);
-    end
-    methods (Access=protected)
-        [A] = computeA(O, f, er, ur, thk);
-        [K] = computeK(O, f);
-
-        [AhHat, AeHat] = computeAhat(O, kRhoP);
-%         [Ahat] = integrandAhat(O, kRhoP, k0, er, ur, thk);
-
         recomputeInterpolants(O, options);
     end
     methods (Static, Access=public)
         [Ahat] = integrandAhat(O, kRhoP, k0, er, ur, thk);
         [modeStruct] = createModeStruct(options);
+        [] = plotFields(modeStruct);
         [Gamma0h, Gamma0e] = computeGamma0(kRho, k0, er, ur, thk);
+    end
+
+    methods (Abstract, Access=protected)
+        [modeStruct] = defineWaveguideModes(O);
+    end
+
+    methods (Access=protected)
+        [gam] = calculate_impl(O, f, er, ur, thk);
+    end
+
+    methods (Access=private)
+        [AhHat, AeHat] = computeAhat(O, kRhoP);
+        [A] = computeA(O, f, er, ur, thk);
+        [K] = computeK(O, f);
     end
 
 end

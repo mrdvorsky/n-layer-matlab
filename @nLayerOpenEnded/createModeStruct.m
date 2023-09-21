@@ -34,6 +34,10 @@ arguments
     modeStruct.OutputModes_TM(:, 1) logical = [];
     modeStruct.OutputModes_Hybrid(:, 1) logical = [];
 
+    modeStruct.ModeLabels_TE(:, 1) {mustBeText} = strings(0, 1);
+    modeStruct.ModeLabels_TM(:, 1) {mustBeText} = strings(0, 1);
+    modeStruct.ModeLabels_Hybrid(:, 1) {mustBeText} = strings(0, 1);
+
     modeStruct.ModeSymmetryX {mustBeMember(modeStruct.ModeSymmetryX, ...
         ["None", "Even", "Odd"])} = "None";
     modeStruct.ModeSymmetryY {mustBeMember(modeStruct.ModeSymmetryY, ...
@@ -46,8 +50,7 @@ arguments
     modeStruct.CheckModeScalingAndOrthogonality(1, 1) logical = true;
 end
 
-%% Check Inputs
-% Check sizes of mode spectrums.
+%% Check Sizes of Mode Spectrums
 [modeStruct.SpecEx_TE, modeStruct.SpecEy_TE] = ...
     checkSpectrumSizes(modeStruct.SpecEx_TE, modeStruct.SpecEy_TE);
 [modeStruct.SpecEx_TM, modeStruct.SpecEy_TM] = ...
@@ -55,7 +58,15 @@ end
 [modeStruct.SpecEx_Hybrid, modeStruct.SpecEy_Hybrid] = ...
     checkSpectrumSizes(modeStruct.SpecEx_Hybrid, modeStruct.SpecEy_Hybrid);
 
-% Check cutoff beta definitions.
+%% Check Cutoff Wavenumber Definitions
+if (numel(modeStruct.CutoffBeta_TE) ~= numel(modeStruct.SpecEx_TE)) ...
+        || (numel(modeStruct.CutoffBeta_TM) ~= numel(modeStruct.SpecEx_TM)) ...
+        || (numel(modeStruct.CutoffBeta_Hybrid) ~= numel(modeStruct.SpecEx_Hybrid))
+    error("CutoffBeta arguments size must match size of " + ...
+        "corresponding mode spectrums");
+end
+
+%% Check Output Mode Sizes
 if (numel(modeStruct.OutputModes_TE) ~= numel(modeStruct.SpecEx_TE)) ...
         || (numel(modeStruct.OutputModes_TM) ~= numel(modeStruct.SpecEx_TM)) ...
         || (numel(modeStruct.OutputModes_Hybrid) ~= numel(modeStruct.SpecEx_Hybrid))
@@ -63,11 +74,21 @@ if (numel(modeStruct.OutputModes_TE) ~= numel(modeStruct.SpecEx_TE)) ...
         "corresponding mode spectrums");
 end
 
-% Check output mode inputs.
-if (numel(modeStruct.CutoffBeta_TE) ~= numel(modeStruct.SpecEx_TE)) ...
-        || (numel(modeStruct.CutoffBeta_TM) ~= numel(modeStruct.SpecEx_TM)) ...
-        || (numel(modeStruct.CutoffBeta_Hybrid) ~= numel(modeStruct.SpecEx_Hybrid))
-    error("CutoffBeta arguments size must match size of " + ...
+%% Check Mode Labels
+if isempty(modeStruct.ModeLabels_TE)
+    modeStruct.ModeLabels_TE = compose("TE_{%d}", 1:numel(modeStruct.SpecEx_TE)).';
+end
+if isempty(modeStruct.ModeLabels_TM)
+    modeStruct.ModeLabels_TM = compose("TM_{%d}", 1:numel(modeStruct.SpecEx_TM)).';
+end
+if isempty(modeStruct.ModeLabels_Hybrid)
+    modeStruct.ModeLabels_Hybrid = compose("Hybrid_{%d}", 1:numel(modeStruct.SpecEx_Hybrid)).';
+end
+
+if (numel(modeStruct.ModeLabels_TE) ~= numel(modeStruct.SpecEx_TE)) ...
+        || (numel(modeStruct.ModeLabels_TM) ~= numel(modeStruct.SpecEx_TM)) ...
+        || (numel(modeStruct.ModeLabels_Hybrid) ~= numel(modeStruct.SpecEx_Hybrid))
+    error("ModeLabel arguments size must match size of " + ...
         "corresponding mode spectrums");
 end
 

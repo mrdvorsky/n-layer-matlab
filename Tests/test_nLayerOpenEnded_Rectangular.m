@@ -3,7 +3,7 @@ clear;
 close all;
 
 %% Inputs
-er = [2.1 - 0.01j];
+er = [2.1 - 0.001j];
 ur = [1];
 thk = [10];
 
@@ -35,20 +35,20 @@ toc;
 relErr = abs(max(gam1 - gam2))
 
 %% Plot
-% figure;
-% plot(gam1, "-", LineWidth=1.5);
-% hold on;
-% plot(gam2, "-", LineWidth=1.5);
-% zplane([]);
-% grid on;
-% legend(["Original", "New"]);
-% 
-% figure;
-% plot(f, real(gam2), "-", LineWidth=1.5);
-% hold on;
-% plot(f, imag(gam2), "-", LineWidth=1.5);
-% grid on;
-% legend(["Real", "Imag"]);
+figure;
+plot(gam1, "-", LineWidth=1.5);
+hold on;
+plot(gam2, "-", LineWidth=1.5);
+zplane([]);
+grid on;
+legend(["Original", "New"]);
+
+figure;
+plot(f, real(gam2), "-", LineWidth=1.5);
+hold on;
+plot(f, imag(gam2), "-", LineWidth=1.5);
+grid on;
+legend(["Real", "Imag"]);
 
 
 

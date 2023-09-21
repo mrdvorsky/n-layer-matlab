@@ -12,6 +12,10 @@ end
 %% Get Waveguide Mode Specifications
 modeStruct = O.defineWaveguideModes();
 
+O.outputModes_TE = modeStruct.OutputModes_TE;
+O.outputModes_TM = modeStruct.OutputModes_TM;
+O.outputModes_Hybrid = modeStruct.OutputModes_Hybrid;
+
 %% Update Mode Counts and Cutoffs
 O.numModes_TE = numel(modeStruct.SpecEx_TE);
 O.numModes_TM = numel(modeStruct.SpecEx_TM);

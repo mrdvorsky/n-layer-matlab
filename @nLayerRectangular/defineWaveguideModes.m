@@ -23,64 +23,25 @@ modeSymmetryX = O.modeSymmetryX;
 modeSymmetryY = O.modeSymmetryY;
 
 %% Define Waveguide TE Modes
-modeSpectrumEx_TE = cell(numModes_TE, 1);
-modeSpectrumEy_TE = cell(numModes_TE, 1);
-cutoffBeta_TE = zeros(numModes_TE, 1);
-modeLabels_TE = strings(numModes_TE, 1);
+%#ok<*AGROW>
 for ii = 1:size(modes_TE, 1)
     m = modes_TE(ii, 1);
     n = modes_TE(ii, 2);
-
     modeLabels_TE(ii) = sprintf("TE_{%d,%d}", m, n);
 
-    cutoffBeta_TE(ii) = hypot(m*pi/wgA, n*pi/wgB);
-
-    scaleX = -(n/wgB);
-    scaleY = (m/wgA);
-    scaleBoth = 1 ./ hypot(scaleX, scaleY);
-
-    modeSpectrumEx_TE{ii} = @(kx, ky, ~, ~) scaleX .* scaleBoth ...
-        .* C_int(kx, wgA, m) .* S_int(ky, wgB, n);
-
-    modeSpectrumEy_TE{ii} = @(kx, ky, ~, ~) scaleY .* scaleBoth ...
-        .* S_int(kx, wgA, m) .* C_int(ky, wgB, n);
+    [modeSpectrumEx_TE{ii}, modeSpectrumEy_TE{ii}, cutoffBeta_TE(ii)] ...
+        = nLayerOpenEnded.getRectangularSpectrums(wgA, wgB, m, n, "TE");
 end
 
 %% Define Waveguide TM Modes
-modeSpectrumEx_TM = cell(numModes_TM, 1);
-modeSpectrumEy_TM = cell(numModes_TM, 1);
-cutoffBeta_TM = zeros(numModes_TM, 1);
-modeLabels_TM = strings(numModes_TM, 1);
 for ii = 1:size(modes_TM, 1)
     m = modes_TM(ii, 1);
     n = modes_TM(ii, 2);
-
     modeLabels_TM(ii) = sprintf("TM_{%d,%d}", m, n);
 
-    cutoffBeta_TM(ii) = hypot(m*pi/wgA, n*pi/wgB);
-
-    scaleX = (m/wgA);
-    scaleY = (n/wgB);
-    scaleBoth = 1 ./ hypot(scaleX, scaleY);
-
-    modeSpectrumEx_TM{ii} = @(kx, ky, ~, ~) scaleX .* scaleBoth ...
-        .* C_int(kx, wgA, m) .* S_int(ky, wgB, n);
-
-    modeSpectrumEy_TM{ii} = @(kx, ky, ~, ~) scaleY .* scaleBoth ...
-        .* S_int(kx, wgA, m) .* C_int(ky, wgB, n);
+    [modeSpectrumEx_TM{ii}, modeSpectrumEy_TM{ii}, cutoffBeta_TM(ii)] ...
+        = nLayerOpenEnded.getRectangularSpectrums(wgA, wgB, m, n, "TM");
 end
-
-%% Integral
-% int1 = integral(@(k) C_int(k, 1, 0).^2 + 0*k, -inf, inf)
-% int1 = integral(@(k) C_int(k, 2, 0).^2 + 0*k, -inf, inf)
-% int2 = integral(@(k) C_int(k, 2, 1).^2 + 0*k, -inf, inf)
-% int3 = integral(@(k) C_int(k, 1, 2).^2 + 0*k, -inf, inf)
-% int4 = integral(@(k) C_int(k, 2, 3).^2 + 0*k, -inf, inf)
-% 
-% int5 = integral(@(k) S_int(k, 1, 0).^2 + 0*k, -inf, inf)
-% int6 = integral(@(k) S_int(k, 2, 1).^2 + 0*k, -inf, inf)
-% int7 = integral(@(k) S_int(k, 1, 2).^2 + 0*k, -inf, inf)
-% int8 = integral(@(k) S_int(k, 2, 3).^2 + 0*k, -inf, inf)
 
 %% Construct Output Struct
 modeStruct = O.createModeStruct(...
@@ -106,34 +67,10 @@ modeStruct = O.createModeStruct(...
 % modeStruct.CheckModeScalingAndOrthogonality = false;
 
 %% Plot Electric Fields
-% xPlot = 0.8 * wgA * linspace(-1, 1, 2001);
-% yPlot = 0.8 * wgB * linspace(-1, 1, 1001);
-% nLayerOpenEnded.plotFields(modeStruct, xPlot, yPlot);
+xPlot = 0.8 * wgA * linspace(-1, 1, 1001);
+yPlot = 0.8 * wgB * linspace(-1, 1, 501);
+nLayerOpenEnded.plotFields(modeStruct, xPlot, yPlot);
 
 end
 
-
-
-%% Integrals over Sin and Cos
-function v = S_int(k, a, m)
-if m == 0
-    v = 0;
-    return;
-end
-v = sqrt(a*pi) * (0.5/pi) ...
-    .* (               sinc((0.5/pi) .* (a.*k - m.*pi)) ...
-    + (-1).^(m + 1) .* sinc((0.5/pi) .* (a.*k + m.*pi)) );
-end
-
-
-function v = C_int(k, a, m)
-if m == 0
-    v = sqrt(0.5*a/pi) ...
-        .* sinc((0.5/pi) .* (a.*k));
-    return;
-end
-v = a .* sqrt(a/pi) .* (0.5/pi) .* k ./ m ...
-    .* (               sinc((0.5/pi) .* (a.*k - m.*pi)) ...
-    + (-1).^(m + 1) .* sinc((0.5/pi) .* (a.*k + m.*pi)) );
-end
 

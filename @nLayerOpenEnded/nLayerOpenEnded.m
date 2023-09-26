@@ -81,6 +81,10 @@ classdef nLayerOpenEnded < nLayerForward
         [modeStruct] = createModeStruct(options);
         [] = plotFields(modeStruct);
         [Gamma0h, Gamma0e] = computeGamma0(kRho, k0, er, ur, thk);
+
+        [Ex, Ey, cutoffWavenumber, phaseScale] = getRectangularSpectrums(wgA, wgB, m, n, TE_TM);
+        [Ex, Ey, cutoffWavenumber, phaseScale] = getCircularSpectrums(wgA, wgB, m, n, TE_TM);
+        [Ex, Ey, cutoffWavenumber, phaseScale] = getCoaxialSpectrums(wgA, wgB, m, n, TE_TM);
     end
 
     methods (Abstract, Access=protected)

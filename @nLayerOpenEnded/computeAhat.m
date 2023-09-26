@@ -46,23 +46,26 @@ weights_kRho(kRhoP == 0 | kRhoP == 1) = 0;
 
 %% Compute Weights and Nodes for Integral Over kPhi
 % Use 4th dimension for integration over kPhi
-[kPhi(1, 1, 1, :), weights_kPhi(1, 1, 1, :)] = ...
+[kPhi(1, 1, 1, :), weights_kPhi(1, 1, 1, :), errorWeights_kPhi(1, 1, 1, :)] = ...
     O.fejer2(O.integralPoints_kPhi, 0, 0.5*pi);
 weights_kPhi = 4*weights_kPhi;
 
 if strcmp(modeStruct.ModeSymmetryX, "None")
     kPhi = cat(4, kPhi, kPhi + 0.5*pi);
     weights_kPhi = 0.5 * cat(4, weights_kPhi, weights_kPhi);
+    errorWeights_kPhi = 0.5 * cat(4, errorWeights_kPhi, errorWeights_kPhi);
 end
 
 if strcmp(modeStruct.ModeSymmetryY, "None")
     kPhi = cat(4, kPhi, -flip(kPhi));
     weights_kPhi = 0.5 * cat(4, weights_kPhi, flip(weights_kPhi));
+    errorWeights_kPhi = 0.5 * cat(4, errorWeights_kPhi, flip(errorWeights_kPhi));
 end
 
 if ~strcmp(modeStruct.ModeSymmetryAxial, "None")
     kPhi = 0;
     weights_kPhi = 2*pi;
+    errorWeights_kPhi = 2*pi;
 end
 
 kx = kRho .* cos(kPhi);
@@ -109,6 +112,19 @@ modeSpecExn = reshape(modeSpecExm, size(modeSpecExm, [1, 3, 2, 4]));
 modeSpecEyn = reshape(modeSpecEym, size(modeSpecEym, [1, 3, 2, 4]));
 
 %% Compute Ahat
+cosPhi = cos(kPhi);
+sinPhi = sin(kPhi);
+
+% AhHat = weights_kRho .* innerProduct(weights_kPhi .* ...
+%         (sinPhi.*modeSpecExm - cosPhi.*modeSpecEym), ...
+%     conj(sinPhi.*modeSpecExn - cosPhi.*modeSpecEyn), ...
+%     4) .* kRho;
+% 
+% AeHat = weights_kRho .* innerProduct(weights_kPhi .* ...
+%         (cosPhi.*modeSpecExm + sinPhi.*modeSpecEym), ...
+%     conj(cosPhi.*modeSpecExn + sinPhi.*modeSpecEyn), ...
+%     4) .* kRho;
+
 AhHat = weights_kRho .* innerProduct(weights_kPhi .* ...
         (ky.*modeSpecExm - kx.*modeSpecEym), ...
     conj(ky.*modeSpecExn - kx.*modeSpecEyn), ...
@@ -131,6 +147,10 @@ if modeStruct.CheckModeScalingAndOrthogonality
     modeCrossMatrix = squeeze(mean(weights_kRho .* sum(weights_kPhi ...
         .* (modeSpecExm.*conj(modeSpecExn) + modeSpecEym.*conj(modeSpecEyn)) ...
         .* kRho, 4), 1));
+
+    modeCrossMatrixError = squeeze(mean(weights_kRho .* sum(errorWeights_kPhi ...
+        .* (modeSpecExm.*conj(modeSpecExn) + modeSpecEym.*conj(modeSpecEyn)) ...
+        .* kRho, 4), 1))
 
     if any(abs(modeCrossMatrix - eye(size(modeCrossMatrix))) > 0.001, "all")
         warning("One or more modes may be scaled incorrectly, " + ...

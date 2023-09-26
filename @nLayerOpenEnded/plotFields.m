@@ -26,27 +26,33 @@ for ii = 1:numel(specEx_All)
     Ex = ifftshift(ifft2(ExHat)) * scaleFactor;
     Ey = ifftshift(ifft2(EyHat)) * scaleFactor;
 
+    colorscale = max(abs(cat(3, real(Ex), imag(Ex), real(Ey), imag(Ey))), [], "all");
+
     modeAmp = trapz(x, trapz(y, abs(Ex).^2 + abs(Ey).^2, 2), 1);
 
     figure;
     subplot(2, 2, 1);
     showImage(x, y, Ex, DisplayFormat="Real");
     colormap jet;
+    caxis(colorscale * [-1, 1]);
     title(sprintf("E_x for %s (%.3f)", modeLabels_All(ii), modeAmp));
 
     subplot(2, 2, 3);
     showImage(x, y, Ex, DisplayFormat="Imag");
     colormap jet;
+    caxis(colorscale * [-1, 1]);
     title(sprintf("E_x for %s (%.3f)", modeLabels_All(ii), modeAmp));
 
     subplot(2, 2, 2);
     showImage(x, y, Ey, DisplayFormat="Real");
     colormap jet;
+    caxis(colorscale * [-1, 1]);
     title(sprintf("E_y for %s (%.3f)", modeLabels_All(ii), modeAmp));
 
     subplot(2, 2, 4);
     showImage(x, y, Ey, DisplayFormat="Imag");
     colormap jet;
+    caxis(colorscale * [-1, 1]);
     title(sprintf("E_y for %s (%.3f)", modeLabels_All(ii), modeAmp));
 end
 

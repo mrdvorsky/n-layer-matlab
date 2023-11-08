@@ -30,6 +30,10 @@ arguments
     modeStruct.CutoffBeta_TM(:, 1) = [];
     modeStruct.CutoffBeta_Hybrid(:, 1) = [];
 
+    modeStruct.PhaseScaleFactor_TE(:, 1) {mustBeUnityMagnitude} = [];
+    modeStruct.PhaseScaleFactor_TM(:, 1) {mustBeUnityMagnitude} = [];
+    modeStruct.PhaseScaleFactor_Hybrid(:, 1) {mustBeUnityMagnitude} = [];
+
     modeStruct.OutputModes_TE(:, 1) logical = [];
     modeStruct.OutputModes_TM(:, 1) logical = [];
     modeStruct.OutputModes_Hybrid(:, 1) logical = [];
@@ -92,23 +96,46 @@ if (numel(modeStruct.ModeLabels_TE) ~= numel(modeStruct.SpecEx_TE)) ...
         "corresponding mode spectrums");
 end
 
+%% Check Mode Phase Scale Factors
+if isempty(modeStruct.PhaseScaleFactor_TE)
+    modeStruct.PhaseScaleFactor_TE = ones(numel(modeStruct.SpecEx_TE), 1);
+end
+if isempty(modeStruct.PhaseScaleFactor_TM)
+    modeStruct.PhaseScaleFactor_TM = ones(numel(modeStruct.SpecEx_TM), 1);
+end
+if isempty(modeStruct.PhaseScaleFactor_Hybrid)
+    modeStruct.PhaseScaleFactor_Hybrid = ones(numel(modeStruct.SpecEx_Hybrid), 1);
+end
+
+if (numel(modeStruct.PhaseScaleFactor_TE) ~= numel(modeStruct.SpecEx_TE)) ...
+        || (numel(modeStruct.PhaseScaleFactor_TM) ~= numel(modeStruct.SpecEx_TM)) ...
+        || (numel(modeStruct.PhaseScaleFactor_Hybrid) ~= numel(modeStruct.SpecEx_Hybrid))
+    error("PhaseScaleFactor arguments size must match size of " + ...
+        "corresponding mode spectrums");
+end
+
 
 end
 
 
 %% Input Argument Checking
 function [specEx, specEy] = checkSpectrumSizes(specEx, specEy)
+    if isempty(specEx) && ~isempty(specEy)
+        specEx = repmat({@(~, ~, ~, ~) 0}, numel(specEy), 1);
+    end
+    if isempty(specEy) && ~isempty(specEx)
+        specEy = repmat({@(~, ~, ~, ~) 0}, numel(specEx), 1);
+    end
+    if numel(specEx) ~= numel(specEy)
+        error("Mode spectrum arguments for Ex and Ey must " + ...
+            "be cell arrays of the same size or one must be empty.");
+    end
+end
 
-if isempty(specEx) && ~isempty(specEy)
-    specEx = repmat({@(~, ~, ~, ~) 0}, numel(specEy), 1);
-end
-if isempty(specEy) && ~isempty(specEx)
-    specEy = repmat({@(~, ~, ~, ~) 0}, numel(specEx), 1);
-end
-if numel(specEx) ~= numel(specEy)
-    error("Mode spectrum arguments for Ex and Ey must " + ...
-        "be cell arrays of the same size or one must be empty.");
-end
-
+function [] = mustBeUnityMagnitude(val)
+    if any(abs(abs(val) - 1) > eps)
+        throwAsCaller(MException("MATLAB:mustBeUnityMagnitude", ...
+            "Argument must have magnitude of 1."));
+    end
 end
 

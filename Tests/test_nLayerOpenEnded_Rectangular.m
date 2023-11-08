@@ -17,22 +17,22 @@ toc;
 
 %% nLayerRectangular
 tic;
-NL2 = nLayerRectangular(3, 2, waveguideBand="x", ...
+NL2 = nLayerRectangular(4, 3, waveguideBand="x", ...
     convergenceAbsTol=1e-4, verbosity=1, ...
     modeSymmetryY="None", modeSymmetryX="None");
 toc;
 NL2.waveguideEr = 1;
 
 %% Calculate
-tic;
-gam1 = NL1.calculate(f, er, ur, thk);
-toc;
-
-tic;
-gam2 = NL2.calculate(f, er, ur, thk);
-toc;
-
-relErr = abs(max(gam1 - gam2))
+% tic;
+% gam1 = NL1.calculate(f, er, ur, thk);
+% toc;
+% 
+% tic;
+% gam2 = NL2.calculate(f, er, ur, thk);
+% toc;
+% 
+% relErr = abs(max(gam1 - gam2))
 
 %% Plot
 % figure;

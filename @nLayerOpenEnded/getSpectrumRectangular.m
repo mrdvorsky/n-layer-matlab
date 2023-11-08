@@ -1,5 +1,5 @@
-function [Ex, Ey, cutoffWavenumber, phaseScale] = getRectangularSpectrums(wgA, wgB, m, n, TE_TM)
-%GETRECTANGULARSPECTRUMS Get function object defining waveguide spectrums.
+function [Ex, Ey, cutoffWavenumber, phaseScale] = getSpectrumRectangular(wgA, wgB, m, n, TE_TM)
+%GETSPECTRUMRECTANGULAR Get function object defining waveguide spectrums.
 % This function returns function objects
 
 arguments
@@ -13,8 +13,8 @@ end
 %% Create Mode Spectrum Functions
 scale_All = hypot(m/wgA, n/wgB);
 if strcmp(TE_TM, "TE")
-    scaleX = -(n/wgB) ./ scale_All;
-    scaleY = (m/wgA)  ./ scale_All;
+    scaleX = (n/wgB) ./ scale_All;
+    scaleY = -(m/wgA)  ./ scale_All;
 else
     scaleX = (m/wgA)  ./ scale_All;
     scaleY = (n/wgB)  ./ scale_All;
@@ -27,7 +27,7 @@ Ey = @(kx, ky, ~, ~) scaleY .* S_int(kx, wgA, m).*C_int(ky, wgB, n);
 cutoffWavenumber = pi * scale_All;
 
 %% Set Phase Scaling Coefficient
-phaseScale = 1;
+phaseScale = 1j .^ (m + n + 1);
 
 end
 

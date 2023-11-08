@@ -78,16 +78,21 @@ classdef nLayerOpenEnded < nLayerForward
     end
     methods (Static, Access=public)
         [Ahat] = integrandAhat(O, kRhoP, k0, er, ur, thk);
-        [modeStruct] = createModeStruct(options);
-        [] = plotFields(modeStruct);
         [Gamma0h, Gamma0e] = computeGamma0(kRho, k0, er, ur, thk);
 
-        [Ex, Ey, cutoffWavenumber, phaseScale] = getRectangularSpectrums(wgA, wgB, m, n, TE_TM);
-        [Ex, Ey, cutoffWavenumber, phaseScale] = getCircularSpectrums(wgA, wgB, m, n, TE_TM);
-        [Ex, Ey, cutoffWavenumber, phaseScale] = getCoaxialSpectrums(wgA, wgB, m, n, TE_TM);
+        [modeStruct] = createModeStruct(options);
+        [] = plotModeStruct(modeStruct, options);
+
+        [modeStruct] = createModeStructRectangular(options);
+        [modeStruct] = createModeStructCircular(options);
+        [modeStruct] = createModeStructCoaxial(options);
+
+        [Ex, Ey, cutoffWavenumber, phaseScale] = getSpectrumRectangular(wgA, wgB, m, n, TE_TM);
+        [Ex, Ey, cutoffWavenumber, phaseScale] = getSpectrumCircular(wgR, m, n, TE_TM);
+        [Ex, Ey, cutoffWavenumber, phaseScale] = getSpectrumCoaxial(wgR_inner, wgR_outer, m, n, TE_TM);
     end
 
-    methods (Abstract, Access=protected)
+    methods (Access=protected)
         [modeStruct] = defineWaveguideModes(O);
     end
 
@@ -99,6 +104,25 @@ classdef nLayerOpenEnded < nLayerForward
         [AhHat, AeHat] = computeAhat(O, kRhoP);
         [A] = computeA(O, f, er, ur, thk);
         [K] = computeK(O, f);
+    end
+
+    %% Class Constructor
+    methods
+        function O = nLayerOpenEnded(modeStructs)
+            %NLAYEROPENENDED Construct an instance of this class.
+
+            arguments (Repeating)
+                modeStructs;
+            end
+
+            %% Pass in modeStructs
+            if isempty(modeStructs)
+                error("Must pass in at least one modeStruct " + ...
+                    "to the constructor of 'nLayerOpenEnded'.");
+            end
+            O.recomputeInterpolants(modeStructs{:});
+
+        end
     end
 
 end

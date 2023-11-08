@@ -1,4 +1,4 @@
-function [] = recomputeInterpolants(O)
+function [] = recomputeInterpolants(O, modeStructs)
 %RECOMPUTEINTERPOLANTS Recompute interpolation functions, structs, etc.
 % This function is called whenever a parameter changes that would change
 % the mode spectrums.
@@ -9,8 +9,16 @@ arguments
     O;
 end
 
+arguments(Repeating)
+    modeStructs;
+end
+
 %% Get Waveguide Mode Specifications
-modeStruct = O.defineWaveguideModes();
+if isempty(modeStructs)
+    modeStruct = O.defineWaveguideModes();
+else
+    modeStruct = modeStructs{1};
+end
 
 O.outputModes_TE = modeStruct.OutputModes_TE;
 O.outputModes_TM = modeStruct.OutputModes_TM;

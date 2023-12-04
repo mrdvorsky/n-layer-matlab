@@ -23,6 +23,11 @@ modeSymmetryX = O.modeSymmetryX;
 modeSymmetryY = O.modeSymmetryY;
 
 %% Define Waveguide TE Modes
+modeSpecEx_TE = {};
+modeSpecEy_TE = {};
+cutoffWavenumber_TE = [];
+modeScale_TE = [];
+modeLabels_TE = strings(0);
 %#ok<*AGROW>
 for ii = 1:size(modes_TE, 1)
     m = modes_TE(ii, 1);
@@ -34,6 +39,11 @@ for ii = 1:size(modes_TE, 1)
 end
 
 %% Define Waveguide TM Modes
+modeSpecEx_TM = {};
+modeSpecEy_TM = {};
+cutoffWavenumber_TM = [];
+modeScale_TM = [];
+modeLabels_TM = strings(0);
 for ii = 1:size(modes_TM, 1)
     m = modes_TM(ii, 1);
     n = modes_TM(ii, 2);
@@ -69,9 +79,9 @@ modeStruct = O.createModeStruct(...
 % modeStruct.CheckModeScalingAndOrthogonality = false;
 
 %% Plot Electric Fields
-xPlot = 0.8 * wgA * linspace(-1, 1, 1001);
-yPlot = 0.8 * wgB * linspace(-1, 1, 501);
-nLayerOpenEnded.plotFields(modeStruct, xPlot, yPlot);
+% xPlot = 0.8 * wgA * linspace(-1, 1, 1001);
+% yPlot = 0.8 * wgB * linspace(-1, 1, 501);
+% nLayerOpenEnded.plotFields(modeStruct, xPlot, yPlot);
 
 end
 

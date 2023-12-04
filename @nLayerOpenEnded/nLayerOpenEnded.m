@@ -116,10 +116,10 @@ classdef nLayerOpenEnded < nLayerForward
             end
 
             %% Pass in modeStructs
-            if isempty(modeStructs)
-                error("Must pass in at least one modeStruct " + ...
-                    "to the constructor of 'nLayerOpenEnded'.");
-            end
+            % if isempty(modeStructs)
+            %     error("Must pass in at least one modeStruct " + ...
+            %         "to the constructor of 'nLayerOpenEnded'.");
+            % end
             O.recomputeInterpolants(modeStructs{:});
 
         end

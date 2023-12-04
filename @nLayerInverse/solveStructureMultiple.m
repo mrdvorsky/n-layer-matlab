@@ -80,7 +80,7 @@ arguments (Repeating)
 end
 
 arguments
-    options.NoiseStdMin(1, 1) {mustBeNonnegative} = 0.001;
+    options.NoiseStdMin(1, 1) {mustBeNonnegative} = 0.01;
 end
 
 %% Validate nLayerInverse Objects

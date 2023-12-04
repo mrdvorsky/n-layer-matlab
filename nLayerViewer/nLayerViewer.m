@@ -117,15 +117,15 @@ if ~isfield(options, "StructureAxisSize")
 end
 
 if isempty(er)
-    er = 1 + 0*thk;
+    er = ones(size(thk));
 elseif numel(er) == 1
-    er = er + 0*thk;
+    er = er + zeros(size(thk));
 end
 
 if isempty(ur)
-    ur = 1 + 0*thk;
+    ur = ones(size(thk));
 elseif numel(ur) == 1
-    ur = ur + 0*thk;
+    ur = ur + zeros(size(thk));
 end
 
 %% Create main figure and panels

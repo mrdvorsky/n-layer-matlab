@@ -28,7 +28,7 @@ for ii = 1:size(modes_TE, 1)
     modeLabels_TE(ii) = sprintf("TE_{%d,%d}", 0, n);
 
     [modeSpecEx_TE{ii}, modeSpecEy_TE{ii}, cutoffWavenumber_TE(ii), modeScale_TE(ii)] ...
-        = nLayerOpenEnded.getSpectrumCircular(wgR, 0, n, "TE");
+        = nLayer.getSpectrumCircular(wgR, 0, n, "TE");
 end
 
 %% Construct Output Struct
@@ -40,7 +40,7 @@ modeStruct = nLayer.createModeStruct(...
     OutputModes_TE=((1:numModes_TE) == 1), ...
     ModeLabels_TE=modeLabels_TE, ...
     ModeSymmetryAxial="TE", ...
-    IntegralScaleFactor=2*wgR);
+    IntegralScaleFactor=2*pi ./ wgR);
 
 %% Disable Mode Scaling and Orthogonality Check
 % The following line can be uncommented after debugging and verifying that

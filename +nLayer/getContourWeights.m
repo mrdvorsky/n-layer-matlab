@@ -1,4 +1,4 @@
-function [krcNodes, krc, momentH_weights, momentE_weights] = getContourWeights(Nm, Nrho, L, Lch, Lcw)
+function [krcNodes, krc, momentH_weights, momentE_weights] = getContourWeights(Nm, Nrho, L, Lc, Lch, Lcw)
 %GETCONTOURWEIGHTS Helper functions for contour integration.
 %
 % Author: Matt Dvorsky
@@ -7,6 +7,7 @@ arguments
     Nm(1, 1);
     Nrho(1, 1);
     L(1, 1);
+    Lc(1, 1);
     Lch(1, 1);
     Lcw(1, 1);
 end
@@ -20,14 +21,14 @@ krToKrcPrime = @(x) 1 + 1j * (Lch.*Lcw) * (3*Lch*Lcw.^2 - x.^4) ./ ((Lch + x.^2)
 krc = krToKrc(kr);
 
 moment_weights = krToKrcPrime(kr) .* kr_weights ...
-    .* sin(2*(1:Nm).' .* acot(sqrt(kr./L))) ...
-    ./ sin(2 * acot(sqrt(kr./L)));
+    .* sin(2*(1:Nm).' .* acot(sqrt(kr./Lc))) ...
+    ./ sin(2 * acot(sqrt(kr./Lc)));
 
 momentH_weights = moment_weights ./ sqrt(1 + krc.^2);
 momentE_weights = moment_weights .* sqrt(1 + krc.^2);
 
 %% Compute Nodes
-krNodes = fejer2_halfOpen(Nm, L);
+krNodes = fejer2_halfOpen(Nm, Lc);
 krcNodes = krToKrc(krNodes);
 
 end

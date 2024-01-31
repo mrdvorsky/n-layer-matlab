@@ -18,11 +18,13 @@ end
 kc = kc(end);
 
 if strcmp(TE_TM, "TE")
-    Ex = @(~, ~, kr, kPhi) -besselIntSin(kr, kPhi, wgR, kc, m);
-    Ey = @(~, ~, kr, kPhi) -besselIntCos(kr, kPhi, wgR, kc, m);
+    scale = (1j).^(m) * 0.5 ./ (kc .* besselj(m, wgR * kc) .* sqrt(pi));
+    Ex = @(~, ~, kr, kPhi) -besselIntSin(kr, kPhi, wgR, kc, m) * scale;
+    Ey = @(~, ~, kr, kPhi) -besselIntCos(kr, kPhi, wgR, kc, m) * scale;
 else
-    Ex = @(~, ~, kr, kPhi) -besselIntCos(kr, kPhi, wgR, kc, m);
-    Ey = @(~, ~, kr, kPhi) besselIntSin(kr, kPhi, wgR, kc, m);
+    scale = (1j).^(m) * 0.5 ./ (kc .* besseljprime(m, wgR * kc) .* sqrt(pi));
+    Ex = @(~, ~, kr, kPhi) -besselIntCos(kr, kPhi, wgR, kc, m) * scale;
+    Ey = @(~, ~, kr, kPhi) besselIntSin(kr, kPhi, wgR, kc, m) * scale;
 end
 
 %% Set Mode Cutoffs

@@ -50,7 +50,7 @@ for ii = 1:numel(specEx_All)
 
     colorscale = max(abs(cat(3, real(Ex), imag(Ex), real(Ey), imag(Ey))), [], "all");
 
-    modeAmp = trapz(x, trapz(y, abs(Ex).^2 + abs(Ey).^2, 2), 1);
+    modeAmp = trapz(x, trapz(y, Ex.^2 + Ey.^2, 2), 1);
 
     % Plot Fields
     figure;

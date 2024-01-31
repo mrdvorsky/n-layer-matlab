@@ -24,12 +24,16 @@ arguments
     modeStruct;
 end
 
-%% Set Scale Factors and Integral Point Counts
-L = modeStruct.IntegralScaleFactor ./ pi;
-Lch = L;
-Lcw = 10*L;
+%% Get Max k0
+k0Max = 2*min([modeStruct.CutoffBeta_TE; modeStruct.CutoffBeta_TM]);
 
-Nm = 300;
+%% Set Scale Factors and Integral Point Counts
+L = modeStruct.IntegralScaleFactor;
+Lc = k0Max;
+Lch = Lc;
+Lcw = 10*Lc;
+
+Nm = 200;
 Nrho = 8192;
 Nphi = 64;
 
@@ -43,7 +47,7 @@ Nphi = 64;
 %% Get kRho Weights and Nodes for Integration
 % Use 4th dimension for integration over kr
 [krcNodes(:, 1), krc, momentH_weights, momentE_weights] = ...
-    nLayer.getContourWeights(Nm, Nrho, L, Lch, Lcw);
+    nLayer.getContourWeights(Nm, Nrho, L, Lc, Lch, Lcw);
 
 %% Compute Weights and Nodes for Integral Over kPhi
 % Use 5th dimension for integration over kphi
@@ -127,10 +131,10 @@ Ae_moments = innerProduct(momentH_weights, ...
 Ah_weights = zeros(size(Ah_moments));
 Ae_weights = zeros(size(Ae_moments));
 for ii = 1:size(Ah_weights(:, :), 2)
-    [~, Ah_weights(:, ii)] = fejer2_halfOpen(Nm, L, ...
+    [~, Ah_weights(:, ii)] = fejer2_halfOpen(Nm, Lc, ...
         WeightingMoments=Ah_moments(:, ii));
 
-    [~, Ae_weights(:, ii)] = fejer2_halfOpen(Nm, L, ...
+    [~, Ae_weights(:, ii)] = fejer2_halfOpen(Nm, Lc, ...
         WeightingMoments=Ae_moments(:, ii));
 end
 Ah_weights = Ah_weights ./ sqrt(1 + (krcNodes).^2);

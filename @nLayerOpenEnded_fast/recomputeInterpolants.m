@@ -11,10 +11,9 @@ end
 
 %% Get Waveguide Mode Specifications
 if isempty(O.modeStructs)
-    modeStruct = O.defineWaveguideModes();
-else
-    modeStruct = O.modeStructs{1};
+    O.modeStructs = {O.defineWaveguideModes()};
 end
+modeStruct = O.modeStructs{1};
 
 O.outputModes_TE = modeStruct.OutputModes_TE;
 O.outputModes_TM = modeStruct.OutputModes_TM;

@@ -28,7 +28,7 @@ for ii = 1:size(modes_TM, 1)
     modeLabels_TM(ii) = sprintf("TM_{%d,%d}", 0, n);
 
     [modeSpecEx_TM{ii}, modeSpecEy_TM{ii}, cutoffWavenumber_TM(ii), modeScale_TM(ii)] ...
-        = nLayerOpenEnded.getSpectrumCircular(wgR, 0, n, "TM");
+        = nLayer.getSpectrumCircular(wgR, 0, n, "TM");
 end
 
 %% Construct Output Struct

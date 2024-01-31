@@ -3,9 +3,9 @@ clear;
 close all;
 
 %% Inputs
-er = [4.0 - 0.4j];
-ur = [1];
-thk = [1.2];
+er = [4.7 - 0.0004j, 1];
+ur = [1, 1 - 1j*1e12];
+thk = [2.3, inf];
 
 f = linspace(32, 40, 2001);
 % f = 36.61;
@@ -56,5 +56,6 @@ legend(["Original", "New"]);
 
 % nLayer.plotModeStruct(NL2.modeStructs{1}, SizeX=3*wgR, SizeY=3*wgR)
 
-
+figure;
+nLayerViewer(4, 1, 2, NL2, f);
 

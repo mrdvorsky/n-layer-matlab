@@ -42,14 +42,14 @@ k0(1, 1, 1, :) = 2*pi .* f(:) ./ O.speedOfLight;
 
 %% Calculate Gamma0h, Gamma0e
 % computeGamma0 expects er and ur to be 1 by numLayers by 1 by length(k0).
-[Gamma0h, Gamma0e] = nLayer.computeGamma0(O.fixed_kRho, k0, ...
+[Gamma0h, Gamma0e] = nLayer.computeGamma0(O.fixed_kr, k0, ...
     permute(er, [3, 2, 4, 1]), permute(ur, [3, 2, 4, 1]), thk);
 
 %% Compute A
 % A = innerProduct(Gamma0h, O.fixed_Ah_weights, 1) ...
 %     + innerProduct(Gamma0e, O.fixed_Ae_weights, 1);
-A = pagemtimes(Gamma0h, "transpose", O.fixed_Ah_weights, "none") ...
-    + pagemtimes(Gamma0e, "transpose", O.fixed_Ae_weights, "none");
+A = pagemtimes(Gamma0h, "transpose", O.fixed_Ah, "none") ...
+    + pagemtimes(Gamma0e, "transpose", O.fixed_Ae, "none");
 
 %% Format Output
 A = reshape(A, O.numModes, O.numModes, length(k0));

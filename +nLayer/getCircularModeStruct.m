@@ -1,6 +1,6 @@
-function [Ex, Ey, cutoffWavenumber, phaseScale] = getSpectrumCircular(wgR, m, n, TE_TM)
+function [modeStruct] = getCircularModeStruct(wgR, m, n, TE_TM)
 %GETSPECTRUMCircular Get function object defining waveguide spectrums.
-% This function returns function objects
+% This function returns a modeStruct for the circular waveguide modes.
 
 arguments
     wgR(1, 1) {mustBePositive};
@@ -18,27 +18,30 @@ end
 kc = kc(end);
 
 if strcmp(TE_TM, "TE")
-    scale = (1j).^(m) * 0.5 ./ (kc .* besselj(m, wgR * kc) .* sqrt(pi));
+    scale = scaleFactorTE(wgR, kc, m, n);
     Ex = @(~, ~, kr, kPhi) -besselIntSin(kr, kPhi, wgR, kc, m) * scale;
     Ey = @(~, ~, kr, kPhi) -besselIntCos(kr, kPhi, wgR, kc, m) * scale;
 else
-    scale = (1j).^(m) * 0.5 ./ (kc .* besseljprime(m, wgR * kc) .* sqrt(pi));
+    scale = scaleFactorTM(wgR, kc, m, n);
     Ex = @(~, ~, kr, kPhi) -besselIntCos(kr, kPhi, wgR, kc, m) * scale;
-    Ey = @(~, ~, kr, kPhi) besselIntSin(kr, kPhi, wgR, kc, m) * scale;
+    Ey = @(~, ~, kr, kPhi) +besselIntSin(kr, kPhi, wgR, kc, m) * scale;
 end
 
-%% Set Mode Cutoffs
-cutoffWavenumber = kc;
-
-%% Set Phase Scaling Coefficient
-phaseScale = (-1j).^(m + 1);
+%% Create Mode Struct
+modeStruct = nLayer.createModeStruct(TE_TM, ...
+    sprintf("%s_{%d,%d}", TE_TM, m, n), ...
+    ExSpec=Ex, EySpec=Ey, ...
+    CutoffWavenumber=kc, MaxOperatingWavenumber=2*kc, ...
+    ApertureWidth=2*wgR, ...
+    SymmetryX="Even", ...
+    SymmetryY="Odd");
 
 end
 
 
 
 
-%% Bessel Function Zeros
+%% Helper Functions
 function [y] = besselIntCos(kr, kPhi, wgR, kc, m)
     y = (cos((m - 1) .* kPhi) + cos((m + 1) .* kPhi)) ...
         .* besselInt1(kr, wgR, kc, m) ...
@@ -61,6 +64,14 @@ function [y] = besselInt2(kr, wgR, kc, m)
     JmOverKr = besselj(m, wgR.*kr) ./ kr;
     JmOverKr(kr == 0) = 0.5 * wgR * (m == 1);
     y = (2*m ./ wgR) .* besselj(m, wgR.*kc) .* JmOverKr;
+end
+
+function [scale] = scaleFactorTE(wgR, kc, m, n)
+    scale = (1j).^(m) * 0.5 ./ (kc .* besselj(m, wgR * kc) .* sqrt(pi));
+end
+
+function [scale] = scaleFactorTM(wgR, kc, m, n)
+    scale = (1j).^(m) * 0.5 ./ (kc .* besseljprime(m, wgR * kc) .* sqrt(pi));
 end
 
 

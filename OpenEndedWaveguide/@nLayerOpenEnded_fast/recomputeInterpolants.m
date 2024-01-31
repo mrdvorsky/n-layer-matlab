@@ -11,32 +11,39 @@ end
 
 %% Get Waveguide Mode Specifications
 if isempty(O.modeStructs)
-    O.modeStructs = {O.defineWaveguideModes()};
+    O.modeStructs = O.defineWaveguideModes();
 end
-modeStruct = O.modeStructs{1};
 
-O.outputModes_TE = modeStruct.OutputModes_TE;
-O.outputModes_TM = modeStruct.OutputModes_TM;
-O.outputModes_Hybrid = modeStruct.OutputModes_Hybrid;
+%% Set Excitation/Receive Modes
+if any([O.modeStructs.IsExcitationMode]) && any([O.modeStructs.IsReceiveMode])
+    O.excitationModeIndices = find([O.modeStructs.IsExcitationMode]);
+    O.receiveModeIndices = find([O.modeStructs.IsReceiveMode]);
+else
+    for ii = O.excitationModeIndices
+        O.modeStructs(ii).IsExcitationMode = true;
+    end
+    for ii = O.receiveModeIndices
+        O.modeStructs(ii).IsReceiveMode = true;
+    end
+end
 
-%% Update Mode Counts and Cutoffs
-O.numModes_TE = numel(modeStruct.SpecEx_TE);
-O.numModes_TM = numel(modeStruct.SpecEx_TM);
-O.numModes_Hybrid = numel(modeStruct.SpecEx_Hybrid);
+%% Update Mode Types, Counts, and Cutoffs
+O.modeTypes = [O.modeStructs.ModeType];
+O.cutoffWavenumbers = O.modeStructs.CutoffWavenumber;
+
+O.numModes_TE = sum(strcmp(O.modeTypes, "TE"));
+O.numModes_TM = sum(strcmp(O.modeTypes, "TM"));
+O.numModes_Hybrid = sum(strcmp(O.modeTypes, "Hybrid"));
 O.numModes = O.numModes_TE + O.numModes_TM + O.numModes_Hybrid;
-
-O.cutoffBeta_TE = modeStruct.CutoffBeta_TE;
-O.cutoffBeta_TM = modeStruct.CutoffBeta_TM;
-O.cutoffBeta_Hybrid = modeStruct.CutoffBeta_Hybrid;
 
 %% Fixed Point Integration Weights and Nodes
 % Compute AhHat and AeHat at kRhoP coordinates.
-[O.fixed_kRho, O.fixed_Ah_weights, O.fixed_Ae_weights] = ...
-    O.computeAhat(modeStruct);
+[O.fixed_kr, O.fixed_Ah, O.fixed_Ae] = ...
+    O.computeAhat();
 
 
-O.fixed_Ah_weights = reshape(O.fixed_Ah_weights, numel(O.fixed_kRho), 1, []);
-O.fixed_Ae_weights = reshape(O.fixed_Ae_weights, numel(O.fixed_kRho), 1, []);
+O.fixed_Ah = reshape(O.fixed_Ah, numel(O.fixed_kr), 1, []);
+O.fixed_Ae = reshape(O.fixed_Ae, numel(O.fixed_kr), 1, []);
 
 % O.fixed_kRho = O.integralScaleFactor * (1 - kRhoP) ./ kRhoP;
 % O.fixed_AhHat = AhHat .* weights;

@@ -11,10 +11,11 @@ end
 
 %% Create Mode Spectrum Functions
 if strcmp(TE_TM, "TE")
-    kc = besselj_derivative_zeros(m, n) ./ wgR;
+    kc = besseljprime_zeros(m, n) ./ wgR;
 else
     kc = besselj_zeros(m, n) ./ wgR;
 end
+kc = kc(end);
 
 if strcmp(TE_TM, "TE")
     Ex = @(~, ~, kr, kPhi) -besselIntSin(kr, kPhi, wgR, kc, m);
@@ -36,34 +37,6 @@ end
 
 
 %% Bessel Function Zeros
-function [x] = besselj_zeros(v, n)
-    fun = @(y) besselj(v, y);
-    x = fzero(fun, v + 2.41*(v < 10));
-    for ii = 2:n
-        x_guess = x + pi*[0.9, 1.1];
-        while sum(sign(fun(x_guess))) ~= 0
-            x_guess(2) = x + (x_guess(2) - x)*1.1;
-        end
-        x = fzero(fun, x_guess);
-    end
-end
-
-function [y] = besselj_derivative(v, x)
-    y = 0.5 * (besselj(v - 1, x) - besselj(v + 1, x));
-end
-
-function [x] = besselj_derivative_zeros(v, n)
-    fun = @(y) besselj_derivative(v, y);
-    x = fzero(fun, v + 2.4*(v < 10));
-    for ii = 2:n
-        x_guess = x + pi*[0.9, 1.1];
-        while sum(sign(fun(x_guess))) ~= 0
-            x_guess(2) = x + (x_guess(2) - x)*1.1;
-        end
-        x = fzero(fun, x_guess);
-    end
-end
-
 function [y] = besselIntCos(kr, kPhi, wgR, kc, m)
     y = (cos((m - 1) .* kPhi) + cos((m + 1) .* kPhi)) ...
         .* besselInt1(kr, wgR, kc, m) ...

@@ -25,9 +25,9 @@ arguments
 end
 
 %% Set Scale Factors and Integral Point Counts
-L = 5;
-Lch = 4;
-Lcw = 40;
+L = modeStruct.IntegralScaleFactor ./ pi;
+Lch = L;
+Lcw = 10*L;
 
 Nm = 300;
 Nrho = 8192;
@@ -52,13 +52,13 @@ Nphi = 64;
 weights_kphi = 4*weights_kphi;
 
 if strcmp(modeStruct.ModeSymmetryX, "None")
-    kphi = cat(4, kphi, kphi + 0.5*pi);
-    weights_kphi = 0.5 * cat(4, weights_kphi, weights_kphi);
+    kphi = cat(5, kphi, kphi + 0.5*pi);
+    weights_kphi = 0.5 * cat(5, weights_kphi, weights_kphi);
 end
 
 if strcmp(modeStruct.ModeSymmetryY, "None")
-    kphi = cat(4, kphi, -flip(kphi));
-    weights_kphi = 0.5 * cat(4, weights_kphi, flip(weights_kphi));
+    kphi = cat(5, kphi, -flip(kphi));
+    weights_kphi = 0.5 * cat(5, weights_kphi, flip(weights_kphi));
 end
 
 if ~strcmp(modeStruct.ModeSymmetryAxial, "None")

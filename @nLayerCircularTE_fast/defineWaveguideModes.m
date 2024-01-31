@@ -10,17 +10,11 @@ arguments
 end
 
 %% Get Waveguide Info
-wgA = O.waveguideA;
-wgB = O.waveguideB;
+wgR = O.waveguideR;
 
 modes_TE = O.modes_TE;
-modes_TM = O.modes_TM;
 
 numModes_TE = size(modes_TE, 1);
-numModes_TM = size(modes_TM, 1);
-
-modeSymmetryX = O.modeSymmetryX;
-modeSymmetryY = O.modeSymmetryY;
 
 %% Define Waveguide TE Modes
 modeSpecEx_TE = {};
@@ -30,46 +24,23 @@ modeScale_TE = [];
 modeLabels_TE = strings(0);
 %#ok<*AGROW>
 for ii = 1:size(modes_TE, 1)
-    m = modes_TE(ii, 1);
-    n = modes_TE(ii, 2);
-    modeLabels_TE(ii) = sprintf("TE_{%d,%d}", m, n);
+    n = modes_TE(ii, 1);
+    modeLabels_TE(ii) = sprintf("TE_{%d,%d}", 0, n);
 
     [modeSpecEx_TE{ii}, modeSpecEy_TE{ii}, cutoffWavenumber_TE(ii), modeScale_TE(ii)] ...
-        = nLayerOpenEnded.getSpectrumRectangular(wgA, wgB, m, n, "TE");
-end
-
-%% Define Waveguide TM Modes
-modeSpecEx_TM = {};
-modeSpecEy_TM = {};
-cutoffWavenumber_TM = [];
-modeScale_TM = [];
-modeLabels_TM = strings(0);
-for ii = 1:size(modes_TM, 1)
-    m = modes_TM(ii, 1);
-    n = modes_TM(ii, 2);
-    modeLabels_TM(ii) = sprintf("TM_{%d,%d}", m, n);
-
-    [modeSpecEx_TM{ii}, modeSpecEy_TM{ii}, cutoffWavenumber_TM(ii), modeScale_TM(ii)] ...
-        = nLayerOpenEnded.getSpectrumRectangular(wgA, wgB, m, n, "TM");
+        = nLayerOpenEnded.getSpectrumCircular(wgR, 0, n, "TE");
 end
 
 %% Construct Output Struct
-modeStruct = O.createModeStruct(...
+modeStruct = nLayer.createModeStruct(...
     SpecEx_TE=modeSpecEx_TE, ...
     SpecEy_TE=modeSpecEy_TE, ...
-    SpecEx_TM=modeSpecEx_TM, ...
-    SpecEy_TM=modeSpecEy_TM, ...
     CutoffBeta_TE=cutoffWavenumber_TE, ...
-    CutoffBeta_TM=cutoffWavenumber_TM, ...
     PhaseScaleFactor_TE=modeScale_TE, ...
-    PhaseScaleFactor_TM=modeScale_TM, ...
     OutputModes_TE=((1:numModes_TE) == 1), ...
-    OutputModes_TM=((1:numModes_TM) == -1), ...
     ModeLabels_TE=modeLabels_TE, ...
-    ModeLabels_TM=modeLabels_TM, ...
-    ModeSymmetryX=modeSymmetryX, ...
-    ModeSymmetryY=modeSymmetryY, ...
-    IntegralScaleFactor=2*wgA);
+    ModeSymmetryAxial="TE", ...
+    IntegralScaleFactor=2*wgR);
 
 %% Disable Mode Scaling and Orthogonality Check
 % The following line can be uncommented after debugging and verifying that

@@ -29,7 +29,7 @@ classdef nLayerOpenEnded_fast < nLayerForward
         numModes_TM;        % Number of TM modes considered.
         numModes_Hybrid;    % Number of Hybrid modes considered.
 
-        modeStruct;
+        modeStructs;
 
         cutoffBeta_TE(:, 1) = [];
         cutoffBeta_TM(:, 1) = [];
@@ -45,21 +45,6 @@ classdef nLayerOpenEnded_fast < nLayerForward
     methods (Access=public)
         [outputLabels] = getOutputLabels(O);
         recomputeInterpolants(O, options);
-    end
-    methods (Static, Access=public)
-        [Ahat] = integrandAhat(O, kRhoP, k0, er, ur, thk);
-        [Gamma0h, Gamma0e] = computeGamma0(kRho, k0, er, ur, thk);
-
-        [modeStruct] = createModeStruct(options);
-        [] = plotModeStruct(modeStruct, options);
-
-        [modeStruct] = createModeStructRectangular(options);
-        [modeStruct] = createModeStructCircular(options);
-        [modeStruct] = createModeStructCoaxial(options);
-
-        [Ex, Ey, cutoffWavenumber, phaseScale] = getSpectrumRectangular(wgA, wgB, m, n, TE_TM);
-        [Ex, Ey, cutoffWavenumber, phaseScale] = getSpectrumCircular(wgR, m, n, TE_TM);
-        [Ex, Ey, cutoffWavenumber, phaseScale] = getSpectrumCoaxial(wgR_inner, wgR_outer, m, n, TE_TM);
     end
 
     methods (Access=protected)
@@ -91,7 +76,8 @@ classdef nLayerOpenEnded_fast < nLayerForward
             %         "to the constructor of 'nLayerOpenEnded'.");
             % end
             if ~isempty(modeStructs)
-                O.recomputeInterpolants(modeStructs{:});
+                O.modeStructs = modeStructs;
+                O.recomputeInterpolants();
             end
 
         end

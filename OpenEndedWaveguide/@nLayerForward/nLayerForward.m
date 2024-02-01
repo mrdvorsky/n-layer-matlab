@@ -3,8 +3,7 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
     % This class serves as an interface definition for all nLayer forward
     % calculator objects. These objects take in a multilayer structure
     % definition and output the computed reflection coefficients (or
-    % transmission coefficients). It also contains several useful utility
-    % functions.
+    % transmission coefficients).
     %
     % nLayerForward Properties:
     %   speedOfLight (299.792458) - Speed of light (default is mm GHz).
@@ -15,11 +14,11 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
     %       non-physical values of er, ur, or thk are passed in.
     %
     % To use this class, subclass it. Any subclasses must, at a minimum,
-    % implement the "calculateGamma" function and the "getOutputLabels"
+    % implement the "calculate_impl" function and the "getOutputLabels"
     % function, whose functionalities are described below.
     % 
     % Abstract functions (should be implemented by subclass):
-    %   calculateGamma - Should accept a vector of frequencies and the
+    %   calculate_impl - Should accept a vector of frequencies and the
     %       multilayer structure definition at each frequency, and should
     %       output the calculated reflection (and/or transmission)
     %       coefficient(s) at each frequency. The first column of the
@@ -33,21 +32,6 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
     % "speedOfLight" for defining units (default mm GHz) and observe the
     % "verbosity" parameter value.
     %
-    % Utility functions (implemented by this class):
-    %   fejer2 - Generates weights and nodes to perform Fejer Type II
-    %       quadrature integration.
-    %   gaussKronrod - Generates weights and nodes to perform Gaussian
-    %       quadrature integration.
-    %   integralVectorized - Routine to quickly perform adaptive integration
-    %       of vectorized functions.
-    %   verifyStructure - Checks the validity of the multilayer structure
-    %       and frequency definitions. This function is called
-    %       automatically on inputs passed into calculate(...).
-    %   printStructure - Prints or returns a string to visualize the
-    %       multilayer structure.
-    %   changeStructureConductivity - Changes a multilayer structure to be
-    %       conductor-backed with a finite conductivity.
-    %
     % Author: Matt Dvorsky
     
     properties (Access=public)
@@ -58,7 +42,7 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
     
     %% Class Functions
     methods (Abstract, Access=protected)
-        [gam] = calculate_impl(O, f, er, ur, thk);
+        [gam] = calculate_impl(O, f, er, ur, thk, options);
     end
     methods (Abstract, Access=public)
         [outputLabels] = getOutputLabels(O);
@@ -68,17 +52,7 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
         [er, ur, thk] = changeStructureConductivity(O, f, er, ur, thk, sigma);
     end
     methods (Static, Access=public)
-        [nodes, weights, errorWeights] = gaussKronrod(numSegs, a, b);
-        [nodes, weights, errorWeights] = fejer2(orderN, a, b);
-        [q] = integralVectorized(fun, a, b, options);
         [] = checkClassProperties(O, classProperties);
-
-        [er, ur, thk] = validateStructure(f, er, ur, thk, options);
-        [structureString, figureString] = printStructure(er, ur, thk, options);
-    end
-    methods (Static, Access=public)
-        [] = mustBeValidErUr(er);
-        [] = mustBePositiveOddInteger(num);
     end
 
 end

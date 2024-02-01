@@ -1,85 +1,102 @@
-function [er, ur, thk] = validateStructure(f, er, ur, thk, options)
+function [er, ur, thk] = validateStructure(er, ur, thk, options)
 %VALIDATESTRUCTURE Check the multilayer structure and correct any issues.
 % This function can be used to verify proper dimensions and values of the
-% inputs f, er, ur, thk.
+% inputs er, ur, thk.
 %
 % Inputs:
-%   f - Vector of frequencies (GHz).
-%   er - Array of complex relative permittivities for each layer. Every row
-%       er(ff, :) should contain the permittivity of each layer at the
-%       frequency f(ff). Pass in [] to use default value (1). Optionally,
-%       er can be a single row vector or a scalar value.
-%   ur - Same as er, except for complex relative permeability.
-%   thk - Row vector of thicknesses for each layer. The length of thk
-%       should be the same as the number of columns in er and ur. Last
-%       element can be inf to represent an infinite half-space.
+%   er - Cell array of complex relative permittivities for each layer.
+%       Every element of the cell array corresponds to one layer of the
+%       structure, and each must be compatible sizes. For example, "er{n}"
+%       corresponds to the nth layer. Pass in {} to use the default value
+%       of 1. If it is a vector, will be converted to cell array.
+%   ur - Same as "er", except for complex relative permeability.
+%   thk - Same as "er" and "ur".
+%
 % Outputs:
-%   er - Array of complex relative permittivities for each layer. Every row
-%       er(ff, :) will contain the permittivity of each layer at the
-%       frequency f(ff).
-%   ur - Same as er, except for complex relative permeability.
-%   thk - Row vector of thicknesses for each layer. The length of thk
-%       will be the same as the number of columns in er and ur.
+%   er - Same as input "er", but will be a cell array of arrays.
+%   ur - Same as input "ur", but will be a cell array of arrays.
+%   thk - Same as input "thk", but will be a cell array of arrays.
+%
+% Named Arguments:
+%   CheckStructureValues (true) - If true, check that "er", "ur", and
+%       "thk" contain physical values.
 %
 % Author: Matt Dvorsky
 
 arguments
-    f(:, 1) {mustBeNonempty};
-    er(:, :);
-    ur(:, :);
-    thk(1, :) {mustBeNonempty};
-    options.CheckStructureValues {mustBeNumericOrLogical} = true;
+    er(:, 1);
+    ur(:, 1);
+    thk(:, 1) {mustBeNonempty};
+    options.CheckStructureValues(1, 1) logical = true;
+end
+
+%% Check for Vector Inputs
+if ~iscell(er) || ~iscell(ur) || ~iscell(thk)
+    warning("Inputs 'er', 'ur', and 'thk' should be cell " + ...
+        "arrays containing the values for each layer " + ...
+        "(i.e., er{n} corresponds to the nth layer). " + ...
+        "Modifying vector to be a cell array.");
+end
+
+if ~iscell(er) || ~iscell(ur) || ~iscell(thk)
+    if ~iscell(er)
+        er = mat2cell(er, ones(numel(er), 1));
+    end
+
+    if ~iscell(ur)
+        ur = mat2cell(ur, ones(numel(ur), 1));
+    end
+
+    if ~iscell(thk)
+        thk = mat2cell(thk, ones(numel(thk), 1));
+    end
+
+    warning("Inputs 'er', 'ur', and 'thk' should be cell " + ...
+        "arrays containing the values for each layer " + ...
+        "(i.e., er{n} corresponds to the nth layer). " + ...
+        "Modifying vector to be a cell array.");
 end
 
 %% Check for Empty or Singleton er and ur
 if isempty(er)
-    er = ones(length(f), length(thk));
-elseif numel(er) == 1
-    er = er + zeros(size(thk));
+    er = repmat({1}, numel(thk), 1);
 end
 
 if isempty(ur)
-    ur = ones(length(f), length(thk));
-elseif numel(ur) == 1
-    ur = ur + zeros(size(thk));
+    ur = repmat({1}, numel(thk), 1);
 end
 
-%% Check Values of er, ur, and thk
-if options.CheckStructureValues
-    if ~all(real(er) >= 1, "all") || ~all(real(ur) >= 1, "all")
-        error("The real parts of er and ur must be greater than 1. " + ...
+%% Check Lengths
+if numel(er) ~= numel(ur) || numel(er) ~= numel(thk)
+    error("Inputs 'er', 'ur', and 'thk' must all be cell " + ...
+        "arrays with the same length (or empty).");
+end
+
+%% Check finiteness of "thk"
+for n = 1:numel(thk) - 1
+    if ~all(isfinite(thk{n}(:)))
+        error("All elements of 'thk' except the last layer must be finite.");
+    end
+end
+
+%% Check Structure Values ("er", "ur", "thk")
+if ~options.CheckStructureValues
+    return;
+end
+for n = 1:numel(thk) - 1
+    if ~all(real(er{n}(:)) >= 1, "all") || ~all(real(ur{n}(:)) >= 1, "all")
+        error("The real parts of 'er' and 'ur' must be greater than 1. " + ...
             "To disable this check, set 'checkStructureValues' to false.");
     end
-    if ~all(imag(er) <= 0, "all") || ~all(imag(ur) <= 0, "all")
-        error("The imaginary parts of er and ur must be nonpositive. " + ...
+    if ~all(imag(er{n}(:)) <= 0, "all") || ~all(imag(ur{n}(:)) <= 0, "all")
+        error("The imaginary parts of 'er' and 'ur' must be nonpositive. " + ...
             "To disable this check, set 'checkStructureValues' to false.");
     end
-    if ~all(thk >= 0)
-        error("All elements of thk must be nonnegative. " + ...
+    if ~all(thk{n}(:) >= 0)
+        error("All elements of 'thk' must be nonnegative. " + ...
             "To disable this check, set 'checkStructureValues' to false.");
     end
 end
 
-if ~all(isfinite(thk(1:end - 1)))
-    error("All elements of thk except the last must be finite.");
-end
-
-%% Check Dimensions of f, er, ur, and thk
-if ~all(size(er, [1, 2]) == [length(f), length(thk)])
-    if isvector(er) && (size(er, 2) == length(thk))
-        er = repmat(er, length(f), 1);
-    else
-        error(strcat("The size of er should be either 1-by-numLayers ", ...
-            "or numFreqs-by-numLayers."));
-    end
-end
-
-if ~all(size(ur, [1, 2]) == [length(f), length(thk)])
-    if isvector(ur) && (size(ur, 2) == length(thk))
-        ur = repmat(ur, length(f), 1);
-    else
-        error(strcat("The size of ur should be either 1-by-numLayers ", ...
-            "or numFreqs-by-numLayers."));
-    end
 end
 

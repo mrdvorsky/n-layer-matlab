@@ -12,7 +12,7 @@ f = linspace(26.5, 40, 801);
 %% nLayerRectangularOld
 tic;
 NL1 = nLayerRectangular_old(3, 2, waveguideBand="ka", ...
-    convergenceAbsTol=1e-3, verbosity=1);
+    convergenceAbsTol=1e-5, verbosity=1);
 toc;
 
 %% nLayerRectangularFast
@@ -42,7 +42,7 @@ grid on;
 legend(["Original", "New"]);
 
 
-nLayer.plotModeStruct(NL2.modeStructs)
+% nLayer.plotModeStruct(NL2.modeStructs)
 
 
 

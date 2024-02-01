@@ -21,7 +21,7 @@ toc;
 
 %% nLayerRectangularFast
 tic;
-NL2 = nLayerCircularTE_fast(numModes, waveguideR=wgR, ...
+NL2 = nLayerCircularTE(numModes, waveguideR=wgR, ...
     verbosity=1);
 toc;
 
@@ -46,7 +46,7 @@ grid on;
 legend(["Original", "New"]);
 
 
-nLayer.plotModeStruct(NL2.modeStructs);
+% nLayer.plotModeStruct(NL2.modeStructs);
 
 % figure;
 % nLayerViewer(4, 1, 2, NL2, f);

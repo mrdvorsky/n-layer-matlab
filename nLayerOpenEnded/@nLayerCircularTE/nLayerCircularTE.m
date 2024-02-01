@@ -1,4 +1,4 @@
-classdef nLayerCircularTE_fast < nLayerOpenEnded_fast
+classdef nLayerCircularTE < nLayerOpenEnded
     %NLAYERCIRCULARTE Implementation of nLayerForward for circular waveguides TE0n modes.
     % This class can be used to calculate the reflection coefficient seen
     % by a circular waveguide looking into a multilayer structure, in
@@ -84,7 +84,7 @@ classdef nLayerCircularTE_fast < nLayerOpenEnded_fast
 
     %% Class constructor
     methods
-        function O = nLayerCircularTE_fast(numModes, classProperties)
+        function O = nLayerCircularTE(numModes, classProperties)
             %NLAYERCIRCULARTE Construct an instance of this class.
             % Example Usage:
             %   See example usage in main class documentation. Note that

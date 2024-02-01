@@ -1,4 +1,4 @@
-classdef nLayerRectangular_fast < nLayerOpenEnded_fast
+classdef nLayerRectangular < nLayerOpenEnded
     %NLAYERRECTANGULAR Implementation of nLayerForward for rectangular waveguides.
     % This class can be used to calculate the reflection coefficient seen
     % by a rectangular waveguide looking into a multilayer structure. Note
@@ -57,7 +57,7 @@ classdef nLayerRectangular_fast < nLayerOpenEnded_fast
 
     %% Class Constructor
     methods
-        function O = nLayerRectangular_fast(maxM, maxN, classProperties)
+        function O = nLayerRectangular(maxM, maxN, classProperties)
             %NLAYERRECTANGULAR Construct an instance of this class.
             % Inputs:
             %   maxM - Highest index m of TEmn and TMmn modes to consider.

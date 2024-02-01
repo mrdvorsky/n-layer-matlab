@@ -17,7 +17,7 @@ toc;
 
 %% nLayerRectangularFast
 tic;
-NL2 = nLayerRectangular_fast(3, 2, waveguideBand="ka", ...
+NL2 = nLayerRectangular(3, 2, waveguideBand="ka", ...
     verbosity=1);
 toc;
 

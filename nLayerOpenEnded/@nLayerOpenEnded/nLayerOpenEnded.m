@@ -1,4 +1,4 @@
-classdef nLayerOpenEnded_fast < nLayerForward
+classdef nLayerOpenEnded < nLayerForward
     %NLAYEROPENENDED Implementation of nLayerForward for open-ended waveguides.
     % This class can be used to calculate the reflection coefficient seen
     % by an arbitrary waveguide looking into a multilayer structure. This
@@ -64,7 +64,7 @@ classdef nLayerOpenEnded_fast < nLayerForward
 
     %% Class Constructor
     methods
-        function O = nLayerOpenEnded_fast(modeStructs)
+        function O = nLayerOpenEnded(modeStructs)
             %NLAYEROPENENDED Construct an instance of this class.
 
             arguments (Repeating)

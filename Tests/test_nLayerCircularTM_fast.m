@@ -19,7 +19,7 @@ toc;
 
 %% nLayerRectangularFast
 tic;
-NL2 = nLayerCircularTM_fast(3, waveguideR=wgR, ...
+NL2 = nLayerCircularTM(3, waveguideR=wgR, ...
     verbosity=1);
 toc;
 

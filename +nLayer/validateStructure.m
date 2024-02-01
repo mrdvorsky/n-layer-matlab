@@ -72,10 +72,12 @@ if numel(er) ~= numel(ur) || numel(er) ~= numel(thk)
         "arrays with the same length (or empty).");
 end
 
-%% Check finiteness of "thk"
+%% Check Value Finiteness
 for n = 1:numel(thk) - 1
-    if ~all(isfinite(thk{n}(:)))
-        error("All elements of 'thk' except the last layer must be finite.");
+    if ~all(isfinite(er{n}(:))) || ~all(isfinite(ur{n}(:))) ...
+            || ~all(isfinite(thk{n}(:)))
+        error("All elements of 'er', 'ur', and 'thk' except the " + ...
+            "last layer must be finite.");
     end
 end
 

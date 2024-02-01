@@ -14,7 +14,7 @@ if isempty(O.modeStructs)
     O.modeStructs = O.defineWaveguideModes();
 end
 
-%% Set Excitation/Receive Modes
+%% Update Excitation/Receive Modes
 if any([O.modeStructs.IsExcitationMode]) && any([O.modeStructs.IsReceiveMode])
     O.excitationModeIndices = find([O.modeStructs.IsExcitationMode]);
     O.receiveModeIndices = find([O.modeStructs.IsReceiveMode]);
@@ -29,12 +29,51 @@ end
 
 %% Update Mode Types, Counts, and Cutoffs
 O.modeTypes = [O.modeStructs.ModeType];
-O.cutoffWavenumbers = O.modeStructs.CutoffWavenumber;
+O.cutoffWavenumbers = [O.modeStructs.CutoffWavenumber];
 
 O.numModes_TE = sum(strcmp(O.modeTypes, "TE"));
 O.numModes_TM = sum(strcmp(O.modeTypes, "TM"));
 O.numModes_Hybrid = sum(strcmp(O.modeTypes, "Hybrid"));
-O.numModes = O.numModes_TE + O.numModes_TM + O.numModes_Hybrid;
+O.numModes = numel(O.modeStructs);
+
+%% Update Waveguide Er and Ur
+% Check for empty "O.waveguideErUr".
+if isempty(O.waveguideEr)
+    O.waveguideEr = {O.modeStructs.WaveguideEr};
+end
+if isempty(O.waveguideUr)
+    O.waveguideUr = {O.modeStructs.WaveguideUr};
+end
+
+% Check for singleton "O.waveguideErUr".
+if numel(O.waveguideEr) == 1
+    O.waveguideEr = repmat(O.waveguideEr, O.numModes, 1);
+end
+if numel(O.waveguideUr) == 1
+    O.waveguideUr = repmat(O.waveguideUr, O.numModes, 1);
+end
+
+% Check for numeric "O.waveguideErUr".
+if isnumeric(O.waveguideEr)
+    er = O.waveguideEr;
+    O.waveguideEr = cell(numModes, 1);
+    for ii = 1:O.numModes
+        O.waveguideEr{ii} = @(f) er(ii);
+    end
+end
+if isnumeric(O.waveguideUr)
+    ur = O.waveguideUr;
+    O.waveguideUr = cell(numModes, 1);
+    for ii = 1:O.numModes
+        O.waveguideUr{ii} = @(f) ur(ii);
+    end
+end
+
+% Assign back to "modeStructs".
+for ii = 1:O.numModes
+    O.modeStructs(ii).WaveguideEr = O.waveguideEr{ii};
+    O.modeStructs(ii).WaveguideUr = O.waveguideUr{ii};
+end
 
 %% Fixed Point Integration Weights and Nodes
 % Compute AhHat and AeHat at kRhoP coordinates.

@@ -1,12 +1,12 @@
 function [] = mustBeValidErUr(er)
 %MUSTBEVALIDERUR Throws an error if input is not a valid er or ur.
-% Throws an error if er is not a valid relative permittivity or
+% Throws an error if "er" is not a valid relative permittivity or
 % permeability. More specifically, it will throw an error if the real part
 % is less than 1 or if the imaginary part is positive.
 %
 % Example Usage:
 %   arguments
-%       er(1, :) {nLayerForward.mustBeValidErUr};
+%       er(1, :) {nLayer.mustBeValidErUr};
 %   end
 %
 % Author: Matt Dvorsky

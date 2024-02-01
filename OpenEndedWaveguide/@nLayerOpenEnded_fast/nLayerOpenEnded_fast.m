@@ -17,8 +17,8 @@ classdef nLayerOpenEnded_fast < nLayerForward
     % Author: Matt Dvorsky
 
     properties (GetAccess=public, SetAccess=public)
-        waveguideEr(1, 1) = 1;
-        waveguideUr(1, 1) = 1;
+        waveguideEr(:, 1) = [];
+        waveguideUr(:, 1) = [];
 
         excitationModeIndices(:, 1) {mustBeInteger, mustBePositive, ...
             mustBeNonempty} = 1;

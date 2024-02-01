@@ -71,14 +71,14 @@ classdef nLayerCircularTM_old < nLayerForward
 
     properties (Access=public)
         waveguideR(1, 1) {mustBePositive} = 1;      % Waveguide radius.
-        waveguideEr(1, 1) {nLayerForward.mustBeValidErUr} = 1;  % Waveguide fill er.
-        waveguideUr(1, 1) {nLayerForward.mustBeValidErUr} = 1;  % Waveguide fill ur.
+        waveguideEr(1, 1) {nLayer.mustBeValidErUr} = 1;  % Waveguide fill er.
+        waveguideUr(1, 1) {nLayer.mustBeValidErUr} = 1;  % Waveguide fill ur.
         modesTM(:, 1) {mustBeInteger, mustBeNonnegative};   % List of TM0n modes (vector of n).
         convergenceAbsTol(1, 1) {mustBePositive} = 0.001;   % Convergence tolerance value.
 
         interpolationPoints_kRho(1, 1) {mustBePositive, mustBeInteger} = 2^12;  % Number of points for lookup table along kRho.
-        integralPointsFixed_kRho(1, 1) {mustBePositive, mustBeInteger} = 300;   % Number of points for fixed point integral along kRho.
-        integralInitialSegmentCount(1, 1) {nLayerForward.mustBePositiveOddInteger} = 9; % Number of segments to start with in adaptive integral.
+        integralPointsFixed_kRho(1, 1) {mustBePositive, mustBeInteger} = 301;   % Number of points for fixed point integral along kRho.
+        integralInitialSegmentCount(1, 1) {nLayer.mustBePositiveOddInteger} = 9; % Number of segments to start with in adaptive integral.
     end
     properties (GetAccess=public, SetAccess=private)
         numModes;           % Number of modes considered (of form TM0n).

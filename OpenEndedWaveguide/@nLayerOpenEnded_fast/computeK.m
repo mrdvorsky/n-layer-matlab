@@ -28,18 +28,21 @@ end
 %% Mode Coefficients
 k0 = 2*pi .* f ./ O.speedOfLight;
 
-betaCutoff_TE = conj(sqrt(k0.^2 .* O.waveguideEr .* O.waveguideUr - O.cutoffBeta_TE.^2));
-betaCutoff_TM = conj(sqrt(k0.^2 .* O.waveguideEr .* O.waveguideUr - O.cutoffBeta_TM.^2));
+wgEr = cell2mat(cellfun(@(fun) fun(k0), O.waveguideEr, UniformOutput=false));
+wgUr = cell2mat(cellfun(@(fun) fun(k0), O.waveguideUr, UniformOutput=false));
 
-betaCutoff_TE = complex(real(betaCutoff_TE), -abs(imag(betaCutoff_TE)));
-betaCutoff_TM = complex(real(betaCutoff_TM), -abs(imag(betaCutoff_TM)));
+beta = conj(sqrt(k0.^2 .* wgEr .* wgUr - O.cutoffWavenumbers.^2));
+beta = complex(real(beta), -abs(imag(beta)));
 
 %% Compute K
-% Assemble output vectors. See above note about row vectors vs matrices.
-betaC_TE_over_k0 = betaCutoff_TE ./ (O.waveguideUr .* k0);
-betaC_TM_over_k0 = betaCutoff_TM ./ (O.waveguideEr .* k0);
+isTE = strcmp(O.modeTypes, "TE");
 
-K = sqrt([1./betaC_TE_over_k0; betaC_TM_over_k0]);
+beta_TE_over_k0 = (wgUr .* k0) ./ beta;
+beta_TM_over_k0 = beta ./ (wgEr .* k0);
+betaAll = beta_TM_over_k0;
+betaAll(isTE, :) = beta_TE_over_k0(isTE, :);
+
+K = sqrt(betaAll);
 K = (K) .* (pagetranspose(K));
 
 end

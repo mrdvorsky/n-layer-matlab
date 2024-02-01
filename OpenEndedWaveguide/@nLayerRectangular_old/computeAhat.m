@@ -52,7 +52,7 @@ f = @(kx, ky) (O.waveguideA.^2 .* O.waveguideB.^2 / pi.^2) ...
 %% Compute Integrals Over kPhi at All Values of kRho
 % Use 4th dimension for integration over kPhi
 [kPhi(1, 1, 1, :), weights_kPhi(1, 1, 1, :)] = ...
-    O.fejer2(O.integralPoints_kPhi, 0, 0.5*pi);
+    fejer2(O.integralPoints_kPhi, 0, 0.5*pi);
 kx = kRho .* cos(kPhi);
 ky = kRho .* sin(kPhi);
 

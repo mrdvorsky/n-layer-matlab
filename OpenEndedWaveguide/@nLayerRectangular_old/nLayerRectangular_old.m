@@ -1,4 +1,4 @@
-classdef nLayerRectangularOld < nLayerForward
+classdef nLayerRectangular_old < nLayerForward
     %NLAYERRECTANGULAR Implementation of nLayerForward for rectangular waveguides.
     % This class can be used to calculate the reflection coefficient seen
     % by a rectangular waveguide looking into a multilayer structure. Note
@@ -81,7 +81,7 @@ classdef nLayerRectangularOld < nLayerForward
         waveguideB(1, 1) {mustBePositive} = 0.5;            % Waveguide narrow dimension.
         modesTE(:, 2) {mustBeInteger, mustBeNonnegative};   % List of TEmn modes in rows of [m, n].
         interpolationPoints_kRho(1, 1) {mustBePositive, mustBeInteger} = 2^12;  % Number of points for lookup table along kRho.
-        integralPointsFixed_kRho(1, 1) {mustBePositive, mustBeInteger} = 300;   % Number of points for fixed point integral along kRho.
+        integralPointsFixed_kRho(1, 1) {mustBePositive, mustBeInteger} = 301;   % Number of points for fixed point integral along kRho.
         integralPoints_kPhi(1, 1) {mustBePositive, mustBeInteger} = 50;         % Number of points for fixed point integral along kPhi.
         integralInitialSegmentCount(1, 1) {mustBePositive, mustBeInteger} = 9;  % Number of segments to start with in adaptive integral.
         convergenceAbsTol(1, 1) {mustBePositive} = 0.001;                       % Convergence tolerance value.
@@ -133,7 +133,7 @@ classdef nLayerRectangularOld < nLayerForward
 
     %% Class constructor
     methods
-        function O = nLayerRectangularOld(maxM, maxN, classProperties)
+        function O = nLayerRectangular_old(maxM, maxN, classProperties)
             %NLAYERRECTANGULAR Construct an instance of this class.
             % Example Usage:
             %   See example usage in main class documentation. Note that

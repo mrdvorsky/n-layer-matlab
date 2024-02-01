@@ -3,25 +3,21 @@ clear;
 close all;
 
 %% Inputs
-er = {4 - 0.4j};
+er = {2.1 - 0.0001j};
 ur = {1};
-thk = {1.2};
+thk = {3};
 
-f = linspace(32, 40, 2001);
-% f = 36.61;
-
-wgR = 30/128 * 25.4;
-numModes = 3;
+f = linspace(26.5, 40, 801);
 
 %% nLayerRectangularOld
 tic;
-NL1 = nLayerCircularTE_old(numModes, waveguideR=wgR, ...
-    convergenceAbsTol=1e-6, verbosity=1);
+NL1 = nLayerRectangular_old(3, 2, waveguideBand="ka", ...
+    convergenceAbsTol=1e-3, verbosity=1);
 toc;
 
 %% nLayerRectangularFast
 tic;
-NL2 = nLayerCircularTE_fast(numModes, waveguideR=wgR, ...
+NL2 = nLayerRectangular_fast(3, 2, waveguideBand="ka", ...
     verbosity=1);
 toc;
 
@@ -46,8 +42,10 @@ grid on;
 legend(["Original", "New"]);
 
 
-nLayer.plotModeStruct(NL2.modeStructs);
+nLayer.plotModeStruct(NL2.modeStructs)
 
-% figure;
-% nLayerViewer(4, 1, 2, NL2, f);
+
+
+
+
 

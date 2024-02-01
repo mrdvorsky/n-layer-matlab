@@ -27,6 +27,11 @@ arguments
     thk(1, :);
 end
 
+%% Convert Cell Array to Vector
+er = 0*f + [er{:}];
+ur = 0*f + [ur{:}];
+thk = [thk{:}];
+
 %% Check for Zero Thickness
 if all(thk == 0)
     gam = complex(-ones(size(f)));

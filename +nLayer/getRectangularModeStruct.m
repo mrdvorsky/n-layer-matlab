@@ -1,4 +1,4 @@
-function [Ex, Ey, cutoffWavenumber, phaseScale] = getSpectrumRectangular(wgA, wgB, m, n, TE_TM)
+function [modeStruct] = getRectangularModeStruct(wgA, wgB, m, n, TE_TM)
 %GETSPECTRUMRECTANGULAR Get function object defining waveguide spectrums.
 % This function returns function objects
 
@@ -11,23 +11,37 @@ arguments
 end
 
 %% Create Mode Spectrum Functions
-scale_All = hypot(m/wgA, n/wgB);
+kc = pi * hypot(m/wgA, n/wgB);
+scale_All = pi * (1j .^ (m + n + 1)) ./ kc;
 if strcmp(TE_TM, "TE")
-    scaleX = (n/wgB) ./ scale_All;
-    scaleY = -(m/wgA)  ./ scale_All;
+    scaleX =  (n/wgB) .* scale_All;
+    scaleY = -(m/wgA) .* scale_All;
 else
-    scaleX = (m/wgA)  ./ scale_All;
-    scaleY = (n/wgB)  ./ scale_All;
+    scaleX =  (m/wgA) .* scale_All;
+    scaleY =  (n/wgB) .* scale_All;
 end
 
 Ex = @(kx, ky, ~, ~) scaleX .* C_int(kx, wgA, m).*S_int(ky, wgB, n);
 Ey = @(kx, ky, ~, ~) scaleY .* S_int(kx, wgA, m).*C_int(ky, wgB, n);
 
-%% Set Mode Cutoffs
-cutoffWavenumber = pi * scale_All;
+%% Create Mode Struct
+symmetryX = "Even";
+if mod(m, 2) == 0
+    symmetryX = "Odd";
+end
 
-%% Set Phase Scaling Coefficient
-phaseScale = 1j .^ (m + n + 1);
+symmetryY = "Even";
+if mod(n, 2) == 0
+    symmetryY = "Odd";
+end
+
+modeStruct = nLayer.createModeStruct(TE_TM, ...
+    sprintf("%s_{%d,%d}", TE_TM, m, n), ...
+    ExSpec=Ex, EySpec=Ey, ...
+    CutoffWavenumber=kc, MaxOperatingWavenumber=2*kc, ...
+    ApertureWidth=hypot(wgA, wgB), ...
+    SymmetryX=symmetryX, ...
+    SymmetryY=symmetryY);
 
 end
 

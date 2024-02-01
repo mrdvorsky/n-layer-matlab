@@ -49,7 +49,7 @@ O.table_AhHat = AhHat;
 % cases we can use a precomputed set of weights and nodes, instead of
 % computing them on the fly. This is generally 3 to 4 times faster than
 % when using the adaptive integration.
-[kRhoP, weights, errWeights] = O.fejer2(O.integralPointsFixed_kRho, 0, 1);
+[kRhoP, weights, errWeights] = fejer2(O.integralPointsFixed_kRho, 0, 1);
 
 % Compute AhHat at kRhoP coordinates.
 [AhHat] = O.computeAhat(kRhoP);
@@ -66,7 +66,7 @@ O.fixed_errorAhHat = AhHat .* errWeights;
 % precompute the values of the integrand for A at those coordinates,
 % instead of needing to perform an interpolation. These are used in the
 % "integrandAhat" function.
-[kRhoP, ~, ~] = O.gaussKronrod(...
+[kRhoP, ~, ~] = nLayer.gaussKronrod(...
     O.integralInitialSegmentCount, 0, 1);
 
 % Compute AhHat at kRhoP coordinates.

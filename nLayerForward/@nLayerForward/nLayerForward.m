@@ -1,4 +1,4 @@
-classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetExactNames
+classdef (Abstract) nLayerForward < matlab.mixin.Copyable
     %NLAYERFORWARD Interface class for nLayer forward calculators.
     % This class serves as an interface definition for all nLayer forward
     % calculator objects. These objects take in a multilayer structure
@@ -16,7 +16,7 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
     % To use this class, subclass it. Any subclasses must, at a minimum,
     % implement the "calculate_impl" function and the "getOutputLabels"
     % function, whose functionalities are described below.
-    % 
+    %
     % Abstract functions (should be implemented by subclass):
     %   calculate_impl - Should accept a vector of frequencies and the
     %       multilayer structure definition at each frequency, and should
@@ -33,13 +33,50 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
     % "verbosity" parameter value.
     %
     % Author: Matt Dvorsky
-    
+
     properties (Access=public)
-        speedOfLight(1, 1) {mustBePositive} = 299.792458;   % Speed of light (default is mm GHz).
         verbosity(1, 1) {mustBeNonnegative} = 0;            % Verbosity level. Set to zero for no console output.
         checkStructureValues(1, 1) logical = true;          % Whether to check ranges of er, ur, and thk.
+
+        distanceUnitScale(1, 1) {mustBePositive} = 0.001;   % All input distances will be scaled by this (default is for mm).
+        frequencyUnitScale(1, 1) {mustBePositive} = 1e9;    % All input frequencies will be scaled by this (default is for GHz).
     end
-    
+    properties (Dependent, GetAccess=public, SetAccess=private)
+        speedOfLight(1, 1);     % Speed of light, with units based on "distanceUnitScale" and "frequencyUnitScale".
+    end
+
+    %% Class Setters
+    methods
+        function set.distanceUnitScale(O, newScale)
+            warning("It is recommended to only change 'distanceUnitScale' " + ...
+                "in the call to the constructor (e.g., " + ...
+                "'NL = nLayerObject(..., distanceUnitScale=1, ...)'). " + ...
+                "If you must change this value after the " + ...
+                "constructor, make sure to change other parameters " + ...
+                "such as dimensions, frequencies, etc., to match the " + ...
+                "new units, else the results may be incorrect.");
+            O.distanceUnitScale = newScale;
+        end
+        function set.frequencyUnitScale(O, newScale)
+            warning("It is recommended to only change 'frequencyUnitScale' " + ...
+                "in the call to the constructor (e.g., " + ...
+                "'NL = nLayerObject(..., frequencyUnitScale=1, ...)'). " + ...
+                "If you must change this value after the " + ...
+                "constructor, make sure to change other parameters " + ...
+                "such as dimensions, frequencies, etc., to match the " + ...
+                "new units, else the results may be incorrect.");
+            O.frequencyUnitScale = newScale;
+        end
+    end
+
+    %% Class Getters
+    methods
+        function [speedOfLight] = get.speedOfLight(O)
+            speedOfLight = 299792458 ...
+                ./ (O.distanceUnitScale * O.frequencyUnitScale);
+        end
+    end
+
     %% Class Functions
     methods (Abstract, Access=protected)
         [gam] = calculate_impl(O, f, er, ur, thk, options);
@@ -50,9 +87,6 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable & matlab.mixin.SetGetE
     methods (Access=public)
         [gam] = calculate(O, f, er, ur, thk);
         [er, ur, thk] = changeStructureConductivity(O, f, er, ur, thk, sigma);
-    end
-    methods (Static, Access=public)
-        [] = checkClassProperties(O, classProperties);
     end
 
 end

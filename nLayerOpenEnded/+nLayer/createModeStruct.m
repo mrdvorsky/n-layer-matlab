@@ -40,8 +40,8 @@ arguments
 
     modeStruct.ApertureWidth(1, 1) {mustBePositive} = 1;
 
-    modeStruct.WaveguideEr(1, 1) {nLayer.mustBeErUrCallable} = @(f) 1;
-    modeStruct.WaveguideUr(1, 1) {nLayer.mustBeErUrCallable} = @(f) 1;
+    modeStruct.WaveguideEr(1, 1) {nLayer.mustBeErUrCallable} = 1;
+    modeStruct.WaveguideUr(1, 1) {nLayer.mustBeErUrCallable} = 1;
 
     modeStruct.OffsetX(1, 1) {mustBeReal, mustBeFinite} = 0;
     modeStruct.OffsetY(1, 1) {mustBeReal, mustBeFinite} = 0;
@@ -64,17 +64,6 @@ end
 
 if ~isfield(modeStruct, "EySpec")
     modeStruct.EySpec = @(~, ~, ~, ~) 0;
-end
-
-%% Check WaveguideEr and Ur
-if isnumeric(modeStruct.WaveguideEr)
-    er = modeStruct.WaveguideEr;
-    modeStruct.WaveguideEr = @(f) er;
-end
-
-if isnumeric(modeStruct.WaveguideUr)
-    ur = modeStruct.WaveguideUr;
-    modeStruct.WaveguideUr = @(f) ur;
 end
 
 %% Check Mode Cutoff Wavenumber

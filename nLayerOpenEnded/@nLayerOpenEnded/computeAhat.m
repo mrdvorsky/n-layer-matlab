@@ -21,7 +21,8 @@ end
 
 %% Set Scale Factors and Integral Point Counts
 k0MaxAll = [O.modeStructs.MaxOperatingWavenumber];
-k0Max = max(k0MaxAll([O.modeStructs.IsExcitationMode]));
+% k0Max = max(k0MaxAll([O.modeStructs.IsExcitationMode]));
+k0Max = max(k0MaxAll(1));
 
 L = (4*pi) ./ max([O.modeStructs.ApertureWidth]);
 Lc = k0Max;

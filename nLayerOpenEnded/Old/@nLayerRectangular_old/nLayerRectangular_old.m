@@ -157,7 +157,7 @@ classdef nLayerRectangular_old < nLayerForward
                 error("Parameter and value arguments must come in pairs.");
             end
             for ii = 1:2:numel(classProperties)
-                set(O, classProperties{ii}, classProperties{ii + 1});
+                O.(classProperties{ii}) = classProperties{ii + 1};
             end
 
             if isempty(O.modesTE)

@@ -113,7 +113,7 @@ classdef nLayerCircularTE < nLayerOpenEnded
                 O.modes_TE = (1:numModes).';
             end
 
-            O.recomputeInterpolants();
+            O.computeIntegralWeights();
         end
     end
 

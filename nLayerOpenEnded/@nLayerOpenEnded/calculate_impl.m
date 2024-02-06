@@ -18,6 +18,11 @@ arguments
     thk(1, :);
 end
 
+%% Check if Integral Weights Should be Regenerated
+if O.shouldRecomputeWeights
+    O.computeIntegralWeights();
+end
+
 %% Compute A and K
 [A] = O.computeA(f, er, ur, thk);
 [K] = O.computeK(f);

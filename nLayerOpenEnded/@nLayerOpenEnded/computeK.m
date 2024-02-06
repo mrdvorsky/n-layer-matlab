@@ -25,13 +25,37 @@ arguments
     f(1, 1, :) double;
 end
 
+%% Check Frequency Range
+if min(f) < O.frequencyRange(1) || max(f) > O.frequencyRange(2)
+    warning("At least one frequency that was passed in is outside " + ...
+        "the operating range specified [%g, %g], and so the results " + ...
+        "may not be accurate. Please modify the 'frequencyRange' " + ...
+        "parameter.", O.frequencyRange(1), O.frequencyRange(2));
+end
+
+%% Get Waveguide Fill er and ur for Each Frequency
+wgEr = zeros(O.numModes, 1, numel(f));
+for ii = 1:size(wgEr, 1)
+    if isnumeric(O.modeStructs(ii).WaveguideEr)
+        wgEr(ii, 1, :) = O.modeStructs(ii).WaveguideEr;
+    else
+        wgEr(ii, 1, :) = O.modeStructs(ii).WaveguideEr(f);
+    end
+end
+
+wgUr = zeros(size(wgEr));
+for ii = 1:size(wgUr, 1)
+    if isnumeric(O.modeStructs(ii).WaveguideUr)
+        wgUr(ii, 1, :) = O.modeStructs(ii).WaveguideUr;
+    else
+        wgUr(ii, 1, :) = O.modeStructs(ii).WaveguideUr(f);
+    end
+end
+
 %% Mode Coefficients
 k0 = 2*pi .* f ./ O.speedOfLight;
 
-wgEr = cell2mat(cellfun(@(fun) fun(k0), O.waveguideEr, UniformOutput=false));
-wgUr = cell2mat(cellfun(@(fun) fun(k0), O.waveguideUr, UniformOutput=false));
-
-beta = conj(sqrt(k0.^2 .* wgEr .* wgUr - O.cutoffWavenumbers.^2));
+beta = conj(sqrt(k0.^2 .* wgEr .* wgUr - O.cutoffWavenumbers(:).^2));
 beta = complex(real(beta), -abs(imag(beta)));
 
 %% Compute K

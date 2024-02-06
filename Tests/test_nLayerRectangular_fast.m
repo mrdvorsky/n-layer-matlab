@@ -27,7 +27,9 @@ gam1 = NL1.calculate(f, er, ur, thk);
 toc;
 
 tic;
-gam2 = NL2.calculate(f, er, ur, thk);
+for ii = 1:100
+    gam2 = NL2.calculate(f, er, ur, thk);
+end
 toc;
 
 relErr = abs(max(gam1 - gam2))

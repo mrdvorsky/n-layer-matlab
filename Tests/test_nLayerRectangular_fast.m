@@ -17,8 +17,8 @@ toc;
 
 %% nLayerRectangularFast
 tic;
-NL2 = nLayerRectangular(3, 2, waveguideBand="ka", ...
-    verbosity=1);
+NL2 = nLayerRectangular(3, 2, waveguideBand="ka");
+NL2.calculate(f(1), er, ur, thk);
 toc;
 
 %% Calculate

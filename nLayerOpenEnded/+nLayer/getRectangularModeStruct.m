@@ -1,18 +1,18 @@
-function [modeStruct] = getRectangularModeStruct(wgA, wgB, m, n, TE_TM)
+function [modeStruct] = getRectangularModeStruct(m, n, wgA, wgB, TE_TM)
 %GETSPECTRUMRECTANGULAR Get function object defining waveguide spectrums.
 % This function returns function objects
 
 arguments
-    wgA(1, 1) {mustBePositive};
-    wgB(1, 1) {mustBePositive};
     m(1, 1) {mustBeNonnegative, mustBeInteger};
     n(1, 1) {mustBeNonnegative, mustBeInteger};
-    TE_TM(1, 1) {mustBeMember(TE_TM, ["TE", "TM"])};
+    wgA(1, 1) {mustBePositive};
+    wgB(1, 1) {mustBePositive};
+    TE_TM(1, 1) string {mustBeMember(TE_TM, ["TE", "TM"])};
 end
 
 %% Create Mode Spectrum Functions
 kc = pi * hypot(m/wgA, n/wgB);
-scale_All = pi * (1j .^ (m + n + 1)) ./ kc;
+scale_All = pi ./ kc;
 if strcmp(TE_TM, "TE")
     scaleX =  (n/wgB) .* scale_All;
     scaleY = -(m/wgA) .* scale_All;
@@ -25,14 +25,14 @@ Ex = @(kx, ky, ~, ~) scaleX .* C_int(kx, wgA, m).*S_int(ky, wgB, n);
 Ey = @(kx, ky, ~, ~) scaleY .* S_int(kx, wgA, m).*C_int(ky, wgB, n);
 
 %% Create Mode Struct
-symmetryX = "Even";
+symmetryY = "PMC";
 if mod(m, 2) == 0
-    symmetryX = "Odd";
+    symmetryY = "PEC";
 end
 
-symmetryY = "Even";
+symmetryX = "PMC";
 if mod(n, 2) == 0
-    symmetryY = "Odd";
+    symmetryX = "PEC";
 end
 
 modeStruct = nLayer.createModeStruct(TE_TM, ...

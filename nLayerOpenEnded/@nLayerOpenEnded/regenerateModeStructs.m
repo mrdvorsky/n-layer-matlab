@@ -16,7 +16,8 @@ arguments
 end
 
 %% Redefine Mode Structs
-O.modeStructs = O.defineWaveguideModes();
+O.modeStructs = O.defineWaveguideModes(...
+    O.modeSymmetryX, O.modeSymmetryY, O.modeSymmetryAxial);
 
 end
 

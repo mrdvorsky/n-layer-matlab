@@ -55,7 +55,7 @@ end
 %% Mode Coefficients
 k0 = 2*pi .* f ./ O.speedOfLight;
 
-beta = conj(sqrt(k0.^2 .* wgEr .* wgUr - O.cutoffWavenumbers(:).^2));
+beta = conj(sqrt(k0.^2 .* wgEr .* wgUr - O.mode_kc0(:).^2));
 beta = complex(real(beta), -abs(imag(beta)));
 
 %% Compute K

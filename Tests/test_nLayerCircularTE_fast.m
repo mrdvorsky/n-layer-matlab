@@ -13,16 +13,16 @@ f = linspace(32, 40, 2001);
 wgR = 30/128 * 25.4;
 numModes = 3;
 
-%% nLayerRectangularOld
+%% nLayerCircularTE_old
 tic;
 NL1 = nLayerCircularTE_old(numModes, waveguideR=wgR, ...
     convergenceAbsTol=1e-6, verbosity=1);
 toc;
 
-%% nLayerRectangularFast
+%% nLayerCircular
 tic;
-NL2 = nLayerCircularTE(numModes, waveguideR=wgR, ...
-    verbosity=1);
+NL2 = nLayerCircular(0, numModes, waveguideBand="Ka_TE01", modeSymmetryAxial="TE");
+NL2.calculate(f(1), er, ur, thk);
 toc;
 
 %% Calculate

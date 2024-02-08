@@ -7,10 +7,10 @@ arguments
 
     options.SizeX(1, 1) {mustBePositive};
     options.SizeY(1, 1) {mustBePositive};
-    options.NumPointsX(1, 1) {mustBePositive, mustBeInteger} = 1001;
-    options.NumPointsY(1, 1) {mustBePositive, mustBeInteger} = 1001;
+    options.NumPointsX(1, 1) {mustBePositive, mustBeInteger} = 999;
+    options.NumPointsY(1, 1) {mustBePositive, mustBeInteger} = 999;
 
-    options.PlotCoordinates {mustBeMember(options.PlotCoordinates, ...
+    options.PlotCoordinates string {mustBeMember(options.PlotCoordinates, ...
         ["Rectangular", "Polar"])} = "Rectangular";
 end
 
@@ -33,7 +33,7 @@ kphi = atan2(ky, kx);
 %% Extract Modes
 modeLabels = [modeStructs.ModeLabel];
 coordLabels = ["x", "y"];
-for ii = 1:numel(modeStructs)
+for ii = flip(1:numel(modeStructs))
     ExHat = modeStructs(ii).ExSpec(kx, ky, kr, kphi) + zeros(size(kr));
     EyHat = modeStructs(ii).EySpec(kx, ky, kr, kphi) + zeros(size(kr));
 
@@ -55,33 +55,70 @@ for ii = 1:numel(modeStructs)
 
     colorscale = max(abs(cat(3, real(Ex), imag(Ex), real(Ey), imag(Ey))), [], "all");
 
-    modeAmp = trapz(x, trapz(y, Ex.*rot90(Ex, 2) + Ey.*rot90(Ey, 2), 2), 1);
+    % Check symmetry.
+    symX1 = "None";
+    if rms(abs(Ex + flip(Ex, 2)), "all") < 0.05
+        symX1 = "PEC";
+    elseif rms(abs(Ex - flip(Ex, 2)), "all") < 0.05
+        symX1 = "PMC";
+    end
 
-    % Plot Fields
+    symY1 = "None";
+    if rms(abs(Ey + flip(Ey, 1)), "all") < 0.05
+        symY1 = "PEC";
+    elseif rms(abs(Ey - flip(Ey, 1)), "all") < 0.05
+        symY1 = "PMC";
+    end
+
+    symY2 = "None";
+    if rms(abs(Ex + flip(Ex, 1)), "all") < 0.05
+        symY2 = "PMC";
+    elseif rms(abs(Ex - flip(Ex, 1)), "all") < 0.05
+        symY2 = "PEC";
+    end
+
+    symX2 = "None";
+    if rms(abs(Ey + flip(Ey, 2)), "all") < 0.05
+        symX2 = "PMC";
+    elseif rms(abs(Ey - flip(Ey, 2)), "all") < 0.05
+        symX2 = "PEC";
+    end
+
+    % modeAmp = trapz(x, trapz(y, Ex.^2 + Ey.^2, 2), 1);
+    % modeAmp = trapz(x, trapz(y, Ex.*rot90(Ex, 2) + Ey.*rot90(Ey, 2), 2), 1);
+    modeAmp = sum(ExHat(:).^2 + EyHat(:).^2) ...
+        .* (abs(kx(2) - kx(1)) .* abs(ky(2) - ky(1)));
+
+    % % Plot Fields
+    % figure;
+    % subplot(2, 2, 1);
+    % showImage(x, y, Ex, DisplayFormat="Real");
+    % colormap colormapPlusMinus;
+    % clim(colorscale * [-1, 1]);
+    % title(sprintf("E_{%s} for %s (%.3f)", coordLabels(1), modeLabels(ii), modeAmp));
+    % 
+    % subplot(2, 2, 3);
+    % showImage(x, y, Ex, DisplayFormat="Imag");
+    % colormap colormapPlusMinus;
+    % clim(colorscale * [-1, 1]);
+    % title(sprintf("E_{%s} for %s (%.3f)", coordLabels(1), modeLabels(ii), modeAmp));
+    % 
+    % subplot(2, 2, 2);
+    % showImage(x, y, Ey, DisplayFormat="Real");
+    % colormap colormapPlusMinus;
+    % clim(colorscale * [-1, 1]);
+    % title(sprintf("E_{%s} for %s (%s, %s)", coordLabels(2), modeLabels(ii), symX1, symY1));
+    % 
+    % subplot(2, 2, 4);
+    % showImage(x, y, Ey, DisplayFormat="Imag");
+    % colormap colormapPlusMinus;
+    % clim(colorscale * [-1, 1]);
+    % title(sprintf("E_{%s} for %s (%s, %s)", coordLabels(2), modeLabels(ii), symX2, symY2));
+
     figure;
-    subplot(2, 2, 1);
-    showImage(x, y, Ex, DisplayFormat="Real");
-    colormap colormapPlusMinus;
-    clim(colorscale * [-1, 1]);
-    title(sprintf("E_{%s} for %s (%.3f)", coordLabels(1), modeLabels(ii), modeAmp));
+    plotVectorField(x, y, Ex, Ey);
+    title(sprintf("%s: (%.3f) (%s, %s)", modeLabels(ii), modeAmp, symX2, symY2));
 
-    subplot(2, 2, 3);
-    showImage(x, y, Ex, DisplayFormat="Imag");
-    colormap colormapPlusMinus;
-    clim(colorscale * [-1, 1]);
-    title(sprintf("E_{%s} for %s (%.3f)", coordLabels(1), modeLabels(ii), modeAmp));
-
-    subplot(2, 2, 2);
-    showImage(x, y, Ey, DisplayFormat="Real");
-    colormap colormapPlusMinus;
-    clim(colorscale * [-1, 1]);
-    title(sprintf("E_{%s} for %s (%.3f)", coordLabels(2), modeLabels(ii), modeAmp));
-
-    subplot(2, 2, 4);
-    showImage(x, y, Ey, DisplayFormat="Imag");
-    colormap colormapPlusMinus;
-    clim(colorscale * [-1, 1]);
-    title(sprintf("E_{%s} for %s (%.3f)", coordLabels(2), modeLabels(ii), modeAmp));
 end
 
 

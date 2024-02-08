@@ -20,14 +20,14 @@ classdef nLayerOpenEnded < nLayerForward
 
     properties (GetAccess=public, SetAccess=public)
         modeStructs(1, :);      % Array of waveguideMode objects, defining the properties of each mode.
-        frequencyRange(1, :) {mustBePositive, mustBeFinite} = [1, 2];   % Frequency range that the object will be used in.
+        frequencyRange(1, :) {mustBePositive, mustBeFinite} = [1, 2];   % Operating frequency range of the object.
         
-        modeSymmetryX string {mustBeMember(modeSymmetryX, ...
-            ["PEC", "PMC", "None"])} = "PMC";   % Symmetry of reflection about the x-axis.
-        modeSymmetryY {mustBeTextScalar, mustBeMember(modeSymmetryY, ...
-            ["PEC", "PMC", "None"])} = "PEC";   % Symmetry of reflection about the y-axis.
-        modeSymmetryAxial {mustBeTextScalar, mustBeMember(modeSymmetryAxial, ...
-            ["TE", "TM", "None"])} = "None";    % Axial symmetry.
+        modeSymmetryX string ...            % Symmetry of reflection about the x-axis.
+            {mustBeMember(modeSymmetryX, ["PEC", "PMC", "None"])} = "PEC";
+        modeSymmetryY string ...            % Symmetry of reflection about the y-axis.
+            {mustBeMember(modeSymmetryY, ["PEC", "PMC", "None"])} = "PMC";
+        modeSymmetryAxial string ...        % Axial symmetry.
+            {mustBeMember(modeSymmetryAxial, ["TE", "TM", "None"])} = "None";
     end
     properties (Dependent, Access=public)
         waveguideEr(1, :) {nLayer.mustBeErUrCallable};  % Array of filled waveguide permittivity values for each mode.
@@ -37,7 +37,8 @@ classdef nLayerOpenEnded < nLayerForward
         receiveModeIndices(1, :) {mustBeInteger, mustBePositive};       % Array of indices of receiving modes (i.e., 'm' in Smn).
     end
     properties(Dependent, GetAccess=public, SetAccess=immutable)
-        cutoffWavenumbers;  % Array of free-space cutoff wavenumbers (kc0) for each mode.
+        mode_kc0;           % Array of free-space cutoff wavenumbers (kc0) for each mode.
+        mode_fc0;           % Array of free-space cutoff frequencies for each mode.
         modeTypes;          % String array of mode type for each mode ("TE", "TM", or "Hybrid").
         modeLabels;         % String array of labels for each mode.
 
@@ -59,7 +60,8 @@ classdef nLayerOpenEnded < nLayerForward
         [outputLabels] = getOutputLabels(O);
     end
     methods (Access=protected)
-        [modeStruct] = defineWaveguideModes(O);
+        [modeStructs] = defineWaveguideModes(O, ...
+            symmetryX, symmetryY, symmetryAxial);
     end
     methods (Access=protected)
         [gam] = calculate_impl(O, f, er, ur, thk);
@@ -75,19 +77,15 @@ classdef nLayerOpenEnded < nLayerForward
     methods
         function O = nLayerOpenEnded(modeStructs)
             %NLAYEROPENENDED Construct an instance of this class.
+            % Inputs:
+            %   modeStructs - An array of "waveguideMode" objects.
             arguments (Repeating)
                 modeStructs;
             end
 
-            % % Pass in modeStructs
-            % if isempty(modeStructs)
-            %     error("Must pass in at least one modeStruct " + ...
-            %         "to the constructor of 'nLayerOpenEnded'.");
-            % end
             if ~isempty(modeStructs)
                 O.modeStructs = modeStructs;
             end
-
         end
     end
 
@@ -99,9 +97,29 @@ classdef nLayerOpenEnded < nLayerForward
             fprintf("Changed: modeStructs\n");
         end
         function set.frequencyRange(O, newFreqRange)
-            O.frequencyRange = [min(newFreqRange); max(newFreqRange)];
+            O.frequencyRange = [min(newFreqRange), max(newFreqRange)];
             O.shouldRecomputeWeights = true;        %#ok<MCSUP>
             fprintf("Changed: freq\n");
+        end
+
+        function set.modeSymmetryX(O, newSym)
+            O.modeSymmetryX = newSym;
+            O.regenerateModeStructs();
+        end
+        function set.modeSymmetryY(O, newSym)
+            O.modeSymmetryY = newSym;
+            O.regenerateModeStructs();
+        end
+        function set.modeSymmetryAxial(O, newSym)
+            O.modeSymmetryAxial = newSym;
+            if strcmp(newSym, "TE")
+                O.modeSymmetryX = "PEC";        %#ok<MCSUP>
+                O.modeSymmetryY = "PEC";        %#ok<MCSUP>
+            elseif strcmp(newSym, "TM")
+                O.modeSymmetryX = "PMC";        %#ok<MCSUP>
+                O.modeSymmetryY = "PMC";        %#ok<MCSUP>
+            end
+            O.regenerateModeStructs();
         end
 
         function set.waveguideEr(O, newEr)
@@ -116,9 +134,10 @@ classdef nLayerOpenEnded < nLayerForward
             if numel(newEr) == 1
                 newEr = repmat(newEr, O.numModes, 1);
             end
-            for ii = 1:numel(O.modeStructs)
-                O.modeStructs(ii).WaveguideEr = newEr{ii};
-            end
+            
+            shouldRecomp = O.shouldRecomputeWeights;
+            [O.modeStructs.WaveguideEr] = newEr{:};
+            O.shouldRecomputeWeights = shouldRecomp;
         end
         function set.waveguideUr(O, newUr)
             if numel(newUr) ~= O.numModes && numel(newUr) ~= 1
@@ -132,19 +151,26 @@ classdef nLayerOpenEnded < nLayerForward
             if numel(newUr) == 1
                 newUr = repmat(newUr, O.numModes, 1);
             end
-            for ii = 1:numel(O.modeStructs)
-                O.modeStructs(ii).WaveguideUr = newUr{ii};
-            end
+
+            shouldRecomp = O.shouldRecomputeWeights;
+            [O.modeStructs.WaveguideUr] = newUr{:};
+            O.shouldRecomputeWeights = shouldRecomp;
         end
         function set.excitationModeIndices(O, newInds)
-            isExMode = false(O.numModes, 1);
-            isExMode(newInds) = true;
-            [O.modeStructs.IsExcitationMode] = isExMode;
+            isExMode = num2cell(false(1, O.numModes));
+            isExMode{newInds} = true;
+
+            shouldRecomp = O.shouldRecomputeWeights;
+            [O.modeStructs.IsExcitationMode] = isExMode{:};
+            O.shouldRecomputeWeights = shouldRecomp;
         end
         function set.receiveModeIndices(O, newInds)
-            isRxMode = false(O.numModes, 1);
-            isRxMode(newInds) = true;
-            [O.modeStructs.IsReceiveMode] = isRxMode;
+            isRxMode = num2cell(false(1, O.numModes));
+            isRxMode{newInds} = true;
+
+            shouldRecomp = O.shouldRecomputeWeights;
+            [O.modeStructs.IsReceiveMode] = isRxMode{:};
+            O.shouldRecomputeWeights = shouldRecomp;
         end
     end
 
@@ -169,8 +195,11 @@ classdef nLayerOpenEnded < nLayerForward
             inds = find([O.modeStructs.IsReceiveMode]);
         end
 
-        function [kc0] = get.cutoffWavenumbers(O)
+        function [kc0] = get.mode_kc0(O)
             kc0 = [O.modeStructs.CutoffWavenumber];
+        end
+        function [fc] = get.mode_fc0(O)
+            fc = O.speedOfLight * O.mode_kc0 ./ (2*pi);
         end
         function [types] = get.modeTypes(O)
             types = [O.modeStructs.ModeType];

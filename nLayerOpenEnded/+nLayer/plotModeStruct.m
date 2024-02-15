@@ -16,10 +16,10 @@ end
 
 %% Check Size
 if ~isfield(options, "SizeX")
-    options.SizeX = 1.2 * max([modeStructs.ApertureWidth]);
+    options.SizeX = 1.1 * max([modeStructs.ApertureWidth]);
 end
 if ~isfield(options, "SizeY")
-    options.SizeY = 1.2 * max([modeStructs.ApertureWidth]);
+    options.SizeY = 1.1 * max([modeStructs.ApertureWidth]);
 end
 
 %% Calculate x, y, kx, and ky
@@ -117,7 +117,7 @@ for ii = flip(1:numel(modeStructs))
 
     figure;
     plotVectorField(x, y, Ex, Ey);
-    title(sprintf("%s: (%.3f) (%s, %s)", modeLabels(ii), modeAmp, symX2, symY2));
+    title(sprintf("%s: (%.3f) (%s, %s)", modeLabels(ii), modeAmp, symX1, symY1));
 
 end
 

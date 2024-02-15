@@ -80,11 +80,11 @@ end
 
 %% Check Symmetries
 if strcmp(modeStruct.SymmetryAxial, "TE")
-    modeStruct.SymmetryX = "Odd";
-    modeStruct.SymmetryY = "Odd";
+    modeStruct.SymmetryX = "PEC";
+    modeStruct.SymmetryY = "PEC";
 elseif strcmp(modeStruct.SymmetryAxial, "TM")
-    modeStruct.SymmetryX = "Even";
-    modeStruct.SymmetryY = "Even";
+    modeStruct.SymmetryX = "PMC";
+    modeStruct.SymmetryY = "PMC";
 end
 
 %% Check Offsets and Rotations

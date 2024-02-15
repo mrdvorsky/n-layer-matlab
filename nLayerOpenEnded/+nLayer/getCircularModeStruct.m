@@ -1,6 +1,14 @@
-function [modeStruct] = getCircularModeStruct(m, n, wgR, TE_TM, isRotated)
+function [modeStruct] = getCircularModeStruct(m, n, wgR, TE_TM, isRotated, options)
 %GETCIRCULARMODESTRUCT Get function object defining waveguide spectrums.
 % This function returns a modeStruct for the circular waveguide modes.
+%
+% If TE mode, the the x-axis will be PEC, and the y-axis will be the same
+% if "m" is even. For TM modes the the x-axis will be PMC, and the y-axis
+% will be the same if "m" is even.
+%
+% If "isRotated" is true, then PMC and PEC will flip for all modes.
+%
+% Author: Matt Dvorsky
 
 arguments
     m(1, 1) {mustBeNonnegative, mustBeInteger};
@@ -8,57 +16,69 @@ arguments
     wgR(1, 1) {mustBePositive};
     TE_TM(1, 1) string {mustBeMember(TE_TM, ["TE", "TM"])};
     isRotated(1, 1) logical;
+
+    options.kc {mustBeScalarOrEmpty} = [];
+end
+
+%% Check Inputs
+if isRotated && (m == 0)
+    error("Only one TE0n or TM0n mode is possible, but the 'isRotated' " + ...
+        "flag was set to true, which will result in a duplicate mode.");
+end
+
+%% Get Cutoff Wavenumber
+if isempty(options.kc)
+    if strcmp(TE_TM, "TE")
+        kcAll = besseljprime_zeros(m, n) ./ wgR;
+    else
+        kcAll = besselj_zeros(m, n) ./ wgR;
+    end
+    kc = kcAll(end);
+else
+    kc = options.kc;
 end
 
 %% Create Mode Spectrum Functions
 if strcmp(TE_TM, "TE")
-    kc = besseljprime_zeros(m, n) ./ wgR;
+    scale = scaleFactor_TE(wgR, kc, m);
+    if isRotated
+        Ex = @(~, ~, kr, kPhi)  circSpectrum_sinSin(kr, kPhi, wgR, kc, m) * scale;
+        Ey = @(~, ~, kr, kPhi) -circSpectrum_cosSin(kr, kPhi, wgR, kc, m) * scale;
+    else
+        Ex = @(~, ~, kr, kPhi)  circSpectrum_sinCos(kr, kPhi, wgR, kc, m) * scale;
+        Ey = @(~, ~, kr, kPhi) -circSpectrum_cosCos(kr, kPhi, wgR, kc, m) * scale;
+    end
 else
-    kc = besselj_zeros(m, n) ./ wgR;
-end
-kc = kc(end);
-
-if strcmp(TE_TM, "TE")
-    scale = scaleFactorTE(wgR, kc, m, n);
-    Ex = @(~, ~, kr, kPhi)  besselIntSin(kr, kPhi, wgR, kc, m) * scale;
-    Ey = @(~, ~, kr, kPhi) -besselIntCos(kr, kPhi, wgR, kc, m) * scale;
-else
-    scale = scaleFactorTM(wgR, kc, m, n);
-    Ex = @(~, ~, kr, kPhi) -besselIntCos(kr, kPhi, wgR, kc, m) * scale;
-    Ey = @(~, ~, kr, kPhi) -besselIntSin(kr, kPhi, wgR, kc, m) * scale;
-end
-
-if ~isRotated
-    rotVal = pi/2 ./ max(m, 1);
-    ExRot = @(~, ~, kr, kPhi) cos(rotVal) * Ex(0, 0, kr, kPhi - rotVal) ...
-        - sin(rotVal) * Ey(0, 0, kr, kPhi - rotVal);
-    EyRot = @(~, ~, kr, kPhi) sin(rotVal) * Ex(0, 0, kr, kPhi - rotVal) ...
-        + cos(rotVal) * Ey(0, 0, kr, kPhi - rotVal);
-else
-    ExRot = Ex;
-    EyRot = Ey;
+    scale = scaleFactor_TM(wgR, kc, m);
+    if isRotated
+        Ex = @(~, ~, kr, kPhi) -circSpectrum_cosSin(kr, kPhi, wgR, kc, m) * scale;
+        Ey = @(~, ~, kr, kPhi) -circSpectrum_sinSin(kr, kPhi, wgR, kc, m) * scale;
+    else
+        Ex = @(~, ~, kr, kPhi) -circSpectrum_cosCos(kr, kPhi, wgR, kc, m) * scale;
+        Ey = @(~, ~, kr, kPhi) -circSpectrum_sinCos(kr, kPhi, wgR, kc, m) * scale;
+    end
 end
 
 %% Define Symmetries
-isX_PMC = true;
-isY_PMC = false;
-if mod(m, 2) == 0
-    isY_PMC = ~isY_PMC;
+isX_PEC = true;
+isY_PEC = mod(m, 2) == 0;
+
+if xor(strcmp(TE_TM, "TM"), isRotated)  % TM and rotation flip PEC/PMC.
+    isX_PEC = ~isX_PEC;
+    isY_PEC = ~isY_PEC;
 end
 
-if xor(strcmp(TE_TM, "TM"), isRotated)
-    isX_PMC = ~isX_PMC;
-    isY_PMC = ~isY_PMC;
+% Set symmetry flags.
+symmetryX = "PMC";
+if isX_PEC
+    symmetryX = "PEC";
 end
 
-symmetryX = "PEC";
-if isX_PMC
-    symmetryX = "PMC";
+symmetryY = "PMC";
+if isY_PEC
+    symmetryY = "PEC";
 end
-symmetryY = "PEC";
-if isY_PMC
-    symmetryY = "PMC";
-end
+
 symmetryAxial = "None";
 if m == 0
     symmetryAxial = TE_TM;
@@ -67,8 +87,8 @@ end
 %% Create Mode Struct
 modeStruct = nLayer.createModeStruct(TE_TM, ...
     sprintf("%s_{%d,%d}", TE_TM, m, n), ...
-    ExSpec=ExRot, EySpec=EyRot, ...
-    CutoffWavenumber=kc, MaxOperatingWavenumber=2*kc, ...
+    ExSpec=Ex, EySpec=Ey, ...
+    CutoffWavenumber=kc, ...
     ApertureWidth=2*wgR, ...
     SymmetryX=symmetryX, ...
     SymmetryY=symmetryY, ...
@@ -80,50 +100,66 @@ end
 
 
 %% Helper Functions
-function [y] = besselIntCos(kr, kPhi, wgR, kc, m)
-    y = 2 * cos(kPhi) .* cos(m .* kPhi) ...
-        .* besselInt1(kr, wgR, kc, m) ...
-        - cos((m + 1) .* kPhi) .* besselInt2(kr, wgR, kc, m);
+function [y] = circSpectrum_cosCos(kr, kphi, wgR, kc, m)
+    rot1 = 2 * cos(kphi) .* cos(m .* kphi);
+    rot2 = -cos((m + 1) .* kphi);
+
+    int1 = besselj_int1(kr, wgR, kc, m);
+    int2 = besselj_int2(kr, wgR, kc, m);
+
+    y = rot1.*int1 + rot2.*int2;
 end
 
-function [y] = besselIntSin(kr, kPhi, wgR, kc, m)
-    y = 2 * sin(kPhi) .* cos(m .* kPhi) ...
-        .* besselInt1(kr, wgR, kc, m) ...
-        - sin((m + 1) .* kPhi) .* besselInt2(kr, wgR, kc, m);
+function [y] = circSpectrum_sinCos(kr, kphi, wgR, kc, m)
+    rot1 = 2 * sin(kphi) .* cos(m .* kphi);
+    rot2 = -sin((m + 1) .* kphi);
+
+    int1 = besselj_int1(kr, wgR, kc, m);
+    int2 = besselj_int2(kr, wgR, kc, m);
+
+    y = rot1.*int1 + rot2.*int2;
 end
 
-% function [y] = besselIntCos(kr, kPhi, wgR, kc, m)
-%     y = (cos((m - 1) .* kPhi) + cos((m + 1) .* kPhi)) ...
-%         .* besselInt1(kr, wgR, kc, m) ...
-%         - cos((m + 1) .* kPhi) .* besselInt2(kr, wgR, kc, m);
-% end
-% 
-% function [y] = besselIntSin(kr, kPhi, wgR, kc, m)
-%     y = -(sin((m - 1) .* kPhi) - sin((m + 1) .* kPhi)) ...
-%         .* besselInt1(kr, wgR, kc, m) ...
-%         - sin((m + 1) .* kPhi) .* besselInt2(kr, wgR, kc, m);
-% end
+function [y] = circSpectrum_cosSin(kr, kphi, wgR, kc, m)
+    rot1 = 2 * cos(kphi) .* sin(m .* kphi);
+    rot2 = -sin((m + 1) .* kphi);
 
-function [y] = besselInt1(kr, wgR, kc, m)
+    int1 = besselj_int1(kr, wgR, kc, m);
+    int2 = besselj_int2(kr, wgR, kc, m);
+
+    y = rot1.*int1 + rot2.*int2;
+end
+
+function [y] = circSpectrum_sinSin(kr, kphi, wgR, kc, m)
+    rot1 = 2 * sin(kphi) .* sin(m .* kphi);
+    rot2 = cos((m + 1) .* kphi);
+
+    int1 = besselj_int1(kr, wgR, kc, m);
+    int2 = besselj_int2(kr, wgR, kc, m);
+
+    y = rot1.*int1 + rot2.*int2;
+end
+
+function [y] = besselj_int1(kr, wgR, kc, m)
     y = kc .* (kr .* besselj(m, wgR.*kr) .* besselj(m - 1, wgR.*kc) ...
         - kc .* besselj(m - 1, wgR.*kr) .* besselj(m, wgR.*kc)) ...
         ./ (kr.^2 - kc.^2);
 end
 
-function [y] = besselInt2(kr, wgR, kc, m)
+function [y] = besselj_int2(kr, wgR, kc, m)
     JmOverKr = besselj(m, wgR.*kr) ./ kr;
     JmOverKr(kr == 0) = 0.5 * wgR * (m == 1);
     y = (2*m ./ wgR) .* besselj(m, wgR.*kc) .* JmOverKr;
 end
 
-function [scale] = scaleFactorTE(wgR, kc, m, n)
-    scale = (1j).^(m) * 0.5 * sqrt(1 + (m~=0)) ...
+function [scale] = scaleFactor_TE(wgR, kc, m)
+    scale = 0.5 * sqrt(1 + (m~=0)) ...
         ./ (kc .* sqrt(besselj(m, wgR * kc).^2 - ...
         besselj(m - 1, wgR * kc).*besselj(m + 1, wgR * kc)) .* sqrt(pi));
 end
 
-function [scale] = scaleFactorTM(wgR, kc, m, n)
-    scale = (1j).^(m) * 0.5 * sqrt(1 + (m~=0)) ...
+function [scale] = scaleFactor_TM(wgR, kc, m)
+    scale = 0.5 * sqrt(1 + (m~=0)) ...
         ./ (kc .* sqrt(besseljprime(m, wgR * kc).^2) .* sqrt(pi));
 end
 

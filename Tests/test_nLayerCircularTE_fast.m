@@ -7,16 +7,16 @@ er = {4 - 0.4j};
 ur = {1};
 thk = {1.2};
 
-f = linspace(32, 40, 2001);
+f = linspace(32, 40, 201);
 % f = 36.61;
 
 wgR = 30/128 * 25.4;
-numModes = 3;
+numModes = 5;
 
 %% nLayerCircularTE_old
 tic;
 NL1 = nLayerCircularTE_old(numModes, waveguideR=wgR, ...
-    convergenceAbsTol=1e-6, verbosity=1);
+    convergenceAbsTol=1e-5, verbosity=1);
 toc;
 
 %% nLayerCircular

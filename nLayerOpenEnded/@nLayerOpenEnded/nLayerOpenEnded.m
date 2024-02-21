@@ -51,6 +51,8 @@ classdef nLayerOpenEnded < nLayerForward
         fixed_kr;       % Fixed-point integral coordindates kr.
         fixed_Ah;       % Fixed-point integral weights for Ah.
         fixed_Ae;       % Fixed-point integral weights for Ae.
+        
+        Exy;
 
         shouldRecomputeWeights(1, 1) logical = true;    % Flag to recompute integral weights.
     end
@@ -68,7 +70,7 @@ classdef nLayerOpenEnded < nLayerForward
     end
     methods (Access=private)
         [] = computeIntegralWeights(O, options);
-        [krc, AhHat, AeHat] = computeAhat(O);
+        [krc, AhHat, AeHat, Exy] = computeAhat(O);
         [A] = computeA(O, f, er, ur, thk);
         [K] = computeK(O, f);
     end
@@ -157,16 +159,18 @@ classdef nLayerOpenEnded < nLayerForward
             O.shouldRecomputeWeights = shouldRecomp;
         end
         function set.excitationModeIndices(O, newInds)
-            isExMode = num2cell(false(1, O.numModes));
-            isExMode{newInds} = true;
+            isExMode = false(1, O.numModes);
+            isExMode(newInds) = true;
+            isExMode = num2cell(isExMode);
 
             shouldRecomp = O.shouldRecomputeWeights;
             [O.modeStructs.IsExcitationMode] = isExMode{:};
             O.shouldRecomputeWeights = shouldRecomp;
         end
         function set.receiveModeIndices(O, newInds)
-            isRxMode = num2cell(false(1, O.numModes));
-            isRxMode{newInds} = true;
+            isRxMode = false(1, O.numModes);
+            isRxMode(newInds) = true;
+            isRxMode = num2cell(isRxMode);
 
             shouldRecomp = O.shouldRecomputeWeights;
             [O.modeStructs.IsReceiveMode] = isRxMode{:};

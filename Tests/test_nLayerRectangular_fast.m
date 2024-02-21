@@ -3,7 +3,7 @@ clear;
 close all;
 
 %% Inputs
-er = {2.1 - 0.0001j};
+er = {2.1 - 0.5j};
 ur = {1};
 thk = {3};
 

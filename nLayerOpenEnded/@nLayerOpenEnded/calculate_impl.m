@@ -30,6 +30,7 @@ end
 %% Calculate S-parameter Matrix at each Frequency
 A_times_K = A.*K;
 idMat = eye(size(A, 1));
+idMat = O.Exy;
 
 Smn = pagemldivide(idMat + A_times_K, idMat - A_times_K);
 

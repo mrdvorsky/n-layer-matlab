@@ -27,8 +27,12 @@ arguments
 end
 
 %% Check Inputs
-[er, ur, thk] = nLayerForward.validateStructure(0, er, ur, thk, ...
+[er, ur, thk] = nLayer.validateStructure(er, ur, thk, ...
     CheckStructureValues=false);
+
+er = cell2mat(er);
+ur = cell2mat(ur);
+thk = cell2mat(thk);
 
 if size(options.FormatString, 1) == 1
     options.FormatString = repmat(options.FormatString, length(thk), 1);

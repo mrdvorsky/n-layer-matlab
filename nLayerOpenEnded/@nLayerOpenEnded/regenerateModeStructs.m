@@ -4,11 +4,6 @@ function [] = regenerateModeStructs(O)
 % "nLayerOpenEnded" object, and will be automatically called whenever a
 % parameter changes that (...).
 %
-% Inputs:
-%   parameterName - A string containing the name of the parameter that
-%       changed. This can be used to customize behavior using a switch
-%       statement for optimization for other reasons.
-%
 % Author: Matt Dvorsky
 
 arguments
@@ -16,8 +11,20 @@ arguments
 end
 
 %% Redefine Mode Structs
+wasEmpty = true;
+if ~isempty(O.modeStructs)
+    er = O.waveguideEr;
+    ur = O.waveguideUr;
+    wasEmpty = false;
+end
+
 O.modeStructs = O.defineWaveguideModes(...
     O.modeSymmetryX, O.modeSymmetryY, O.modeSymmetryAxial);
+
+if ~wasEmpty
+    O.waveguideEr = er;
+    O.waveguideUr = ur;
+end
 
 end
 

@@ -41,8 +41,8 @@ moment_weights = kr_weights ...
     .* sin(2*(1:Nm).' .* acot(sqrt(krInv./Lc))) ...
     ./ sin(2 *           acot(sqrt(krInv./Lc)));
 
-momentH_weights = moment_weights ./ sqrt(1 + krc.^2);
-momentE_weights = moment_weights .* sqrt(1 + krc.^2);
+momentH_weights = moment_weights ./ (1 + krc.^1);
+momentE_weights = moment_weights .* (1 + krc.^1);
 
 %% Compute Nodes
 krNodes = fejer2_halfOpen(Nm, Lc);

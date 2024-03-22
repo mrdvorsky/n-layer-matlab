@@ -3,7 +3,7 @@ clear;
 close all;
 
 %% Inputs
-er = {2.1 - 0.5j};
+er = {2.1 - 0.0005j};
 ur = {1};
 thk = {3};
 
@@ -12,7 +12,7 @@ f = linspace(26.5, 40, 801);
 %% nLayerRectangularOld
 tic;
 NL1 = nLayerRectangular_old(3, 2, waveguideBand="ka", ...
-    convergenceAbsTol=1e-5, verbosity=1);
+    convergenceAbsTol=1e-6, verbosity=1);
 toc;
 
 %% nLayerRectangularFast

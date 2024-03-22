@@ -189,7 +189,7 @@ structureAxis = axes(plotPanel, ...
     TickLength=[0, 0], XTick={}, YTick={}, ...
     Color="none", XColor="none", YColor="none");
 
-[~, structureString] = NL{1}.printStructure(er, [], thk, Title="");
+[~, structureString] = nLayer.printStructure(er, [], thk, Title="");
 
 structureText = text(structureAxis, 0.5, 0.5, structureString, ...
     Units="normalized", HorizontalAlignment="center", ...
@@ -971,7 +971,7 @@ for ii = 1:size(handles.NL, 2)
 end
 
 [~, handles.structureText.String] = ...
-    handles.NL{1}.printStructure(er_in, ur_in, thk_in, Title="");
+    nLayer.printStructure(er_in, ur_in, thk_in, Title="");
 
 end
 

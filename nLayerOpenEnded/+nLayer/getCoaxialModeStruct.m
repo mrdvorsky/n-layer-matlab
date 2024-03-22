@@ -4,22 +4,29 @@ function [modeStruct] = getCoaxialModeStruct(m, n, r_inner, r_outer, TE_TM, isRo
 
 arguments
     m(1, 1) {mustBeNonnegative, mustBeInteger};
-    n(1, 1) {mustBePositive, mustBeInteger};
+    n(1, 1) {mustBeNonnegative, mustBeInteger};
     r_inner(1, 1) {mustBePositive};
     r_outer(1, 1) {mustBePositive, mustBeGreaterThan(r_outer, r_inner)};
     TE_TM(1, 1) string {mustBeMember(TE_TM, ["TE", "TM"])};
     isRotated(1, 1) logical;
 end
 
+%% Check Inputs
+if (m == 0) && (n == 0) && strcmp(TE_TM, "TE")
+    error("Coaxial mode TE00 not supported (to avoid duplicate " + ...
+        "modes). Use TM00 instead.");
+end
+
+if (m == 0) && isRotated
+    error("The 'isRotated' parameter should be false for TE0n " + ...
+        "and TM0n modes (to avoid duplicate modes).");
+end
+
 %% Handle TEM Mode
-if (n == 0) && (m == 0)
-    if strcmp(TE_TM, "TE")
-        error("Coaxial mode TE00 not supported. Use TM00 instead.");
-    end
-    
-    scale = 1;
-    Ex = @(kx, ky, kr, kphi) scale .* cos(kphi) .* besselTEM(kr, r_inner, r_outer);
-    Ey = @(kx, ky, kr, kphi) scale .* sin(kphi) .* besselTEM(kr, r_inner, r_outer);
+if (m == 0) && (n == 0)
+    scale = 1 ./ sqrt(2*pi * (log(r_outer) - log(r_inner)));
+    Ex = @(kx, ky, kr, kphi) scale .* cos(kphi) .* besseljyTEM(kr, [r_inner, r_outer]);
+    Ey = @(kx, ky, kr, kphi) scale .* sin(kphi) .* besseljyTEM(kr, [r_inner, r_outer]);
 
     modeStruct = nLayer.createModeStruct(TE_TM, "TEM", ...
     ExSpec=Ex, EySpec=Ey, ...
@@ -153,8 +160,14 @@ function [scale] = scaleFactorTE(r1r2, kc, a, b, m, n)
 end
 
 function [scale] = scaleFactorTM(r1r2, kc, a, b, m, n)
-    scale = (1j).^(m) * 0.5 * sqrt(1 + (m~=0)) ...
-        ./ (kc .* sqrt(besseljprime(m, r1r2(2) * kc).^2) .* sqrt(pi));
+    int1 = integral(@(x) x .* (besseljy(a, b, m, kc.*x).^2), r1r2(1), r1r2(2));
+    
+    % scale = (1j).^(m) * 0.5 ./ sqrt(1 + (n~=0)) ...
+    %     ./ (kc .* sqrt((besseljyprime(a, b, m, r1r2(2) * kc).^2 ...
+    %     - (1).^(n) .* besseljyprime(a, b, m, r1r2(1) * kc).^2)) .* sqrt(pi));
+
+    scale = (1j).^(m) * 0.5 ...
+        ./ kc .* r1r2(2) ./ sqrt(int1) ./ sqrt(2*pi);
 end
 
 

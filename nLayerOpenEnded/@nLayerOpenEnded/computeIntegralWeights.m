@@ -10,7 +10,7 @@ arguments
 end
 
 %% Fixed Point Integration Weights and Nodes
-[O.fixed_kr, O.fixed_Ah, O.fixed_Ae, O.Exy] = ...
+[O.fixed_kr, O.fixed_Ah, O.fixed_Ae] = ...
     O.computeAhat();
 
 O.fixed_Ah = reshape(O.fixed_Ah, numel(O.fixed_kr), 1, []);

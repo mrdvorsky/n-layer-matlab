@@ -20,7 +20,7 @@ classdef nLayerOpenEnded < nLayerForward
 
     properties (GetAccess=public, SetAccess=public)
         modeStructs(1, :);      % Array of waveguideMode objects, defining the properties of each mode.
-        frequencyRange(1, :) {mustBePositive, mustBeFinite} = [1, 2];   % Operating frequency range of the object.
+        frequencyRange(1, :) {mustBeNonnegative, mustBeFinite} = [1, 2];   % Operating frequency range of the object.
         
         modeSymmetryX string ...            % Symmetry of reflection about the x-axis.
             {mustBeMember(modeSymmetryX, ["PEC", "PMC", "None"])} = "PEC";
@@ -52,8 +52,6 @@ classdef nLayerOpenEnded < nLayerForward
         fixed_Ah;       % Fixed-point integral weights for Ah.
         fixed_Ae;       % Fixed-point integral weights for Ae.
         
-        Exy;
-
         shouldRecomputeWeights(1, 1) logical = true;    % Flag to recompute integral weights.
     end
 
@@ -70,7 +68,7 @@ classdef nLayerOpenEnded < nLayerForward
     end
     methods (Access=private)
         [] = computeIntegralWeights(O, options);
-        [krc, AhHat, AeHat, Exy] = computeAhat(O);
+        [krc, AhHat, AeHat] = computeAhat(O);
         [A] = computeA(O, f, er, ur, thk);
         [K] = computeK(O, f);
     end
@@ -88,6 +86,8 @@ classdef nLayerOpenEnded < nLayerForward
             if ~isempty(modeStructs)
                 O.modeStructs = modeStructs;
             end
+
+            fprintf("nLayerOpenEnded\r\n");
         end
     end
 
@@ -182,13 +182,13 @@ classdef nLayerOpenEnded < nLayerForward
     methods
         function [er] = get.waveguideEr(O)
             er = {O.modeStructs.WaveguideEr};
-            if isequal(er{:})
+            if (numel(er) == 1) || isequal(er{:})
                 er = er{1};
             end
         end
         function [ur] = get.waveguideUr(O)
             ur = {O.modeStructs.WaveguideUr};
-            if isequal(ur{:})
+            if (numel(ur) == 1) || isequal(ur{:})
                 ur = ur{1};
             end
         end

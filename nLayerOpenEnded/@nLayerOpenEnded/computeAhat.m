@@ -1,4 +1,4 @@
-function [krcNodes, Ah_weights, Ae_weights, Exy] = computeAhat(O)
+function [krcNodes, Ah_weights, Ae_weights] = computeAhat(O)
 %COMPUTEAHAT Computes the matrices AhHat(kRho) and AeHat(kRho).
 % This function ...
 %
@@ -30,9 +30,14 @@ Lc = k0Max;
 Lch = Lc;
 Lcw = 10*Lc;
 
-Nm = 200;
-Nrho = 8192;
+Nm = 100;
+Nrho = 1*8192;
 Nphi = 1*64;
+
+% Nm = O.integral_pointsKrc;
+% Nrho = O.integral_pointsKr;
+% Nphi = O.integral_points;
+
 
 % Dimension Assignment:
 %   1: moment index
@@ -91,33 +96,11 @@ offsetY(1, :) = [O.modeStructs.OffsetY];
 modeSpecExm = modeSpecExm .* exp(-1j .* offsetX .* kx) .* exp(-1j .* offsetY .* ky);
 modeSpecEym = modeSpecEym .* exp(-1j .* offsetX .* kx) .* exp(-1j .* offsetY .* ky);
 
-% filtFun = exp(-0.001 * krc.^2);
-% filtFun = real(krc) < 40;
-% modeSpecExm = modeSpecExm .* filtFun;
-% modeSpecEym = modeSpecEym .* filtFun;
-
 modeSpecExn = circshift(reshape(modeSpecExm, size(modeSpecExm, [1, 3, 2, 4, 5])), 2*Nphi, 5);
 modeSpecEyn = circshift(reshape(modeSpecEym, size(modeSpecEym, [1, 3, 2, 4, 5])), 2*Nphi, 5);
 
 %% Compute Cmn
-weights = momentH_weights(1, 1, 1, :) .* sqrt(1 + (krc).^2);
-
-Ex2 = innerProduct(weights, ...
-    innerProduct(weights_kphi .* ...
-    (modeSpecExm), ...
-    (modeSpecExn), ...
-    5) .* krc, 4);
-
-Ey2 = innerProduct(weights, ...
-    innerProduct(weights_kphi .* ...
-    (modeSpecEym), ...
-    (modeSpecEyn), ...
-    5) .* krc, 4);
-
-Exy(:, :) = Ex2 + Ey2;
-errdB = db(eye(size(Exy)) - Exy)
-
-Exy = eye(size(Exy));
+Exy = eye(size(modeSpecExm, 2));
 
 %% Compute Moments
 cosPhi = cos(kphi);
@@ -145,8 +128,8 @@ for ii = 1:size(Ah_weights(:, :), 2)
     [~, Ae_weights(:, ii)] = fejer2_halfOpen(Nm, Lc, ...
         WeightingMoments=Ae_moments(:, ii));
 end
-Ah_weights = Ah_weights ./ sqrt(1 + (krcNodes).^2);
-Ae_weights = Ae_weights .* sqrt(1 + (krcNodes).^2);
+Ah_weights = Ah_weights ./ (1 + (krcNodes).^1);
+Ae_weights = Ae_weights .* (1 + (krcNodes).^1);
 
 end
 

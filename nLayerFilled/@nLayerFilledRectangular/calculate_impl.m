@@ -23,11 +23,16 @@ function [gam] = calculate_impl(O, f, er, ur, thk)
 
 arguments
     O;
-    f(:, 1);
-    er(:, :);
-    ur(:, :);
-    thk(1, :);
+    f;
+    er;
+    ur;
+    thk;
 end
+
+%% Fix
+er = cell2mat(er).';
+ur = cell2mat(ur).';
+thk = cell2mat(thk).';
 
 %% Define Variables
 a = O.waveguideA;
@@ -77,7 +82,7 @@ S22 = (-A_final + B_final./z_ref - C_final.*z_ref + D_final) ./ ...
       (A_final + B_final./z_ref + C_final.*z_ref + D_final);
 
 %% Set Output
-gam = reshape([S11, S12, S21, S22], length(f), 2,2);
+gam = reshape([S11, S12, S21, S22], length(f), 2, 2);
 
 if ~isempty(O.outputIndices)
     gam = gam(:, O.outputIndices);

@@ -53,6 +53,14 @@ arguments
 end
 
 %% Check Values and Sizes of f, er, ur, and thk
+if ~any([iscell(er), iscell(ur), iscell(thk)])
+    if sum(size(f) > 1) > 1
+        error("If inputs 'er', 'ur', and 'thk' are not cell " + ...
+            "arrays, then 'f' must be a vector.");
+    end
+    f = f(:);
+end
+
 [er, ur, thk] = nLayer.validateStructure(er, ur, thk, ...
     CheckStructureValues=O.checkStructureValues);
 

@@ -21,24 +21,26 @@ close all;
 
 %% Example 1: Ka-band rectangular waveguide
 f1 = linspace(26.5, 40, 41).';
-er1_start = [4 - 0.05j];
-thk1_start = [0.5];
+er1_start = [2.1];
+ur1_start = [];
+thk1_start = [3];
 
-NL1 = nLayerRectangular(3, 2, Band="ka");
+NL1 = nLayerRectangular(3, 2, waveguideBand="Ka");
 
 figure;
-nLayerViewer(er1_start, thk1_start, NL1, f1);
+nLayerViewer(er1_start, ur1_start, thk1_start, NL1, f1);
 
 %% Example 2: Compare 6 modes to 1 mode
 f2 = linspace(26.5, 40, 41).';
-er2_start = [4 - 0.05j, 1];
-thk2_start = [0.5, 1];
+er2_start = [1, 2.1 - 0.001j];
+ur2_start = [];
+thk2_start = [0.01, 3];
 
-NL2_1 = nLayerRectangular(3, 2, Band="ka");
-NL2_2 = nLayerRectangular(1, 0, Band="ka");
+NL2_1 = nLayerRectangular(3, 2, waveguideBand="Ka");
+NL2_2 = nLayerRectangular(1, 0, waveguideBand="Ka");
 
 figure;
-nLayerViewer(er2_start, thk2_start, NL2_1, f2, NL2_2, f2, ...
+nLayerViewer(er2_start, ur2_start, thk2_start, NL2_1, f2, NL2_2, f2, ...
     Legend=["6 modes", "1 mode"]);
 
 

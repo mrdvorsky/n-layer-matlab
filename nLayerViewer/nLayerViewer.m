@@ -97,16 +97,17 @@ arguments
 
     % Electrical property bounds
     options.ErBounds        (:, 2) {mustBePositive, mustBeFinite} = [1, 10];
-    options.ErpBounds       (:, 2) {mustBePositive, mustBeFinite} = [0.01, 10];
+    options.ErpBounds       (:, 2) {mustBeNonnegative, mustBeFinite} = [0.000, 1];
     options.UrBounds        (:, 2) {mustBePositive, mustBeFinite} = [1, 10];
-    options.UrpBounds       (:, 2) {mustBePositive, mustBeFinite} = [0.01, 10];
-    options.ThkBounds       (:, 2) {mustBePositive, mustBeFinite} = [0.1, 100];
+    options.UrpBounds       (:, 2) {mustBeNonnegative, mustBeFinite} = [0.000, 1];
+    options.ThkBounds       (:, 2) {mustBeNonnegative, mustBeFinite} = [0, 10];
 
     % NLayer settings
-    options.GamInterpFactor (1, 1) {mustBeInteger, mustBePositive} = 10;
+    options.NumFrequencyMarkers (1, 1) {mustBeInteger, mustBePositive} = 41;
+    options.NumFrequencySamplesPerMarker (1, 1) {mustBeInteger, mustBePositive} = 20;
 
     % Plot settings
-    options.PlotLineWidth   (1, 1) {mustBeReal} = 1.5;
+    options.PlotLineWidth   (1, 1) {mustBeReal} = 1;
     options.PlotMarkerSize  (1, 1) {mustBeReal} = 5;
     options.PlotMarkerType  {mustBeTextScalar} = ".";
 end
@@ -178,6 +179,11 @@ uimenu(copyMenu, "Text", "Export Both", ...
     MenuSelectedFcn=@exportFigureAndStructure);
 
 %% Save initial material structure
+numF = (options.NumFrequencyMarkers - 1) ...
+    * options.NumFrequencySamplesPerMarker + 1;
+for ii = 1:numel(f)
+    f{ii} = linspace(min(f{ii}), max(f{ii}), numF);
+end
 handles.f = f;
 handles.NL = cellfun(@copy, NL, UniformOutput=false);
 
@@ -223,17 +229,16 @@ gamFitPlot = cell(numel(NL), 1);
 % Obtain initial parameters and calculate initial values
 for ii = 1:numel(NL)
     gam = NL{ii}.calculate(f{ii}, er, ur, thk);
-    gamFit = interpolateGamma(f{ii}, gam, options.GamInterpFactor);
 
     plotLabels = NL{ii}.getOutputLabels();
-    gamFitPlot{ii} = cell(size(gamFit(:, :), 2), 1);
-    for pp = 1:size(gamFit(:, :), 2)
-        gamFitPlot{ii}{pp} = plot(plotAxis, gamFit(:, pp), ...
+    gamFitPlot{ii} = cell(size(gam(:, :), 2), 1);
+    for pp = 1:size(gam(:, :), 2)
+        gamFitPlot{ii}{pp} = plot(plotAxis, gam(:, pp), ...
             Linewidth=options.PlotLineWidth, ...
             DisplayName=plotLabels(pp), ...
             Marker=options.PlotMarkerType, ...
             MarkerSize=options.PlotMarkerSize, ...
-            MarkerIndices=1:options.GamInterpFactor:size(gamFit, 1));
+            MarkerIndices=(0:options.NumFrequencyMarkers - 1) * options.NumFrequencySamplesPerMarker + 1);
     end
 end
 
@@ -962,11 +967,10 @@ end
 
 for ii = 1:size(handles.NL, 2)
     gam = handles.NL{ii}.calculate(handles.f{ii}, er_in.', ur_in.', thk_in.');
-    gamFit = interpolateGamma(handles.f{ii}, gam, handles.options.GamInterpFactor);
 
-    for pp = 1:size(gamFit(:, :), 2)
-        handles.gamFitPlot{ii}{pp}.XData = real(gamFit(:, pp));
-        handles.gamFitPlot{ii}{pp}.YData = imag(gamFit(:, pp));
+    for pp = 1:size(gam(:, :), 2)
+        handles.gamFitPlot{ii}{pp}.XData = real(gam(:, pp));
+        handles.gamFitPlot{ii}{pp}.YData = imag(gam(:, pp));
     end
 end
 

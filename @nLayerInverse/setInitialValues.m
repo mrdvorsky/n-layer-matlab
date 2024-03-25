@@ -18,6 +18,16 @@ arguments
 end
 
 %% Assign Initial Values
+if iscell(options.Er)
+    options.Er = cell2mat(options.Er);
+end
+if iscell(options.Ur)
+    options.Ur = cell2mat(options.Ur);
+end
+if iscell(options.Thk)
+    options.Thk = cell2mat(options.Thk);
+end
+
 O.initialValue_er  = options.Er;
 O.initialValue_ur  = options.Ur;
 O.initialValue_thk = options.Thk;

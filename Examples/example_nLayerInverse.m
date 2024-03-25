@@ -7,9 +7,9 @@ close all;
 
 %% Inputs
 f = linspace(26.5, 40, 21).';
-er = [1, 2 - 0.05j];
-ur = [1, 0.5 - 0.01j];
-thk = [0.5, 0.5];
+er = [2 - 0.05j, 1];
+ur = [0.5 - 0.01j, 1];
+thk = [0.5, 0.1];
 
 noiseStd = 0.01;
 
@@ -20,9 +20,9 @@ gamMeas = gamActual + (sqrt(0.5) .* noiseStd) ...
     .* complex(randn(size(f)), randn(size(f)));
 
 %% Solve for Structure
-NLsolver = nLayerInverse(2, verbosity=1);
-NLsolver.setLayersToSolve(Erp=[2], Erpp=[2], Urp=[2], Urpp=[2], Thk=[]);
-NLsolver.setRanges(UrpMin=[1, 0.01]);
+NLsolver = nLayerInverse(numel(thk), verbosity=1);
+NLsolver.setLayersToSolve(Erp=[1], Erpp=[1], Urp=[1], Urpp=[1], Thk=[]);
+NLsolver.setRanges(UrpMin=[0.01, 1]);
 NLsolver.setInitialValues(Er=er, Ur=ur, Thk=thk);
 NLsolver.useGlobalOptimizer = false;
 

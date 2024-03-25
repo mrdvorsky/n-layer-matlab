@@ -27,34 +27,22 @@ arguments
     er(:, 1);
     ur(:, 1);
     thk(:, 1) {mustBeNonempty};
+
     options.CheckStructureValues(1, 1) logical = true;
+    options.RequireConstantValuesPerLayer(1, 1) logical = false;
 end
 
 %% Check for Vector Inputs
-if ~iscell(er) || ~iscell(ur) || ~iscell(thk)
-    % warning("Inputs 'er', 'ur', and 'thk' should be cell " + ...
-    %     "arrays containing the values for each layer " + ...
-    %     "(i.e., er{n} corresponds to the nth layer). " + ...
-    %     "Modifying vector to be a cell array.");
+if ~iscell(er)
+    er = mat2cell(er, ones(numel(er), 1));
 end
 
-if ~iscell(er) || ~iscell(ur) || ~iscell(thk)
-    if ~iscell(er)
-        er = mat2cell(er, ones(numel(er), 1));
-    end
+if ~iscell(ur)
+    ur = mat2cell(ur, ones(numel(ur), 1));
+end
 
-    if ~iscell(ur)
-        ur = mat2cell(ur, ones(numel(ur), 1));
-    end
-
-    if ~iscell(thk)
-        thk = mat2cell(thk, ones(numel(thk), 1));
-    end
-
-    % warning("Inputs 'er', 'ur', and 'thk' should be cell " + ...
-    %     "arrays containing the values for each layer " + ...
-    %     "(i.e., er{n} corresponds to the nth layer). " + ...
-    %     "Modifying vector to be a cell array.");
+if ~iscell(thk)
+    thk = mat2cell(thk, ones(numel(thk), 1));
 end
 
 %% Check for Empty or Singleton er and ur
@@ -72,7 +60,21 @@ if numel(er) ~= numel(ur) || numel(er) ~= numel(thk)
         "arrays with the same length (or empty).");
 end
 
-%% Check Value Finiteness
+%% Check that Each Layer is Scalar
+if options.RequireConstantValuesPerLayer ...
+        && (any(cellfun(@numel, er) ~= 1) ...
+        ||  any(cellfun(@numel, ur) ~= 1) ...
+        ||  any(cellfun(@numel, thk) ~= 1))
+    error("The inputs 'er', 'ur', and 'thk' must be " + ...
+        "constant for each layer.");
+end
+
+%% Check Structure Values ("er", "ur", "thk")
+if ~options.CheckStructureValues
+    return;
+end
+
+% Check value finiteness.
 for n = 1:numel(thk) - 1
     if ~all(isfinite(er{n}(:))) || ~all(isfinite(ur{n}(:))) ...
             || ~all(isfinite(thk{n}(:)))
@@ -81,10 +83,7 @@ for n = 1:numel(thk) - 1
     end
 end
 
-%% Check Structure Values ("er", "ur", "thk")
-if ~options.CheckStructureValues
-    return;
-end
+% Check passivity.
 for n = 1:numel(thk) - 1
     if ~all(real(er{n}(:)) >= 1, "all") || ~all(real(ur{n}(:)) >= 1, "all")
         error("The real parts of 'er' and 'ur' must be greater than 1. " + ...

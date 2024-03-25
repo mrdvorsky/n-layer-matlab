@@ -28,7 +28,8 @@ end
 
 %% Check Inputs
 [er, ur, thk] = nLayer.validateStructure(er, ur, thk, ...
-    CheckStructureValues=false);
+    CheckStructureValues=false, ...
+    RequireConstantValuesPerLayer=true);
 
 er = cell2mat(er);
 ur = cell2mat(ur);
@@ -37,7 +38,7 @@ thk = cell2mat(thk);
 if size(options.FormatString, 1) == 1
     options.FormatString = repmat(options.FormatString, length(thk), 1);
 elseif size(options.FormatString, 1) ~= length(thk)
-    error("'size(FormatString, 1)' must be either 1 or length(thk).");
+    error("'size(FormatString, 1)' must be either 1 or numel(thk).");
 end
 
 if size(options.FormatString, 2) == 1
@@ -49,7 +50,7 @@ end
 if size(options.AdditionalText, 1) == 1
     options.AdditionalText = repmat(options.AdditionalText, length(thk), 1);
 elseif size(options.AdditionalText, 1) ~= length(thk)
-    error("'size(AdditionalText, 1)' must be either 1 or length(thk).");
+    error("'size(AdditionalText, 1)' must be either 1 or numel(thk).");
 end
 
 %% Create Helper Strings
@@ -133,8 +134,9 @@ end
 figureString = strtrim(splitlines(figureString));
 
 % Remove bold from "additional text" lines.
-numAdditionalLines = size(options.AdditionalText, 3);
-indices = 5*(1:numAdditionalLines) + (1:numAdditionalLines).' - 1;
+numLayers = size(options.AdditionalText, 1);
+numAdditionalLinesPerLayer = size(options.AdditionalText, 3);
+indices = 5*(1:numLayers) + (1:numAdditionalLinesPerLayer).' - 1;
 figureString(indices(:)) = strcat("\rm{", figureString(indices(:)), "}");
 figureString(setdiff(1:length(figureString), indices(:))) = ...
     strcat("\bf{", figureString(setdiff(1:length(figureString), indices(:))), "}");

@@ -136,7 +136,8 @@ figureString = strtrim(splitlines(figureString));
 % Remove bold from "additional text" lines.
 numLayers = size(options.AdditionalText, 1);
 numAdditionalLinesPerLayer = size(options.AdditionalText, 3);
-indices = 5*(1:numLayers) + (1:numAdditionalLinesPerLayer).' - 1;
+indices = (3 + numAdditionalLinesPerLayer)*(1:numLayers) ...
+    + (1:numAdditionalLinesPerLayer).' - (numAdditionalLinesPerLayer - 1);
 figureString(indices(:)) = strcat("\rm{", figureString(indices(:)), "}");
 figureString(setdiff(1:length(figureString), indices(:))) = ...
     strcat("\bf{", figureString(setdiff(1:length(figureString), indices(:))), "}");

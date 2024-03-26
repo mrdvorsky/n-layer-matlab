@@ -25,11 +25,11 @@ try
         gam{ii} = NL{ii}.calculate(f{ii}, er, ur, thk);
     end
 catch ex
-    Params.er = er;
-    Params.ur = ur;
-    Params.thk = thk;
-    error("Failed to evaluate structure because: %s\n%s", ex.message, ...
-        NLsolver{ii}.printStructureParameters(Params, Title="Failed to Converge"));
+    try %#ok<TRYNC>
+        nLayer.printStructure(er, ur, thk, ...
+            Title="Failed to evaluate structure:");
+    end
+    rethrow(ex);
 end
 
 %% Calculate Error

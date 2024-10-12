@@ -5,21 +5,34 @@ function [] = setLayersToSolve(O, options)
 % be left unchanged.
 %
 % Example Usage:
-%   NLsolver.setLayersToSolve(Erp=[1, 2], Erpp=[2]);
-%   NLsolver.setLayersToSolve(Urp=[1], Urpp=[2], Thk=[1, 2]);
+%   NLsolver.setLayersToSolve(Er=[1], Thk=[1]);
+%   NLsolver.setLayersToSolve(Ur=[1, 2], Thk=[1, 2]);
+%   NLsolver.setLayersToSolve(Erp=[1], Erpp=[1, 2]);    % Separate erp and erpp.
 %
 % Author: Matt Dvorsky
 
 arguments
     O;
-    options.Erp (:, 1) {mustBeValidLayerInd(options.Erp,  O)} = O.layersToSolve_erp;
-    options.Erpp(:, 1) {mustBeValidLayerInd(options.Erpp, O)} = O.layersToSolve_erpp;
-    options.Urp (:, 1) {mustBeValidLayerInd(options.Urp,  O)} = O.layersToSolve_urp;
-    options.Urpp(:, 1) {mustBeValidLayerInd(options.Urpp, O)} = O.layersToSolve_urpp;
-    options.Thk (:, 1) {mustBeValidLayerInd(options.Thk,  O)} = O.layersToSolve_thk;
+    options.Er  (1, :) = [];
+    options.Ur  (1, :) = [];
+    options.Thk (1, :) = O.layersToSolve_thk;
+
+    options.Erp (1, :) = O.layersToSolve_erp;
+    options.Erpp(1, :) = O.layersToSolve_erpp;
+    options.Urp (1, :) = O.layersToSolve_urp;
+    options.Urpp(1, :) = O.layersToSolve_urpp;
 end
 
 %% Assign Layer Indices
+if ~isempty(options.Er)
+    options.Erp = options.Er;
+    options.Erpp = options.Er;
+end
+if ~isempty(options.Ur)
+    options.Urp = options.Ur;
+    options.Urpp = options.Ur;
+end
+
 O.layersToSolve_erp  = options.Erp;
 O.layersToSolve_erpp = options.Erpp;
 O.layersToSolve_urp  = options.Urp;
@@ -28,12 +41,3 @@ O.layersToSolve_thk  = options.Thk;
 
 end
 
-function mustBeValidLayerInd(inds, O)
-    if any(inds > O.layerCount) || numel(inds) ~= numel(unique(inds)) ...
-            || any(inds <= 0) || any(inds ~= floor(inds))
-        throwAsCaller(MException("nLayerInverse:mustBeValidLayerInd", ...
-            "The parameters 'layersToSolve_{er, ur, thk}' must " + ...
-            "consist of unique positive integers no greater than " + ...
-            "the layer count (%d).", O.layerCount));
-    end
-end

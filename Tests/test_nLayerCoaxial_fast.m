@@ -31,11 +31,16 @@ toc;
 
 %% Plot
 figure;
-plot(gam1, "-", LineWidth=1.5);
+p = plot(gam1, "-", LineWidth=1.5);
 hold on;
 zplane([]);
 grid on;
 % legend(["Original", "New"]);
+p.DataTipTemplate.DataTipRows(1).Label = "Real";
+p.DataTipTemplate.DataTipRows(2).Label = "Imag";
+p.DataTipTemplate.DataTipRows(3) = dataTipTextRow("Abs", abs(gam1));
+p.DataTipTemplate.DataTipRows(4) = dataTipTextRow("Phase", rad2deg(angle(gam1)));
+p.DataTipTemplate.DataTipRows(5) = dataTipTextRow("Freq", f);
 
 
 % nLayer.plotModeStruct(NL2.modeStructs);

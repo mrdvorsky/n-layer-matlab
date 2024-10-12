@@ -9,8 +9,8 @@ function [Uncertainty] = computeParameterUncertaintyMultiple(NLsolver, NL, f, op
 % Example Usage (for multi-thickness, multi-band MUT measurement):
 %   NLsolver1.setInitialValues(Er=[1, 4-0.1j, 1], Thk=[10, 2,  10]);
 %   NLsolver2.setInitialValues(Er=[1, 4-0.1j, 1], Thk=[40, 10, 40]);
-%   NLsolver1.setLayersToSolve(Erp=[2], Erpp=[2]);
-%   NLsolver2.setLayersToSolve(Erp=[2], Erpp=[2]);
+%   NLsolver1.setLayersToSolve(Er=[2]);
+%   NLsolver2.setLayersToSolve(Er=[2]);
 %   [Uncert] = nLayerInverse.computeParameterUncertaintyMultiple(...
 %       NLsolver1, NL1, f1, ...
 %       NLsolver2, NL2, f2, ...
@@ -19,8 +19,8 @@ function [Uncertainty] = computeParameterUncertaintyMultiple(NLsolver, NL, f, op
 % Example Usage (for multi-standoff open-ended measurements):
 %   NLsolver1.setInitialValues(Er=[1, 2-0.01j], Thk=[0,  20]);
 %   NLsolver2.setInitialValues(Er=[1, 2-0.01j], Thk=[10, 20]);
-%   NLsolver1.setLayersToSolve(Erp=[2], Erpp=[2], Thk=[2]);
-%   NLsolver2.setLayersToSolve(Erp=[2], Erpp=[2], Thk=[2]);
+%   NLsolver1.setLayersToSolve(Er=[2], Thk=[2]);
+%   NLsolver2.setLayersToSolve(Er=[2], Thk=[2]);
 %   [Uncert] = nLayerInverse.computeParameterUncertaintyMultiple(...
 %       NLsolver1, NL, f, ...
 %       NLsolver2, NL, f, ...
@@ -58,24 +58,41 @@ arguments
 end
 
 %% Construct Linearized Ranges and Initial Guesses
-[xInitial, ~, ~] = NLsolver{1}.constructInitialValuesAndRanges();
-
+[xInitial, ~, ~, ~, ~, xAeq, xbeq] = NLsolver{1}.constructInitialValuesAndRanges();
 [~, gam] = nLayerInverse.calculateError(NLsolver, xInitial, NL, f, num2cell(zeros(length(NL), 1)));
 
 %% Create Error Function
 errorFunctionVector = @(x) nLayerInverse.calculateError(NLsolver, x, NL, f, gam);
 
 %% Calculate Jacobian
-[~, ~, ~, ~, ~, ~, J]  = lsqnonlin(errorFunctionVector, xInitial, [], [], ...
-    optimoptions("lsqnonlin", Display="none"));
+J = 0;
+if ~isempty(xInitial)
+    [~, ~, ~, ~, ~, ~, J]  = lsqnonlin(errorFunctionVector, xInitial, [], [], ...
+        [], [], [], [], [], optimoptions("lsqnonlin", Display="iter"));
+end
 
 %% Compute Uncertainty from Jacobian
-hess = pinv(full(J).' * full(J), 0) .* options.NoiseStd.^2;
-xUncertainty = sqrt(diag(hess));
+if numel(xAeq) == 0
+    xUncertainty = sqrt(diag(pinv(full(J).' * full(J), 0))) .* options.NoiseStd;
+else    % Take equality constraints into account.
+    [R, xSubInd(:, 1)] = rref([xAeq, xbeq]);
+    yInd(:, 1) = setdiff((1:numel(xInitial)).', xSubInd);
+
+    % Write x in the form of C*y + c0.
+    C = zeros(numel(xInitial), numel(yInd));
+    C(yInd, :) = eye(numel(yInd));
+    C(xSubInd, :) = -R(:, yInd);
+
+    % Jacobian for reduced order equation system.
+    yUncertainty = sqrt(diag(pinv(...
+        C.' * (full(J).' * full(J)) * C, 0))) .* options.NoiseStd;
+    xUncertainty = abs(C*yUncertainty);
+end
 
 Uncertainty = cell(numel(NLsolver), 1);
 for ii = 1:numel(Uncertainty)
     [er, ur, thk] = NLsolver{ii}.extractStructure(xInitial, f);
+    Uncertainty{ii}.J = J;
     [Uncertainty{ii}.erLower, Uncertainty{ii}.urLower, Uncertainty{ii}.thkLower] = ...
         NLsolver{ii}.extractStructure(xInitial - xUncertainty, f);
     [Uncertainty{ii}.erUpper, Uncertainty{ii}.urUpper, Uncertainty{ii}.thkUpper] = ...

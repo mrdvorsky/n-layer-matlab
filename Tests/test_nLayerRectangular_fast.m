@@ -27,7 +27,7 @@ gam1 = NL1.calculate(f, er, ur, thk);
 toc;
 
 tic;
-for ii = 1:100
+for ii = 1:1000
     gam2 = NL2.calculate(f, er, ur, thk);
 end
 toc;
@@ -43,6 +43,11 @@ zplane([]);
 grid on;
 legend(["Original", "New"]);
 
+
+NL3 = nLayerRectangular(1, 0, waveguideBand="ka");
+
+figure;
+nLayerViewer([1, 4], [], [1, 1], NL2, f, NL3, f, NumFrequencySamplesPerMarker=100);
 
 % nLayer.plotModeStruct(NL2.modeStructs)
 

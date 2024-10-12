@@ -46,9 +46,6 @@ arguments
     options.SpeedOfLight(1, 1) {mustBePositive} = 299.792458;
 end
 
-%% Check Inputs
-nLayer.validateStructure(f, er, ur, thk);
-
 %% Calculate Equivalent Loss Factor for Given "sigma"
 mu0_times_c_HenrysPerSecond = 119.9169832 * pi;
 k0 = 2*pi .* f ./ options.SpeedOfLight;

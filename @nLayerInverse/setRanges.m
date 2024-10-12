@@ -12,17 +12,17 @@ function [] = setRanges(O, options)
 
 arguments
     O;
-    options.ErpMin (:, 1) {mustBeValidRangeMin(options.ErpMin,  O)} = O.rangeMin_erp;
-    options.ErppMin(:, 1) {mustBeValidRangeMin(options.ErppMin, O)} = O.rangeMin_erpp;
-    options.UrpMin (:, 1) {mustBeValidRangeMin(options.UrpMin,  O)} = O.rangeMin_urp;
-    options.UrppMin(:, 1) {mustBeValidRangeMin(options.UrppMin, O)} = O.rangeMin_urpp;
-    options.ThkMin (:, 1) {mustBeValidRangeMin(options.ThkMin,  O)} = O.rangeMin_thk;
+    options.ErpMin (1, :) = O.rangeMin_erp;
+    options.ErppMin(1, :) = O.rangeMin_erpp;
+    options.UrpMin (1, :) = O.rangeMin_urp;
+    options.UrppMin(1, :) = O.rangeMin_urpp;
+    options.ThkMin (1, :) = O.rangeMin_thk;
     
-    options.ErpMax (:, 1) {mustBeValidRangeMax(options.ErpMax,  O)} = O.rangeMax_erp;
-    options.ErppMax(:, 1) {mustBeValidRangeMax(options.ErppMax, O)} = O.rangeMax_erpp;
-    options.UrpMax (:, 1) {mustBeValidRangeMax(options.UrpMax,  O)} = O.rangeMax_urp;
-    options.UrppMax(:, 1) {mustBeValidRangeMax(options.UrppMax, O)} = O.rangeMax_urpp;
-    options.ThkMax (:, 1) {mustBeValidRangeMax(options.ThkMax,  O)} = O.rangeMax_thk;
+    options.ErpMax (1, :) = O.rangeMax_erp;
+    options.ErppMax(1, :) = O.rangeMax_erpp;
+    options.UrpMax (1, :) = O.rangeMax_urp;
+    options.UrppMax(1, :) = O.rangeMax_urpp;
+    options.ThkMax (1, :) = O.rangeMax_thk;
 end
 
 %% Assign Ranges
@@ -38,21 +38,5 @@ O.rangeMax_urp  = options.UrpMax;
 O.rangeMax_urpp = options.UrppMax;
 O.rangeMax_thk  = options.ThkMax;
 
-end
-
-function mustBeValidRangeMin(ranges, O)
-    if numel(ranges) ~= O.layerCount
-        throwAsCaller(MException("nLayerInverse:mustBeValidRangeMin", ...
-            "The parameters 'rangeMin_{er, ur, thk}' must be vectors " + ...
-            "with layerCount (%d) elements.", O.layerCount));
-    end
-end
-
-function mustBeValidRangeMax(ranges, O)
-    if numel(ranges) ~= O.layerCount
-        throwAsCaller(MException("nLayerInverse:mustBeValidRangeMax", ...
-            "The parameters 'rangeMax_{er, ur, thk}' must be vectors " + ...
-            "with layerCount (%d) elements.", O.layerCount));
-    end
 end
 

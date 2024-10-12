@@ -1,5 +1,5 @@
 function [Parameters, Gamma, Uncertainty] = solveStructureMultiple(NLsolver, NL, f, gam, options)
-%SOLVESTRUCTUREMULTI Perform simultaneous curve fitting on multiple nLayerInverse objects.
+%SOLVESTRUCTUREMULTIPLE Perform simultaneous curve fitting on multiple nLayerInverse objects.
 % This function takes quadruplets of nLayerInverse objects, nLayerForward
 % objects, frequency vectors, and measurements, and tries to find the
 % missing structure parameters of er, ur, thk to minimize the sum of the
@@ -27,8 +27,8 @@ function [Parameters, Gamma, Uncertainty] = solveStructureMultiple(NLsolver, NL,
 % Example Usage (for multi-thickness, multi-band MUT measurement):
 %   NLsolver1.setInitialValues(Er=[1, 4-0.1j, 1], Thk=[10, 2,  10]);
 %   NLsolver2.setInitialValues(Er=[1, 4-0.1j, 1], Thk=[40, 10, 40]);
-%   NLsolver1.setLayersToSolve(Erp=[2], Erpp=[2]);
-%   NLsolver2.setLayersToSolve(Erp=[2], Erpp=[2]);
+%   NLsolver1.setLayersToSolve(Er=[2]);
+%   NLsolver2.setLayersToSolve(Er=[2]);
 %   [Params, Gamma, Uncert] = nLayerInverse.solveStructureMultiple(...
 %       NLsolver1, NL1, f1, gam1, ...
 %       NLsolver2, NL2, f2, gam2);
@@ -36,8 +36,8 @@ function [Parameters, Gamma, Uncertainty] = solveStructureMultiple(NLsolver, NL,
 % Example Usage (for multi-standoff open-ended measurements):
 %   NLsolver1.setInitialValues(Er=[1, 2-0.01j], Thk=[0,  20]);
 %   NLsolver2.setInitialValues(Er=[1, 2-0.01j], Thk=[10, 20]);
-%   NLsolver1.setLayersToSolve(Erp=[2], Erpp=[2], Thk=[2]);
-%   NLsolver2.setLayersToSolve(Erp=[2], Erpp=[2], Thk=[2]);
+%   NLsolver1.setLayersToSolve(Er=[2], Thk=[2]);
+%   NLsolver2.setLayersToSolve(Er=[2], Thk=[2]);
 %   [Params, Gamma, Uncert] = nLayerInverse.solveStructureMultiple(...
 %       NLsolver1, NL, f, gam1, ...
 %       NLsolver2, NL, f, gam2);
@@ -65,7 +65,7 @@ function [Parameters, Gamma, Uncertainty] = solveStructureMultiple(NLsolver, NL,
 %       parmeter uncertainties for each input set.
 %
 % Named Arguments:
-%   NoiseStdMin (0.001) - Minimum uncertainty value to assume for the
+%   NoiseStdMin (0.01) - Minimum uncertainty value to assume for the
 %       measurement data when calculating the Uncertainty struct. If the
 %       RMS difference between the fit and the measurements is less than
 %       NoiseStdMin, NoiseStdMin will be used instead.
@@ -78,28 +78,25 @@ arguments (Repeating)
     f(:, 1) {mustBeNonempty};
     gam {mustBeCorrectGamSize(f, gam)};
 end
-
 arguments
     options.NoiseStdMin(1, 1) {mustBeNonnegative} = 0.01;
 end
 
-%% Validate nLayerInverse Objects
-for ii = 1:numel(NLsolver)
-    NLsolver{ii}.validate();
-end
-
 %% Construct Linearized Ranges and Initial Guesses
-[xInitial, xMin, xMax] = NLsolver{1}.constructInitialValuesAndRanges();
+[xInitial, xMin, xMax, xA, xb, xAeq, xbeq] = ...
+    NLsolver{1}.constructInitialValuesAndRanges();
 for ii = 2:numel(NLsolver)
-    [~, xMinTmp, xMaxTmp] = NLsolver{ii}.constructInitialValuesAndRanges();
+    [~, xMinTmp, xMaxTmp] = ...
+        NLsolver{ii}.constructInitialValuesAndRanges();
     xMin = max(xMin, xMinTmp);
     xMax = max(xMax, xMaxTmp);
 end
 
 %% Create Error Function
-errorFunctionVector = @(x) nLayerInverse.calculateError(NLsolver, x, NL, f, gam);
-errorFunctionScalar = @(x) nLayerInverse.calculateError(NLsolver, x, NL, f, gam, ...
-    VectorOutput=false);
+errorFunctionVector = @(x) nLayerInverse.calculateError(...
+    NLsolver, x, NL, f, gam);
+errorFunctionScalar = @(x) nLayerInverse.calculateError(...
+    NLsolver, x, NL, f, gam, VectorOutput=false);
 
 %% Set Verbosity for Optimizers
 globalOptimizerOptions = NLsolver{1}.globalOptimizerOptions;
@@ -115,7 +112,8 @@ if NLsolver{1}.verbosity > 0
 end
 
 %% Run Global Optimizer
-if NLsolver{1}.useGlobalOptimizer
+fit_res = 0;
+if NLsolver{1}.useGlobalOptimizer && ~isempty(xInitial)
     if any(~isfinite(xMax))
         error("When the global optimizer option is enabled, " + ...
             "rangeMax_{er, ur, thk} must be set to finite values.");
@@ -123,19 +121,27 @@ if NLsolver{1}.useGlobalOptimizer
     switch class(globalOptimizerOptions)
         case "optim.options.GaOptions"
             [xInitial, fit_res] = ga(errorFunctionScalar, numel(xInitial), ...
-                [], [], [], [], xMin, xMax, [], globalOptimizerOptions);
-        case "optim.options.Particleswarm"
-            [xInitial, fit_res] = particleswarm(errorFunctionScalar, numel(xInitial), ...
-                xMin, xMax, globalOptimizerOptions);
+                xA, xb, xAeq, xbeq, xMin, xMax, [], globalOptimizerOptions);
         case "optim.options.PatternsearchOptions"
             [xInitial, fit_res] = patternsearch(errorFunctionScalar, xInitial, ...
-                [], [], [], [], xMin, xMax, [], globalOptimizerOptions);
-        case "optim.options.SimulannealbndOptions"
-            [xInitial, fit_res] = simulannealbnd(errorFunctionScalar, xInitial, ...
-                xMin, xMax, globalOptimizerOptions);
+                xA, xb, xAeq, xbeq, xMin, xMax, [], globalOptimizerOptions);
         case "optim.options.Surrogateopt"
             [xInitial, fit_res] = surrogateopt(errorFunctionScalar, ...
-                xMin, xMax, [], [], [], [], [], globalOptimizerOptions);
+                xMin, xMax, xA, xb, xAeq, xbeq, [], globalOptimizerOptions);
+        case "optim.options.Particleswarm"
+            if (numel(xA) + numel(xAeq)) > 0
+                error("Thickness constraints not supported for the " + ...
+                    "'Particleswarm' solver.");
+            end
+            [xInitial, fit_res] = particleswarm(errorFunctionScalar, numel(xInitial), ...
+                xMin, xMax, globalOptimizerOptions);
+        case "optim.options.SimulannealbndOptions"
+            if (numel(xA) + numel(xAeq)) > 0
+                error("Thickness constraints not supported for the " + ...
+                    "'Particleswarm' solver.");
+            end
+            [xInitial, fit_res] = simulannealbnd(errorFunctionScalar, xInitial, ...
+                xMin, xMax, globalOptimizerOptions);
         otherwise
             error("Global optimizer '%s' not supported.", ...
                 class(globalOptimizerOptions));
@@ -143,34 +149,39 @@ if NLsolver{1}.useGlobalOptimizer
 end
 
 %% Run Local Optimizer
-if NLsolver{1}.useLocalOptimizer
+if NLsolver{1}.useLocalOptimizer && ~isempty(xInitial)
     switch class(localOptimizerOptions)
         case "optim.options.Lsqnonlin"
-            [x, fit_res] = lsqnonlin(errorFunctionVector, xInitial(:), xMin, xMax, ...
-                localOptimizerOptions);
+            [x, fit_res] = lsqnonlin_wrapper(errorFunctionVector, xInitial(:), ...
+                xMin, xMax, xA, xb, xAeq, xbeq, localOptimizerOptions);
         case "optim.options.Fmincon"
             [x, fit_res] = fmincon(errorFunctionScalar, xInitial(:), ...
-                [], [], [], [], xMin, xMax, [], localOptimizerOptions);
+                xA, xb, xAeq, xbeq, xMin, xMax, [], localOptimizerOptions);
         otherwise
             error("Local optimizer '%s' not supported.", ...
                 class(localOptimizerOptions));
     end
 else
     x = xInitial(:);
+
+    if isempty(xInitial)
+        warning("No parameters were set to be optimized.");
+    end
     
     if ~NLsolver{1}.useGlobalOptimizer
-        error("At least one optimizer must be enabled.");
+        warning("No local or global optimizer was enabled. " + ...
+            "Results will be equal to initial conditions.");
     end
 end
 
 %% Check for Active Boundary Conditions
-bounds_eps = 1e-8;
-if any(abs(x - xMin) < bounds_eps) || any(abs(x - xMax) < bounds_eps)
+bounds_eps = 1e-6;
+if any(abs(x - xMin) < bounds_eps, "all") || any(abs(x - xMax) < bounds_eps, "all")
     warning("One or more parameters (er, ur, thk) of the final " + ...
         "solved structure is bounded by a max or min, and thus the " + ...
         "solution is likely incorrect. Either relax the min and " + ...
         "max constraints or reduce the number of parameters " + ...
-        "being solved.")
+        "being solved.");
 end
 
 %% Create Parameters Output
@@ -201,6 +212,9 @@ end
 end
 
 
+
+
+%% Helper Functions
 function mustBeCorrectGamSize(f, gam)
     if iscell(f)    % Fix MATLAB bug.
         currentInd = find(cellfun(@(x) numel(x) > 0, f), 1, "last");
@@ -211,5 +225,43 @@ function mustBeCorrectGamSize(f, gam)
             "First dimension of the measurements array must have size " + ...
             "equal to the number of frequencies (%d).", numel(f)));
     end
+end
+
+function [x, val] = lsqnonlin_wrapper(fun, x0, xMin, xMax, A, b, Aeq, beq, options)
+    % Helper function to run lsqnonlin using Jacobian-based algorithm when
+    % only equality constraints are specified. If inequality constraints
+    % are specified or if there are no equality constraints, standard
+    % lsqnonlin will be used. Otherwise, a change of variables will be used
+    % to reduce the number of unknowns. Unfortunately, MATLAB currently has
+    % no algorithm that does this when using a Jacobian-based solver.
+    
+    % Run normally if there are any inequality or no equality constraints.
+    if (numel(A) > 0) || (numel(Aeq) == 0)
+        [x, val] = lsqnonlin(fun, x0, xMin, xMax, ...
+            A, b, Aeq, beq, [], options);
+        return;
+    end
+    
+    % If only equality constraints are specified, use substitution method.
+    [R, xSubInd(:, 1)] = rref([Aeq, beq]);
+    yInd(:, 1) = setdiff((1:numel(x0)).', xSubInd);
+
+    % Write x in the form of C*y + c0.
+    C = zeros(numel(x0), numel(yInd));
+    C(yInd, :) = eye(numel(yInd));
+    C(xSubInd, :) = -R(:, yInd);
+
+    c0 = zeros(numel(x0), 1);
+    c0(xSubInd, 1) = R(:, end);
+
+    % Identify y0, yMin, and yMax.
+    yMin = xMin(yInd);
+    yMax = xMax(yInd);
+    y0 = C \ (x0 - c0);
+
+    [y, val] = lsqnonlin(@(y) fun(max(min(C*y + c0, xMax), xMin)), ...
+        y0, yMin, yMax, [], [], [], [], [], options);
+
+    x = C*y + c0;
 end
 

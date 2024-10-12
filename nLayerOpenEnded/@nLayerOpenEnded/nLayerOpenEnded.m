@@ -18,6 +18,11 @@ classdef nLayerOpenEnded < nLayerForward
     %
     % Author: Matt Dvorsky
 
+    properties (Access=public)
+        integral_pointsKrc = 50;
+        integral_pointsKr = 8192;
+        integral_pointsPhi = 64;
+    end
     properties (GetAccess=public, SetAccess=public)
         modeStructs(1, :);      % Array of waveguideMode objects, defining the properties of each mode.
         frequencyRange(1, :) {mustBeNonnegative, mustBeFinite} = [1, 2];   % Operating frequency range of the object.

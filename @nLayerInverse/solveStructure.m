@@ -36,7 +36,7 @@ function [varargout] = solveStructure(O, NL, f, gam, options)
 %       uncertainties for each input set.
 %
 % Named Arguments:
-%   NoiseStdMin (0.001) - Minimum uncertainty value to assume for the
+%   NoiseStdMin (0.01) - Minimum uncertainty value to assume for the
 %       measurement data when calculating the Uncertainty struct. If the
 %       RMS difference between the fit and the measurements is less than
 %       NoiseStdMin, NoiseStdMin will be used instead.
@@ -46,13 +46,11 @@ function [varargout] = solveStructure(O, NL, f, gam, options)
 arguments
     O;
 end
-
 arguments(Repeating)
     NL(1, 1) {mustBeA(NL, "nLayerForward")};
     f(:, 1) {mustBeNonempty};
     gam {mustBeCorrectGamSize(f, gam)};
 end
-
 arguments
     options.NoiseStdMin(1, 1) {mustBeNonnegative} = 0.01;
 end

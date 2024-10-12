@@ -84,7 +84,7 @@ for n = 1:numel(thk) - 1
 end
 
 % Check passivity.
-for n = 1:numel(thk) - 1
+for n = 1:numel(thk)
     if ~all(real(er{n}(:)) >= 1, "all") || ~all(real(ur{n}(:)) >= 1, "all")
         error("The real parts of 'er' and 'ur' must be greater than 1. " + ...
             "To disable this check, set 'checkStructureValues' to false.");

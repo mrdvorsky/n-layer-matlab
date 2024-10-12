@@ -47,11 +47,6 @@ classdef nLayerRectangular < nLayerOpenEnded
         waveguideB_custom(1, 1);
     end
 
-    %% Class Functions
-    methods (Access=protected)
-        [modeStruct] = defineWaveguideModes(O);
-    end
-
     %% Class Constructor
     methods
         function O = nLayerRectangular(maxIndexM, maxIndexN, classProperties)
@@ -85,6 +80,11 @@ classdef nLayerRectangular < nLayerOpenEnded
                 O.receiveModeIndices = 1;
             end
         end
+    end
+
+    %% Class Functions
+    methods (Access=protected)
+        [modeStruct] = defineWaveguideModes(O);
     end
 
     %% Class Setters

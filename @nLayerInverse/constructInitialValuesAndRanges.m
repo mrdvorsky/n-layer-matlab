@@ -1,4 +1,4 @@
-function [xInitial, xMin, xMax] = constructInitialValuesAndRanges(O)
+function [xInitial, xMin, xMax, xA, xb, xAeq, xbeq] = constructInitialValuesAndRanges(O)
 %CONSTRUCTINITIALVALUESANDRANGES Linearizes initial values and ranges for optimizer.
 % Performs the conversion from structure parameters (er, ur, thk) to the
 % linearized real vector parameters taken in by the curve fitting
@@ -35,14 +35,28 @@ urppMax = O.rangeMax_urpp(O.layersToSolve_urpp);
 thkMax  = O.rangeMax_thk( O.layersToSolve_thk);
 
 %% Apply Thickness Constraints
+thk_Aeq = O.constraints_thk_Aeq;
+thk_beq = thk_Aeq * O.initialValue_thk(:);
+
+thk_A = O.constraints_thk_A;
+thk_b = O.constraints_thk_b;
 
 %% Assemble Output
 xInitial = [erp, erpp, urp, urpp, thk].';
 xMin = [erpMin, erppMin, urpMin, urppMin, thkMin].';
 xMax = [erpMax, erppMax, urpMax, urppMax, thkMax].';
 
+% Linear thickness constraints (xAeq*x == xbeq and xA*x <= xb).
+xAeq = zeros(numel(thk_beq), numel(xMax));
+xA = zeros(numel(thk_b), numel(xMax));
+xbeq = thk_beq;
+xb = thk_b;
+
+xAeq(:, end-numel(thkMax)+1:end) = thk_Aeq(:, O.layersToSolve_thk);
+xA(:,   end-numel(thkMax)+1:end) = thk_A(:,   O.layersToSolve_thk);
+
 %% Check Value Bounds
-if any(xInitial < xMin) || any(xInitial > xMax)
+if any(xInitial < xMin, "all") || any(xInitial > xMax, "all")
     error("One or more structure parameters (er, ur, thk) that " + ...
         "are being solved for is outside the range specified.");
 end

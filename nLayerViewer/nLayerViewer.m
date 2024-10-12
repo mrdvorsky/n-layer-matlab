@@ -110,11 +110,23 @@ arguments
     options.PlotLineWidth   (1, 1) {mustBeReal} = 1;
     options.PlotMarkerSize  (1, 1) {mustBeReal} = 5;
     options.PlotMarkerType  {mustBeTextScalar} = ".";
+
+    options.UpdateFunction = @(f, er, ur, thk) 0;
 end
 
 %% Check Inputs
 if ~isfield(options, "StructureAxisSize")
     options.StructureAxisSize = 0.1 + 0.1*length(thk);
+end
+
+if (iscell(er))
+    er = cell2mat(er);
+end
+if (iscell(ur))
+    ur = cell2mat(ur);
+end
+if (iscell(thk))
+    thk = cell2mat(thk);
 end
 
 if isempty(er)
@@ -186,6 +198,7 @@ for ii = 1:numel(f)
 end
 handles.f = f;
 handles.NL = cellfun(@copy, NL, UniformOutput=false);
+handles.updateFunction = options.UpdateFunction;
 
 numLayers = numel(thk);
 
@@ -210,14 +223,16 @@ plotAxisPosition(2) = 1 - (1 - plotAxisPosition(2)) ...
     .* (1 - options.StructureAxisSize);
 plotAxisPosition(4) = plotAxisPosition(4) ...
     .* (1 - options.StructureAxisSize);
-plotAxis = axes(plotPanel, Position=plotAxisPosition);
+plotAxis = axes(plotPanel, Position=plotAxisPosition, ...
+    ButtonDownFcn=@buttonClickFunction);
 
 [h1, h2, h3] = zplane([], [], plotAxis);
 h1.HandleVisibility = "off";
 h2.HandleVisibility = "off";
 h3.HandleVisibility = "off";
-xlabel("");
-ylabel("");
+xlabel(plotAxis, "");
+ylabel(plotAxis, "");
+title(plotAxis, "");
 
 xlim(plotAxis, [-1.1, 1.1]);
 ylim(plotAxis, [-1.1, 1.1]);
@@ -232,6 +247,7 @@ for ii = 1:numel(NL)
 
     plotLabels = NL{ii}.getOutputLabels();
     gamFitPlot{ii} = cell(size(gam(:, :), 2), 1);
+
     for pp = 1:size(gam(:, :), 2)
         gamFitPlot{ii}{pp} = plot(plotAxis, gam(:, pp), ...
             Linewidth=options.PlotLineWidth, ...
@@ -240,6 +256,14 @@ for ii = 1:numel(NL)
             MarkerSize=options.PlotMarkerSize, ...
             MarkerIndices=(0:options.NumFrequencyMarkers - 1) * options.NumFrequencySamplesPerMarker + 1);
     end
+end
+
+handles.markerPlot = plot(-1, -1, ".k", MarkerSize=8, ...
+    HitTest="off", DisplayName=sprintf("f = %g GHz", f{1}(1)));
+handles.markerFreq = f{1}(1);
+
+for ii = 1:numel(plotAxis.Children)
+    plotAxis.Children(ii).HitTest = "off";
 end
 
 if options.ShowLegend
@@ -470,7 +494,7 @@ switch panel
         thk(layer) = thk_slider(layer);
 end
 
-handles = plotGam(handles, er, erp, ur, urp, thk);
+handles = plotGam(handles);
 
 % Store data into figure
 guidata(hObject, handles);
@@ -691,8 +715,6 @@ currentValue = str2double(hObject.String);
 isOutsideBounds = 0;
 
 if ~isnan(currentValue) || isreal(currentValue)
-    [er, erp, ur, urp, thk] = valueReader(handles);
-
     switch panel
         case "er"
             if currentValue < 1
@@ -789,22 +811,10 @@ else
 end
 
 if isOutsideBounds
-    switch panel
-        case "er"
-            er(layer) = currentValue;
-        case "erp"
-            erp(layer) = currentValue;
-        case "ur"
-            ur(layer) = currentValue;
-        case "urp"
-            urp(layer) = currentValue;
-        case "thk"
-            thk(layer) = currentValue;
-    end
     hObject.String = currentValue;
 end
 
-handles = plotGam(handles, er, erp, ur, urp, thk);
+handles = plotGam(handles);
 
 handles.uiSliders = uiSliders;
 
@@ -818,43 +828,19 @@ function halfPlaneValueChange(hObject, ~)
 handles = guidata(hObject);
 
 isInfHalfPlane = handles.isInfHalfPlane.Value;
-
-layer = size(handles.uiSliders.thkSliders, 1);
-
-% Disable the last layer's thickness parameters textboxes and slider
 if isInfHalfPlane
-    handles.uiSliders.thkSliders{layer}.Enable = "off";
-    handles.uiEditField.thkCV{layer}.Enable = "off";
-    handles.uiEditField.thkLB{layer}.Enable = "off";
-    handles.uiEditField.thkUB{layer}.Enable = "off";
+    handles.uiSliders.thkSliders{end}.Enable = "off";
+    handles.uiEditField.thkCV{end}.Enable = "off";
+    handles.uiEditField.thkLB{end}.Enable = "off";
+    handles.uiEditField.thkUB{end}.Enable = "off";
 else
-    handles.uiSliders.thkSliders{layer}.Enable = "on";
-    handles.uiEditField.thkCV{layer}.Enable = "on";
-    handles.uiEditField.thkLB{layer}.Enable = "on";
-    handles.uiEditField.thkUB{layer}.Enable = "on";
+    handles.uiSliders.thkSliders{end}.Enable = "on";
+    handles.uiEditField.thkCV{end}.Enable = "on";
+    handles.uiEditField.thkLB{end}.Enable = "on";
+    handles.uiEditField.thkUB{end}.Enable = "on";
 end
 
-[er, erp, ur, urp, thk] = valueExtractor(handles);
-
-panel = extractBefore(hObject.Tag, "-");
-layer = str2double(extractAfter(hObject.Tag, "-"));
-
-switch panel
-    case "er"
-        handles.uiEditField.erCV{layer}.String = er(layer);
-    case "erp"
-        handles.uiEditField.erpCV{layer}.String = erp(layer);
-    case "ur"
-        handles.uiEditField.urCV{layer}.String = ur(layer);
-    case "urp"
-        handles.uiEditField.urpCV{layer}.String = urp(layer);
-    case "thk"
-        handles.uiEditField.thkCV{layer}.String = thk(layer);
-end
-
-handles = plotGam(handles, er, erp, ur, urp, thk);
-
-% Store data into figure
+handles = plotGam(handles);
 guidata(hObject, handles);
 
 end
@@ -883,7 +869,7 @@ thk = lerp_arr(cellfun(valueExtracted, handles.uiSliders.thkSliders), handles.ui
 end
 
 %% Value reader from current value edit field
-function [er, erp, ur, urp, thk] = valueReader(handles)
+function [erp, erpp, urp, urpp, thk] = valueReader(handles)
 % Read current value from edit field which is string stored in cell array
 valueRead = @(s) s.String;
 er_str = cellfun(valueRead, handles.uiEditField.erCV, UniformOutput=false);
@@ -893,11 +879,23 @@ urp_str = cellfun(valueRead, handles.uiEditField.urpCV, UniformOutput=false);
 thk_str = cellfun(valueRead, handles.uiEditField.thkCV, UniformOutput=false);
 
 % Convert string to number
-er = cellfun(@str2double, er_str);
-erp = cellfun(@str2double, erp_str);
-ur = cellfun(@str2double, ur_str);
-urp = cellfun(@str2double, urp_str);
+erp = cellfun(@str2double, er_str);
+erpp = cellfun(@str2double, erp_str);
+urp = cellfun(@str2double, ur_str);
+urpp = cellfun(@str2double, urp_str);
 thk = cellfun(@str2double, thk_str);
+
+if handles.isInfHalfPlane.Value
+    thk(end) = inf;
+end
+
+end
+
+function [er, ur, thk] = valueReaderComplex(handles)
+[erp, erpp, urp, urpp, thk] = valueReader(handles);
+er = num2cell(erp - 1j*erpp);
+ur = num2cell(urp - 1j*urpp);
+thk = num2cell(thk);
 end
 
 %% Figure Resize Callback
@@ -956,17 +954,11 @@ end
 end
 
 %% Calculate and plot S-Parameters
-function handles = plotGam(handles, er, erp, ur, urp, thk)
-er_in = er - 1j*erp;
-ur_in = ur - 1j*urp;
-thk_in = thk;
-
-if handles.isInfHalfPlane.Value
-    thk_in(end) = inf;
-end
+function handles = plotGam(handles)
+[er, ur, thk] = valueReaderComplex(handles);
 
 for ii = 1:size(handles.NL, 2)
-    gam = handles.NL{ii}.calculate(handles.f{ii}, er_in.', ur_in.', thk_in.');
+    gam = handles.NL{ii}.calculate(handles.f{ii}, er, ur, thk);
 
     for pp = 1:size(gam(:, :), 2)
         handles.gamFitPlot{ii}{pp}.XData = real(gam(:, pp));
@@ -974,22 +966,52 @@ for ii = 1:size(handles.NL, 2)
     end
 end
 
+gamF = handles.NL{1}.calculate(handles.markerFreq, er, ur, thk);
+handles.markerPlot.XData = real(gamF);
+handles.markerPlot.YData = imag(gamF);
+handles.updateFunction(handles.markerFreq, er, ur, thk);
+
 [~, handles.structureText.String] = ...
-    nLayer.printStructure(er_in, ur_in, thk_in, Title="");
+    nLayer.printStructure(er, ur, thk, Title="");
 
 end
 
-%% Gamma Interpolation Function
-function gamInterp = interpolateGamma(f, gam, interpFactor)
+%% Button Click CallBack
+function [pIndFrac] = nearest_point(line_x, line_y, xp, yp)
+    ux = line_x(1:end-1) - xp;
+    uy = line_y(1:end-1) - yp;
+    vx = line_x(2:end) - line_x(1:end-1);
+    vy = line_y(2:end) - line_y(1:end-1);
 
-if numel(f) <= 1
-    gamInterp = gam;
-    return;
+    t = max(0, min(1, -(ux.*vx + uy.*vy) ./ (vx.*vx + vy.*vy)));
+    cx = (1 - t).*line_x(1:end-1) + t.*line_x(2:end);
+    cy = (1 - t).*line_y(1:end-1) + t.*line_y(2:end);
+
+    [~, pInd] = min(hypot(cx - xp, cy - yp));
+    pIndFrac = pInd + t(pInd);
+
+    % [~, pInd] = min(hypot(line_x - xp, line_y - yp));
 end
 
-gamInterp = interp1(linspace(0, 1, numel(f)).', gam, ...
-    linspace(0, 1, (numel(f) - 1)*interpFactor + 1).', "spline");
+function buttonClickFunction(hObject, ~)
+    handles = guidata(hObject);
+    xy = hObject.CurrentPoint(1, 1:2);
 
+    line = handles.gamFitPlot{1}{1};
+    pInd = nearest_point(line.XData, line.YData, xy(1), xy(2));
+    f = interp1(handles.f{1}, pInd);
+    
+    [er, ur, thk] = valueReaderComplex(handles);
+    gamF = handles.NL{1}.calculate(f, er, ur, thk);
+
+    handles.markerPlot.XData = real(gamF);
+    handles.markerPlot.YData = imag(gamF);
+    handles.markerFreq = f;
+    handles.markerPlot.DisplayName = sprintf("f = %g GHz", f);
+    handles.updateFunction(handles.markerFreq, er, ur, thk);
+
+    guidata(hObject, handles);
 end
+
 
 

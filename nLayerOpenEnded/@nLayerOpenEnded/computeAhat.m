@@ -30,13 +30,13 @@ Lc = k0Max;
 Lch = Lc;
 Lcw = 10*Lc;
 
-Nm = 100;
+Nm = 128;
 Nrho = 1*8192;
 Nphi = 1*64;
 
-% Nm = O.integral_pointsKrc;
-% Nrho = O.integral_pointsKr;
-% Nphi = O.integral_points;
+Nm = O.integral_pointsKrc;
+Nrho = O.integral_pointsKr;
+Nphi = O.integral_pointsPhi;
 
 
 % Dimension Assignment:

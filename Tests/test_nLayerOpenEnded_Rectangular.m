@@ -10,10 +10,10 @@ thk = [10];
 f = linspace(8.2, 12.4, 801);
 
 %% nLayerRectangularOld
-tic;
-NL1 = nLayerRectangularOld(3, 2, waveguideBand="x", ...
-    convergenceAbsTol=1e-4, verbosity=1);
-toc;
+% tic;
+% NL1 = nLayerRectangularOld(3, 2, waveguideBand="x", ...
+%     convergenceAbsTol=1e-4, verbosity=1);
+% toc;
 
 %% nLayerRectangular
 tic;
@@ -24,9 +24,9 @@ toc;
 NL2.waveguideEr = 1;
 
 %% Calculate
-tic;
-gam1 = NL1.calculate(f, er, ur, thk);
-toc;
+% tic;
+% gam1 = NL1.calculate(f, er, ur, thk);
+% toc;
 
 tic;
 gam2 = NL2.calculate(f, er, ur, thk);
@@ -36,7 +36,7 @@ relErr = abs(max(gam1 - gam2))
 
 %% Plot
 figure;
-plot(gam1, "-", LineWidth=1.5);
+% plot(gam1, "-", LineWidth=1.5);
 hold on;
 plot(gam2, "-", LineWidth=1.5);
 zplane([]);

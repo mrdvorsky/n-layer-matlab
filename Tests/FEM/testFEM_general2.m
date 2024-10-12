@@ -6,10 +6,10 @@ close all;
 wgA = 1;
 wgB = 0.5;
 
-numX = 30;
-numY = 25;
+numX = 20;
+numY = 10;
 
-numModes = 10;
+numModes = 4;
 
 orderNum = 1;
 orderNum = 2;
@@ -34,7 +34,7 @@ tris = delaunay(x, y);
 %% FEM Solution
 [vals, cutoffs, x, y, tris, isBoundaryPEC, C, T] = fem_solveModes(x, y, tris, isBoundaryPEC, ...
     ModeType="TE", ModeCount=numModes, FemElementOrder=orderNum);
-% db(cutoffs - pi*[1, 2, 2, hypot(1, 2), hypot(2, 2)].')
+db(cutoffs - pi*[hypot(1, 2), 2, 2, hypot(1, 2), hypot(2, 2)].')
 
 % [V, D] = eigs(C, T, numModes + 1, ...
 %     "smallestabs", IsSymmetricDefinite=true);

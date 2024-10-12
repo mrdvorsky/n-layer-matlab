@@ -7,7 +7,7 @@ function [Uncertainty] = computeParameterUncertainty(O, NL, f, options)
 %
 % Example Usage (simple case, 2 layer infinite halfspace):
 %   NLsolver.setInitialValues(Er=[1, 4-1j], Thk=[10, inf]);
-%   NLsolver.setLayersToSolve(Erp=[2], Erpp=[2]);
+%   NLsolver.setLayersToSolve(Er=[2]);
 %   [Uncert] = NLsolver.computeParameterUncertainty(NL, f, gam, ...
 %       NoiseStd=0.03);
 %

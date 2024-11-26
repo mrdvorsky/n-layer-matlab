@@ -3,8 +3,8 @@ function [gam] = calculate(O, f, er, ur, thk, options)
 % Computes the reflection/transmission coefficients when looking into a
 % multilayer structure defined by er, ur, and thk at the frequencies
 % defined by "f". Some options may depend on the specific subclass of
-% nLayerForward (e.g., nLayerRectangular, etc.). Check documentation of the
-% specific subclass for more specific information.
+% nLayerForward (e.g., nLayerRectangular, etc.). Check documentation of
+% the specific subclass for more specific information.
 %
 % Note that the units for all distance and time (or frequency) parameters
 % are defined by the speedOfLight parameter. The default units are mm and
@@ -28,8 +28,8 @@ function [gam] = calculate(O, f, er, ur, thk, options)
 %       value of 1.
 %   ur - Same as "er", except for complex relative permeability.
 %   thk - Same as "er" and "ur" but for the thicknesses of each layer.
-%       Obviously, the value of "thk" should not change with frequency, but
-%       this is not checked.
+%       Obviously, the value of "thk" should not change with frequency,
+%       but this is not checked.
 %
 % Outputs:
 %   gam - Array of calculated reflection/transmission coefficients for the

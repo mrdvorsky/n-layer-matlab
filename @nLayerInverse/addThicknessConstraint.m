@@ -69,7 +69,7 @@ if isfield(constraints, "GreaterThanOrEqualTo")
     return;
 end
 
-error("One of 'EqualTo', 'LessThanOrEqualTo', or " + ...
+error("One of 'IsFixed', 'LessThanOrEqualTo', or " + ...
     "'GreaterThanOrEqualTo', must be specified.");
 
 end

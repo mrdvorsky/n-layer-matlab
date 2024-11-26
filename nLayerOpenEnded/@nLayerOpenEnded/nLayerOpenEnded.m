@@ -91,8 +91,6 @@ classdef nLayerOpenEnded < nLayerForward
             if ~isempty(modeStructs)
                 O.modeStructs = modeStructs;
             end
-
-            fprintf("nLayerOpenEnded\r\n");
         end
     end
 
@@ -101,12 +99,12 @@ classdef nLayerOpenEnded < nLayerForward
         function set.modeStructs(O, newModeStructs)
             O.modeStructs = newModeStructs;
             O.shouldRecomputeWeights = true;        %#ok<MCSUP>
-            fprintf("Changed: modeStructs\n");
+            % fprintf("Changed: modeStructs\n");
         end
         function set.frequencyRange(O, newFreqRange)
             O.frequencyRange = [min(newFreqRange), max(newFreqRange)];
             O.shouldRecomputeWeights = true;        %#ok<MCSUP>
-            fprintf("Changed: freq\n");
+            % fprintf("Changed: freq\n");
         end
 
         function set.modeSymmetryX(O, newSym)

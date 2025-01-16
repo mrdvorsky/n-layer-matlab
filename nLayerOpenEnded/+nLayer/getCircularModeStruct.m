@@ -26,7 +26,7 @@ if isRotated && (m == 0)
         "flag was set to true, which will result in a duplicate mode.");
 end
 
-%% Get Cutoff Wavenumber
+%% Calculate Mode Cutoff
 if isempty(options.kc)
     if strcmp(TE_TM, "TE")
         kcAll = besseljprime_zeros(m, n) ./ wgR;
@@ -36,27 +36,6 @@ if isempty(options.kc)
     kc = kcAll(end);
 else
     kc = options.kc;
-end
-
-%% Create Mode Spectrum Functions
-if strcmp(TE_TM, "TE")
-    scale = scaleFactor_TE(wgR, kc, m);
-    if isRotated
-        Ex = @(~, ~, kr, kPhi)  circSpectrum_sinSin(kr, kPhi, wgR, kc, m) * scale;
-        Ey = @(~, ~, kr, kPhi) -circSpectrum_cosSin(kr, kPhi, wgR, kc, m) * scale;
-    else
-        Ex = @(~, ~, kr, kPhi)  circSpectrum_sinCos(kr, kPhi, wgR, kc, m) * scale;
-        Ey = @(~, ~, kr, kPhi) -circSpectrum_cosCos(kr, kPhi, wgR, kc, m) * scale;
-    end
-else
-    scale = scaleFactor_TM(wgR, kc, m);
-    if isRotated
-        Ex = @(~, ~, kr, kPhi) -circSpectrum_cosSin(kr, kPhi, wgR, kc, m) * scale;
-        Ey = @(~, ~, kr, kPhi) -circSpectrum_sinSin(kr, kPhi, wgR, kc, m) * scale;
-    else
-        Ex = @(~, ~, kr, kPhi) -circSpectrum_cosCos(kr, kPhi, wgR, kc, m) * scale;
-        Ey = @(~, ~, kr, kPhi) -circSpectrum_sinCos(kr, kPhi, wgR, kc, m) * scale;
-    end
 end
 
 %% Define Weighting Functions
@@ -78,7 +57,7 @@ if strcmp(TE_TM, "TE")
     if m == 0
         WeSpec = @(~, ~, ~, ~) 0;
     end
-else
+else    % TM
     signTM = (-1).^(m*isRotated + (m==0) + n + 1 + ceil(0.5*m)) ...
         .* (-1j).^(m + 1);
     scaleTM = signTM .* sqrt((2 - (m==0))/pi);
@@ -117,10 +96,11 @@ if m == 0
 end
 
 %% Create Mode Struct
-modeStruct = nLayer.createModeStruct(TE_TM, ...
+modeStruct = nLayer.createModeStruct(...
+    TE_TM, ...
     sprintf("%s_{%d,%d}", TE_TM, m, n), ...
-    ExSpec=Ex, EySpec=Ey, ...
-    WhSpec=WhSpec, WeSpec=WeSpec, ...
+    WhSpec=WhSpec, ...
+    WeSpec=WeSpec, ...
     CutoffWavenumber=kc, ...
     ApertureWidth=2*wgR, ...
     SymmetryX=symmetryX, ...
@@ -130,72 +110,7 @@ modeStruct = nLayer.createModeStruct(TE_TM, ...
 end
 
 
-
-
-%% Helper Functions
-function [y] = circSpectrum_cosCos(kr, kphi, wgR, kc, m)
-    rot1 = 2 * cos(kphi) .* cos(m .* kphi);
-    rot2 = -cos((m + 1) .* kphi);
-
-    int1 = besselj_int1(kr, wgR, kc, m);
-    int2 = besselj_int2(kr, wgR, kc, m);
-
-    y = rot1.*int1 + rot2.*int2;
-end
-
-function [y] = circSpectrum_sinCos(kr, kphi, wgR, kc, m)
-    rot1 = 2 * sin(kphi) .* cos(m .* kphi);
-    rot2 = -sin((m + 1) .* kphi);
-
-    int1 = besselj_int1(kr, wgR, kc, m);
-    int2 = besselj_int2(kr, wgR, kc, m);
-
-    y = rot1.*int1 + rot2.*int2;
-end
-
-function [y] = circSpectrum_cosSin(kr, kphi, wgR, kc, m)
-    rot1 = 2 * cos(kphi) .* sin(m .* kphi);
-    rot2 = -sin((m + 1) .* kphi);
-
-    int1 = besselj_int1(kr, wgR, kc, m);
-    int2 = besselj_int2(kr, wgR, kc, m);
-
-    y = rot1.*int1 + rot2.*int2;
-end
-
-function [y] = circSpectrum_sinSin(kr, kphi, wgR, kc, m)
-    rot1 = 2 * sin(kphi) .* sin(m .* kphi);
-    rot2 = cos((m + 1) .* kphi);
-
-    int1 = besselj_int1(kr, wgR, kc, m);
-    int2 = besselj_int2(kr, wgR, kc, m);
-
-    y = rot1.*int1 + rot2.*int2;
-end
-
-function [y] = besselj_int1(kr, wgR, kc, m)
-    y = kc .* (kr .* besselj(m, wgR.*kr) .* besselj(m - 1, wgR.*kc) ...
-        - kc .* besselj(m - 1, wgR.*kr) .* besselj(m, wgR.*kc)) ...
-        ./ (kr.^2 - kc.^2);
-end
-
-function [y] = besselj_int2(kr, wgR, kc, m)
-    JmOverKr = besselj(m, wgR.*kr) ./ kr;
-    JmOverKr(kr == 0) = 0.5 * wgR * (m == 1);
-    y = (2*m ./ wgR) .* besselj(m, wgR.*kc) .* JmOverKr;
-end
-
-function [scale] = scaleFactor_TE(wgR, kc, m)
-    scale = 0.5 * sqrt(1 + (m~=0)) ...
-        ./ (kc .* sqrt(besselj(m, wgR * kc).^2 - ...
-        besselj(m - 1, wgR * kc).*besselj(m + 1, wgR * kc)) .* sqrt(pi));
-end
-
-function [scale] = scaleFactor_TM(wgR, kc, m)
-    scale = 0.5 * sqrt(1 + (m~=0)) ...
-        ./ (kc .* sqrt(besseljprime(m, wgR * kc).^2) .* sqrt(pi));
-end
-
+%% Helper Function
 function [y] = JmOverKr(m, wgR, kr)
     y = besselj(m, wgR.*kr) ./ kr;
     y(kr == 0) = 0.5 * wgR * (m == 1);

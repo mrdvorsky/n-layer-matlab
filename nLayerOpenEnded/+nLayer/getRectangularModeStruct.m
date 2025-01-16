@@ -1,7 +1,11 @@
 function [modeStruct] = getRectangularModeStruct(m, n, wgA, wgB, TE_TM)
-%GETSPECTRUMRECTANGULAR Get function object defining waveguide spectrums.
-% This function returns function objects
+%GETRECTANGULARMODESTRUCT Get function object defining waveguide spectrums.
+% This function returns a modeStruct for the rectangular waveguide modes.
 %
+% If "m" is even, the y-axis will be PEC, and PMC if odd.
+% For "n", the same is true but for the x-axis.
+%
+% Author: Matt Dvorsky
 
 arguments
     m(1, 1) {mustBeNonnegative, mustBeInteger};
@@ -11,19 +15,17 @@ arguments
     TE_TM(1, 1) string {mustBeMember(TE_TM, ["TE", "TM"])};
 end
 
-%% Create Mode Spectrum Functions
-kc = pi * hypot(m/wgA, n/wgB);
-scale_All = pi ./ kc;
-if strcmp(TE_TM, "TE")
-    scaleX =  (n/wgB) .* scale_All;
-    scaleY = -(m/wgA) .* scale_All;
-else
-    scaleX =  (m/wgA) .* scale_All;
-    scaleY =  (n/wgB) .* scale_All;
+%% Check Inputs
+if (m == 0) && (n == 0) && strcmp(TE_TM, "TE")
+    error("Rectangular mode TE00 does not exist.");
 end
 
-Ex = @(kx, ky, ~, ~) scaleX .* rectSpectrum_cos(kx, wgA, m).*rectSpectrum_sin(ky, wgB, n);
-Ey = @(kx, ky, ~, ~) scaleY .* rectSpectrum_sin(kx, wgA, m).*rectSpectrum_cos(ky, wgB, n);
+if ((m == 0) || (n == 0)) && strcmp(TE_TM, "TM")
+    error("Rectangular modes TM0n and TMm0 do not exist.");
+end
+
+%% Calculate Mode Cutoff
+kc = pi * hypot(m/wgA, n/wgB);
 
 %% Define Weighting Functions
 if strcmp(TE_TM, "TE")
@@ -62,33 +64,6 @@ else
     WeSpec = @(kx, ky, kr, ~) scaleTM * kr .* double_sinc(kx, wgA, m) .* double_sinc(ky, wgB, n);
 end
 
-%% Create Spatial Functions
-scale_All = 2 ./ ((2*pi) .* kc .* sqrt(wgA .* wgB));
-if strcmp(TE_TM, "TE")
-    HertzZ = @(x, y) scale_All ...
-        .* cos(m.*pi.*(x - 0.5*wgA) ./ wgA) ...
-        .* cos(n.*pi.*(y - 0.5*wgB) ./ wgB);
-    HertzZ_dx = @(x, y) -(m.*pi./wgA) .* scale_All ...
-        .* sin(m.*pi.*(x - 0.5*wgA) ./ wgA) ...
-        .* cos(n.*pi.*(y - 0.5*wgB) ./ wgB);
-    HertzZ_dy = @(x, y) -(n.*pi./wgB) .* scale_All ...
-        .* cos(m.*pi.*(x - 0.5*wgA) ./ wgA) ...
-        .* sin(n.*pi.*(y - 0.5*wgB) ./ wgB);
-else
-    HertzZ = @(x, y) scale_All ...
-        .* sin(m.*pi.*(x - 0.5*wgA) ./ wgA) ...
-        .* sin(n.*pi.*(y - 0.5*wgB) ./ wgB);
-    HertzZ_dx = @(x, y) (m.*pi./wgA) .* scale_All ...
-        .* cos(m.*pi.*(x - 0.5*wgA) ./ wgA) ...
-        .* sin(n.*pi.*(y - 0.5*wgB) ./ wgB);
-    HertzZ_dy = @(x, y) (n.*pi./wgB) .* scale_All ...
-        .* sin(m.*pi.*(x - 0.5*wgA) ./ wgA) ...
-        .* cos(n.*pi.*(y - 0.5*wgB) ./ wgB);
-end
-
-boundaryPoints = [wgA .* [-0.5, 0.5, 0.5, -0.5]; ...
-    wgB .* [-0.5, -0.5, 0.5, 0.5]].';
-
 %% Create Mode Struct
 symmetryY = "PMC";
 if mod(m, 2) == 0
@@ -100,52 +75,22 @@ if mod(n, 2) == 0
     symmetryX = "PEC";
 end
 
-modeStruct = nLayer.createModeStruct(TE_TM, ...
+modeStruct = nLayer.createModeStruct(...
+    TE_TM, ...
     sprintf("%s_{%d,%d}", TE_TM, m, n), ...
-    ExSpec=Ex, EySpec=Ey, ...
-    WhSpec=WhSpec, WeSpec=WeSpec, ...
+    WhSpec=WhSpec, ...
+    WeSpec=WeSpec, ...
     CutoffWavenumber=kc, ...
     ApertureWidth=hypot(wgA, wgB), ...
     SymmetryX=symmetryX, ...
-    SymmetryY=symmetryY, ...
-    HertzAz=HertzZ, ...
-    HertzAz_dx=HertzZ_dx, ...
-    HertzAz_dy=HertzZ_dy, ...
-    BoundaryPoints=boundaryPoints);
+    SymmetryY=symmetryY);
 
 end
 
 
-
-
-%% Integrals over Sin and Cos
-function v = rectSpectrum_sin(k, a, m)
-    if m == 0
-        v = 0;
-        return;
-    end
-    v = sqrt(a*pi) * (0.5/pi) ...
-        .* (               sinc((0.5/pi) .* (a.*k - m.*pi)) ...
-        + (-1).^(m + 1) .* sinc((0.5/pi) .* (a.*k + m.*pi)) );
-end
-
-function v = rectSpectrum_cos(k, a, m)
-    if m == 0
-        v = sqrt(0.5*a/pi) ...
-            .* sinc((0.5/pi) .* (a.*k));
-        return;
-    end
-
-    v = a .* sqrt(a/pi) .* (0.5/pi) .* k ./ m ...
-        .* (               sinc((0.5/pi) .* (a.*k - m.*pi)) ...
-        + (-1).^(m + 1) .* sinc((0.5/pi) .* (a.*k + m.*pi)) );
-end
-
+%% Helper Function
 function v = double_sinc(k, a, m)
     v = (                  sinc((0.5/pi) .* (a.*k - m.*pi)) ...
         + (-1).^(m + 1) .* sinc((0.5/pi) .* (a.*k + m.*pi)) );
 end
-
-
-
 

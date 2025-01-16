@@ -1,6 +1,16 @@
-function [modeStruct] = getCoaxialModeStruct(m, n, r_inner, r_outer, TE_TM, isRotated)
+function [modeStruct] = getCoaxialModeStruct(m, n, r_inner, r_outer, TE_TM, isRotated, options)
 %GETCOAXIALMODESTRUCT Get function object defining waveguide spectrums.
 % This function returns a modeStruct for the coaxial waveguide modes.
+%
+% If TE mode, the the x-axis will be PEC, and the y-axis will be the same
+% if "m" is even. For TM modes the the x-axis will be PMC, and the y-axis
+% will be the same if "m" is even.
+%
+% If "isRotated" is true, then PMC and PEC will flip for all modes.
+%
+% The TEM mode should be specified as TM00.
+%
+% Author: Matt Dvorsky
 
 arguments
     m(1, 1) {mustBeNonnegative, mustBeInteger};
@@ -9,6 +19,10 @@ arguments
     r_outer(1, 1) {mustBePositive, mustBeGreaterThan(r_outer, r_inner)};
     TE_TM(1, 1) string {mustBeMember(TE_TM, ["TE", "TM"])};
     isRotated(1, 1) logical;
+
+    options.kc {mustBeScalarOrEmpty} = [];
+    options.alpha {mustBeScalarOrEmpty} = [];
+    options.beta {mustBeScalarOrEmpty} = [];
 end
 
 %% Check Inputs
@@ -23,22 +37,6 @@ if (m == 0) && isRotated
 end
 
 %% Handle TEM Mode
-% if (m == 0) && (n == 0)
-%     scale = 1 ./ sqrt(2*pi * (log(r_outer) - log(r_inner)));
-%     Ex = @(kx, ky, kr, kphi) scale .* cos(kphi) .* besseljyTEM(kr, [r_inner, r_outer]);
-%     Ey = @(kx, ky, kr, kphi) scale .* sin(kphi) .* besseljyTEM(kr, [r_inner, r_outer]);
-% 
-%     modeStruct = nLayer.createModeStruct(TE_TM, "TEM", ...
-%     ExSpec=Ex, EySpec=Ey, ...
-%     WhSpec=@(~, ~, ~, ~) 0, WeSpec=@(~, ~, ~, ~) 0, ...
-%     CutoffWavenumber=0, ...
-%     ApertureWidth=2*r_outer, ...
-%     SymmetryX="PMC", ...
-%     SymmetryY="PMC", ...
-%     SymmetryAxial="TM");
-%     return;
-% end
-
 if (m == 0) && (n == 0)
     scaleTEM = 1j ./ sqrt(2*pi * (log(r_outer) - log(r_inner)));
 
@@ -55,39 +53,20 @@ if (m == 0) && (n == 0)
     return;
 end
 
-
-
-%% Create Mode Spectrum Functions
-if strcmp(TE_TM, "TE")
-    [kc, alpha, beta] = besseljyprime_zeros(m, n, r_inner, r_outer);
-else                        % TM
-    [kc, alpha, beta] = besseljy_zeros(m, n, r_inner, r_outer);
-end
-kc = kc(end);
-a = alpha(end);
-b = beta(end);
-
-r1r2 = [r_inner, r_outer];
-
-if strcmp(TE_TM, "TE")
-    scale = scaleFactorTE(r1r2, kc, a, b, m, n);
-    Ex = @(~, ~, kr, kPhi)  besseljyIntSin(kr, kPhi, r1r2, kc, a, b, m) * scale;
-    Ey = @(~, ~, kr, kPhi) -besseljyIntCos(kr, kPhi, r1r2, kc, a, b, m) * scale;
+%% Calculate Mode Cutoff
+if isempty(options.kc) || isempty(options.alpha) || isempty(options.beta)
+    if strcmp(TE_TM, "TE")
+        [kc, alpha, beta] = besseljyprime_zeros(m, n, r_inner, r_outer);
+    else    % TM
+        [kc, alpha, beta] = besseljy_zeros(m, n, r_inner, r_outer);
+    end
+    kc = kc(end);
+    a = alpha(end);
+    b = beta(end);
 else
-    scale = scaleFactorTM(r1r2, kc, a, b, m, n);
-    Ex = @(~, ~, kr, kPhi) -besseljyIntCos(kr, kPhi, r1r2, kc, a, b, m) * scale;
-    Ey = @(~, ~, kr, kPhi) -besseljyIntSin(kr, kPhi, r1r2, kc, a, b, m) * scale;
-end
-
-if isRotated
-    rotVal = pi/2 ./ max(m, 1);
-    ExRot = @(~, ~, kr, kPhi) cos(rotVal) * Ex(0, 0, kr, kPhi - rotVal) ...
-        - sin(rotVal) * Ey(0, 0, kr, kPhi - rotVal);
-    EyRot = @(~, ~, kr, kPhi) sin(rotVal) * Ex(0, 0, kr, kPhi - rotVal) ...
-        + cos(rotVal) * Ey(0, 0, kr, kPhi - rotVal);
-else
-    ExRot = Ex;
-    EyRot = Ey;
+    kc = options.kc;
+    a = options.alpha;
+    b = options.beta;
 end
 
 %% Define Weighting Functions
@@ -174,8 +153,8 @@ end
 modeStruct = nLayer.createModeStruct(...
     TE_TM, ...
     sprintf("%s_{%d,%d}", TE_TM, m, n), ...
-    ExSpec=ExRot, EySpec=EyRot, ...
-    WhSpec=WhSpec, WeSpec=WeSpec, ...
+    WhSpec=WhSpec, ...
+    WeSpec=WeSpec, ...
     CutoffWavenumber=kc, ...
     ApertureWidth=2*r_outer, ...
     SymmetryX=symmetryX, ...
@@ -185,68 +164,7 @@ modeStruct = nLayer.createModeStruct(...
 end
 
 
-
-
-%% Helper Functions
-function [y] = besseljyTEM(kr, r1r2)
-    y = (besselj(0, kr .* r1r2(1)) - besselj(0, kr .* r1r2(2))) ./ kr;
-    y(kr == 0) = 0;
-end
-
-function [y] = besseljyIntCos(kr, kPhi, r1r2, kc, a, b, m)
-    Int1 = besseljyInt1(kr, r1r2(2), kc, a, b, m) ...
-        - (r1r2(1)/r1r2(2)) * besseljyInt1(kr, r1r2(1), kc, a, b, m);
-    Int2 = besseljyInt2(kr, r1r2(2), kc, a, b, m) ...
-        - (r1r2(1)/r1r2(2)) * besseljyInt2(kr, r1r2(1), kc, a, b, m);
-
-    rad1 = 2 * cos(kPhi) .* cos(m .* kPhi);
-    rad2 = -cos((m + 1) .* kPhi);
-    
-    y = Int1.*rad1 + Int2.*rad2;
-end
-
-function [y] = besseljyIntSin(kr, kPhi, r1r2, kc, a, b, m)
-    Int1 = besseljyInt1(kr, r1r2(2), kc, a, b, m) ...
-        - (r1r2(1)/r1r2(2)) * besseljyInt1(kr, r1r2(1), kc, a, b, m);
-    Int2 = besseljyInt2(kr, r1r2(2), kc, a, b, m) ...
-        - (r1r2(1)/r1r2(2)) * besseljyInt2(kr, r1r2(1), kc, a, b, m);
-
-    rad1 = 2 * sin(kPhi) .* cos(m .* kPhi);
-    rad2 = -sin((m + 1) .* kPhi);
-    
-    y = Int1.*rad1 + Int2.*rad2;
-end
-
-function [y] = besseljyInt1(kr, r, kc, a, b, m)
-    y = kc .* (kr .* besselj(m, r.*kr) .* besseljy(a, b, m - 1, r.*kc) ...
-        - kc .* besselj(m - 1, r.*kr) .* besseljy(a, b, m, r.*kc)) ...
-        ./ (kr.^2 - kc.^2);
-end
-
-function [y] = besseljyInt2(kr, r, kc, a, b, m)
-    JmOverKr = besselj(m, r.*kr) ./ kr;
-    JmOverKr(kr == 0) = 0.5 * r * (m == 1);
-    y = (2*m ./ r) .* besseljy(a, b, m, r.*kc) .* JmOverKr;
-end
-
-function [scale] = scaleFactorTE(r1r2, kc, a, b, m, n)
-    scale = (1).^(m) * 0.5 * sqrt(1 + (m~=0)) ...
-        ./ (kc .* sqrt(besselj(m, r1r2(2) * kc).^2 - ...
-        besselj(m - 1, r1r2(2) * kc).*besselj(m + 1, r1r2(2) * kc)) .* sqrt(pi));
-end
-
-function [scale] = scaleFactorTM(r1r2, kc, a, b, m, n)
-    int1 = integral(@(x) x .* (besseljy(a, b, m, kc.*x).^2), r1r2(1), r1r2(2));
-    
-    % scale = (1j).^(m) * 0.5 ./ sqrt(1 + (n~=0)) ...
-    %     ./ (kc .* sqrt((besseljyprime(a, b, m, r1r2(2) * kc).^2 ...
-    %     - (1).^(n) .* besseljyprime(a, b, m, r1r2(1) * kc).^2)) .* sqrt(pi));
-
-    scale = -(-1).^(m) * 0.5 * sqrt(1 + (m~=0)) ...
-        ./ kc .* r1r2(2) ./ sqrt(int1) ./ sqrt(2*pi);
-end
-
-
+%% Helper Function
 function [y] = JmOverKr(m, wgR, kr)
     y = besselj(m, wgR.*kr) ./ kr;
     y(kr == 0) = 0.5 * wgR * (m == 1);

@@ -1,6 +1,6 @@
 function [modeStruct] = getCoaxialModeStruct(m, n, r_inner, r_outer, TE_TM, isRotated)
 %GETCOAXIALMODESTRUCT Get function object defining waveguide spectrums.
-% This function returns a modeStruct for the circular waveguide modes.
+% This function returns a modeStruct for the coaxial waveguide modes.
 
 arguments
     m(1, 1) {mustBeNonnegative, mustBeInteger};
@@ -23,25 +23,44 @@ if (m == 0) && isRotated
 end
 
 %% Handle TEM Mode
-if (m == 0) && (n == 0)
-    scale = 1 ./ sqrt(2*pi * (log(r_outer) - log(r_inner)));
-    Ex = @(kx, ky, kr, kphi) scale .* cos(kphi) .* besseljyTEM(kr, [r_inner, r_outer]);
-    Ey = @(kx, ky, kr, kphi) scale .* sin(kphi) .* besseljyTEM(kr, [r_inner, r_outer]);
+% if (m == 0) && (n == 0)
+%     scale = 1 ./ sqrt(2*pi * (log(r_outer) - log(r_inner)));
+%     Ex = @(kx, ky, kr, kphi) scale .* cos(kphi) .* besseljyTEM(kr, [r_inner, r_outer]);
+%     Ey = @(kx, ky, kr, kphi) scale .* sin(kphi) .* besseljyTEM(kr, [r_inner, r_outer]);
+% 
+%     modeStruct = nLayer.createModeStruct(TE_TM, "TEM", ...
+%     ExSpec=Ex, EySpec=Ey, ...
+%     WhSpec=@(~, ~, ~, ~) 0, WeSpec=@(~, ~, ~, ~) 0, ...
+%     CutoffWavenumber=0, ...
+%     ApertureWidth=2*r_outer, ...
+%     SymmetryX="PMC", ...
+%     SymmetryY="PMC", ...
+%     SymmetryAxial="TM");
+%     return;
+% end
 
-    modeStruct = nLayer.createModeStruct(TE_TM, "TEM", ...
-    ExSpec=Ex, EySpec=Ey, ...
-    CutoffWavenumber=0, ...
-    ApertureWidth=2*r_outer, ...
-    SymmetryX="PMC", ...
-    SymmetryY="PMC", ...
-    SymmetryAxial="TM");
+if (m == 0) && (n == 0)
+    scaleTEM = 1j ./ sqrt(2*pi * (log(r_outer) - log(r_inner)));
+
+    modeStruct = nLayer.createModeStruct(...
+        TE_TM, "TEM", ...
+        WhSpec=@(~, ~, ~, ~) 0, ...
+        WeSpec=@(~, ~, kr, ~) scaleTEM*(JmOverKr(m, r_outer, kr) - JmOverKr(m, r_inner, kr)), ...
+        CutoffWavenumber=0, ...
+        ApertureWidth=2*r_outer, ...
+        SymmetryX="PMC", ...
+        SymmetryY="PMC", ...
+        SymmetryAxial="TM");
+    
     return;
 end
+
+
 
 %% Create Mode Spectrum Functions
 if strcmp(TE_TM, "TE")
     [kc, alpha, beta] = besseljyprime_zeros(m, n, r_inner, r_outer);
-else
+else                        % TM
     [kc, alpha, beta] = besseljy_zeros(m, n, r_inner, r_outer);
 end
 kc = kc(end);
@@ -71,36 +90,93 @@ else
     EyRot = Ey;
 end
 
+%% Define Weighting Functions
+if strcmp(TE_TM, "TE")
+    signTE = (-1).^((m + 1).*isRotated + m + (m>0) + ceil(0.5*m)) ...
+        .* (-1j).^(m + 1);
+
+    J_inner = r_inner*besseljy(a, b, m, r_inner*kc);
+    J_outer = r_outer*besseljy(a, b, m, r_outer*kc);
+
+    scaleTE = signTE ./ sqrt(0.5*(1 + (m==0))*pi) ./ kc ./ sqrt(...
+        J_outer.^2 .* (1 - (m./(r_outer*kc)).^2) ...
+        - J_inner.^2 .* (1 - (m./(r_inner*kc)).^2));
+
+    scaleTE_h_inner = scaleTE .* J_inner .* kc.^2;
+    scaleTE_h_outer = scaleTE .* J_outer .* kc.^2;
+    scaleTE_e_inner = scaleTE .* J_inner .* m ./ r_inner;
+    scaleTE_e_outer = scaleTE .* J_outer .* m ./ r_outer;
+
+    if isRotated
+        WhSpec = @(~, ~, kr, kphi) (scaleTE_h_outer*besseljprime(m, r_outer.*kr) - scaleTE_h_inner*besseljprime(m, r_inner.*kr)) ...
+            ./ (kr.^2 - kc.^2) .* sin(m*kphi);
+        WeSpec = @(~, ~, kr, kphi) -(scaleTE_e_outer*JmOverKr(m, r_outer, kr) - scaleTE_e_inner*JmOverKr(m, r_inner, kr)) ...
+           .* cos(m*kphi);
+    else
+        WhSpec = @(~, ~, kr, kphi) (scaleTE_h_outer*besseljprime(m, r_outer.*kr) - scaleTE_h_inner*besseljprime(m, r_inner.*kr)) ...
+            ./ (kr.^2 - kc.^2) .* cos(m*kphi);
+        WeSpec = @(~, ~, kr, kphi) (scaleTE_e_outer*JmOverKr(m, r_outer, kr) - scaleTE_e_inner*JmOverKr(m, r_inner, kr)) ...
+            .* sin(m*kphi);
+    end
+    
+    if m == 0
+        WeSpec = @(~, ~, ~, ~) 0;
+    end
+else    % TM
+    signTM = (-1).^(m*isRotated + 1 + ceil(0.5*m)) ...
+        .* (-1j).^(m + 1);
+
+    J_inner = r_inner*besseljyprime(a, b, m, r_inner*kc);
+    J_outer = r_outer*besseljyprime(a, b, m, r_outer*kc);
+
+    scaleTM = signTM .* sqrt((2 - (m==0)) ./ pi) ...
+        ./ sqrt(J_outer.^2 - J_inner.^2);
+
+    scaleTM_inner = scaleTM .* J_inner;
+    scaleTM_outer = scaleTM .* J_outer;
+
+    WhSpec = @(~, ~, ~, ~) 0;
+    if isRotated
+        WeSpec = @(~, ~, kr, kphi) (scaleTM_outer*besselj(m, r_outer.*kr) - scaleTM_inner*besselj(m, r_inner.*kr)) ...
+            .* (kr ./ (kr.^2 - kc.^2)) .* sin(m*kphi);
+    else
+        WeSpec = @(~, ~, kr, kphi) (scaleTM_outer*besselj(m, r_outer.*kr) - scaleTM_inner*besselj(m, r_inner.*kr)) ...
+            .* (kr ./ (kr.^2 - kc.^2)) .* cos(m*kphi);
+    end
+end
+
 %% Define Symmetries
-isX_PMC = true;
-isY_PMC = false;
-if mod(m, 2) == 0
-    isY_PMC = ~isY_PMC;
+isX_PEC = true;
+isY_PEC = mod(m, 2) == 0;
+
+if xor(strcmp(TE_TM, "TM"), isRotated)  % TM and rotation flip PEC/PMC.
+    isX_PEC = ~isX_PEC;
+    isY_PEC = ~isY_PEC;
 end
 
-if xor(strcmp(TE_TM, "TM"), isRotated)
-    isX_PMC = ~isX_PMC;
-    isY_PMC = ~isY_PMC;
+% Set symmetry flags.
+symmetryX = "PMC";
+if isX_PEC
+    symmetryX = "PEC";
 end
 
-symmetryX = "PEC";
-if isX_PMC
-    symmetryX = "PMC";
+symmetryY = "PMC";
+if isY_PEC
+    symmetryY = "PEC";
 end
-symmetryY = "PEC";
-if isY_PMC
-    symmetryY = "PMC";
-end
+
 symmetryAxial = "None";
 if m == 0
     symmetryAxial = TE_TM;
 end
 
 %% Create Mode Struct
-modeStruct = nLayer.createModeStruct(TE_TM, ...
+modeStruct = nLayer.createModeStruct(...
+    TE_TM, ...
     sprintf("%s_{%d,%d}", TE_TM, m, n), ...
     ExSpec=ExRot, EySpec=EyRot, ...
-    CutoffWavenumber=kc, MaxOperatingWavenumber=2*kc, ...
+    WhSpec=WhSpec, WeSpec=WeSpec, ...
+    CutoffWavenumber=kc, ...
     ApertureWidth=2*r_outer, ...
     SymmetryX=symmetryX, ...
     SymmetryY=symmetryY, ...
@@ -154,7 +230,7 @@ function [y] = besseljyInt2(kr, r, kc, a, b, m)
 end
 
 function [scale] = scaleFactorTE(r1r2, kc, a, b, m, n)
-    scale = (1j).^(m) * 0.5 * sqrt(1 + (m~=0)) ...
+    scale = (1).^(m) * 0.5 * sqrt(1 + (m~=0)) ...
         ./ (kc .* sqrt(besselj(m, r1r2(2) * kc).^2 - ...
         besselj(m - 1, r1r2(2) * kc).*besselj(m + 1, r1r2(2) * kc)) .* sqrt(pi));
 end
@@ -166,9 +242,13 @@ function [scale] = scaleFactorTM(r1r2, kc, a, b, m, n)
     %     ./ (kc .* sqrt((besseljyprime(a, b, m, r1r2(2) * kc).^2 ...
     %     - (1).^(n) .* besseljyprime(a, b, m, r1r2(1) * kc).^2)) .* sqrt(pi));
 
-    scale = (1j).^(m) * 0.5 ...
+    scale = -(-1).^(m) * 0.5 * sqrt(1 + (m~=0)) ...
         ./ kc .* r1r2(2) ./ sqrt(int1) ./ sqrt(2*pi);
 end
 
 
+function [y] = JmOverKr(m, wgR, kr)
+    y = besselj(m, wgR.*kr) ./ kr;
+    y(kr == 0) = 0.5 * wgR * (m == 1);
+end
 

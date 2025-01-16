@@ -12,10 +12,6 @@ classdef waveguideMode
         ExSpec(1, 1) {mustBeCallable(ExSpec, {1, 0, 1, 0}, "kx, ky, kr, kphi")};
         EySpec(1, 1) {mustBeCallable(EySpec, {1, 0, 1, 0}, "kx, ky, kr, kphi")};
         CutoffWavenumber(1, 1) {mustBeNonnegative};
-        MaxOperatingWavenumber(1, 1) {mustBeNonnegative};
-
-        IsExcitationMode(1, 1) logical = false;
-        IsReceiveMode(1, 1) logical = false;
 
         SymmetryX {mustBeTextScalar, mustBeMember(...
             SymmetryX, ["None", "Even", "Odd"])} = "None";
@@ -25,13 +21,6 @@ classdef waveguideMode
             SymmetryAxial, ["None", "TE", "TM"])} = "None";
 
         apertureWidth(1, 1) {mustBePositive} = 1;
-
-        waveguideEr(1, 1) {nLayer.mustBeErUrCallable} = @(f) 1;
-        waveguideUr(1, 1) {nLayer.mustBeErUrCallable} = @(f) 1;
-
-        offsetX(1, 1) {mustBeReal, mustBeFinite} = 0;
-        offsetY(1, 1) {mustBeReal, mustBeFinite} = 0;
-        rotationAngle(1, 1) {mustBeReal, mustBeFinite} = 0;
     end
 
     methods

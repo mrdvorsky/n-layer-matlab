@@ -59,6 +59,38 @@ else
     end
 end
 
+%% Define Weighting Functions
+if strcmp(TE_TM, "TE")
+    signTE = (-1).^((m + 1).*isRotated + m + n + ceil(0.5*m)) ...
+        .* (-1j).^(m + 1);
+    scaleTE = signTE ./ sqrt(0.5*(1 + (m==0))*pi) ./ kc ./ sqrt(1 - (m./(kc*wgR)).^2);
+    scaleTE_h = scaleTE .* kc.^2;
+    scaleTE_e = scaleTE .* m ./ wgR;
+
+    if isRotated
+        WhSpec = @(~, ~, kr, kphi) scaleTE_h * besseljprime(m, wgR.*kr) ./ (kr.^2 - kc.^2) .* sin(m*kphi);
+        WeSpec = @(~, ~, kr, kphi) -scaleTE_e * JmOverKr(m, wgR, kr) .* cos(m*kphi);
+    else
+        WhSpec = @(~, ~, kr, kphi) scaleTE_h * besseljprime(m, wgR.*kr) ./ (kr.^2 - kc.^2) .* cos(m*kphi);
+        WeSpec = @(~, ~, kr, kphi) scaleTE_e * JmOverKr(m, wgR, kr) .* sin(m*kphi);
+    end
+
+    if m == 0
+        WeSpec = @(~, ~, ~, ~) 0;
+    end
+else
+    signTM = (-1).^(m*isRotated + (m==0) + n + 1 + ceil(0.5*m)) ...
+        .* (-1j).^(m + 1);
+    scaleTM = signTM .* sqrt((2 - (m==0))/pi);
+
+    WhSpec = @(~, ~, ~, ~) 0;
+    if isRotated
+        WeSpec = @(~, ~, kr, kphi) scaleTM * besselj(m, wgR.*kr) .* (kr ./ (kr.^2 - kc.^2)) .* sin(m*kphi);
+    else
+        WeSpec = @(~, ~, kr, kphi) scaleTM * besselj(m, wgR.*kr) .* (kr ./ (kr.^2 - kc.^2)) .* cos(m*kphi);
+    end
+end
+
 %% Define Symmetries
 isX_PEC = true;
 isY_PEC = mod(m, 2) == 0;
@@ -88,6 +120,7 @@ end
 modeStruct = nLayer.createModeStruct(TE_TM, ...
     sprintf("%s_{%d,%d}", TE_TM, m, n), ...
     ExSpec=Ex, EySpec=Ey, ...
+    WhSpec=WhSpec, WeSpec=WeSpec, ...
     CutoffWavenumber=kc, ...
     ApertureWidth=2*wgR, ...
     SymmetryX=symmetryX, ...
@@ -161,6 +194,11 @@ end
 function [scale] = scaleFactor_TM(wgR, kc, m)
     scale = 0.5 * sqrt(1 + (m~=0)) ...
         ./ (kc .* sqrt(besseljprime(m, wgR * kc).^2) .* sqrt(pi));
+end
+
+function [y] = JmOverKr(m, wgR, kr)
+    y = besselj(m, wgR.*kr) ./ kr;
+    y(kr == 0) = 0.5 * wgR * (m == 1);
 end
 
 

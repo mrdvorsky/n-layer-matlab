@@ -1,7 +1,7 @@
-function [modeStructs] = defineWaveguideModes(O, symmetryX, symmetryY, symmetryAxial)
+function [waveguideModes] = defineWaveguideModes(O, symmetryX, symmetryY, symmetryAxial)
 %DEFINEWAVEGUIDEMODES Defines waveguide modes for rectangular waveguide.
-% Defines the mode spectrums for a rectangular waveguide. Returns a
-% modeStruct as required by the "nLayerOpenEnded" class.
+% Defines the "nLayer.waveguideMode" objects for a rectangular waveguide,
+% as required by the "nLayerOpenEnded" class.
 %
 % Author: Matt Dvorsky
 
@@ -13,10 +13,11 @@ arguments
 end
 
 %% Get Waveguide Mode Info
-modeStructs = nLayer.getRectangularModes(...
+waveguideModes = nLayer.getRectangularModes(...
     O.maxModeIndexM, O.maxModeIndexN, ...
     O.waveguideA, O.waveguideB, ...
-    SymmetryX=symmetryX, SymmetryY=symmetryY, SymmetryAxial=symmetryAxial);
+    SymmetryX=symmetryX, SymmetryY=symmetryY, ...
+    SymmetryAxial=symmetryAxial);
 
 end
 

@@ -34,6 +34,11 @@ k0(1, 1, 1, :) = 2*pi .* f(:) ./ O.speedOfLight;
 A = pagemtimes(Gamma0h, "transpose", O.fixed_Ah, "none") ...
     + pagemtimes(Gamma0e, "transpose", O.fixed_Ae, "none");
 
+% figure;
+% plots(real(Gamma0h), "", LineWidth=1.5);
+% hold on;
+% plots(imag(Gamma0h), "", LineWidth=1.5);
+
 %% Format Output
 A = reshape(A, O.numModes, O.numModes, length(k0));
 

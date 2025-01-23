@@ -11,7 +11,7 @@ f = linspace(26.5, 40, 801);
 
 %% nLayerRectangularOld
 tic;
-NL1 = nLayerRectangular_old(3, 2, waveguideBand="ka", ...
+NL1 = nLayerRectangular_old(1, 0, waveguideBand="ka", ...
     convergenceAbsTol=1e-6, verbosity=1);
 toc;
 
@@ -27,7 +27,7 @@ gam1 = NL1.calculate(f, er, ur, thk);
 toc;
 
 tic;
-for ii = 1:1000
+for ii = 1:1
     gam2 = NL2.calculate(f, er, ur, thk);
 end
 toc;
@@ -44,10 +44,10 @@ grid on;
 legend(["Original", "New"]);
 
 
-NL3 = nLayerRectangular(1, 0, waveguideBand="ka");
+% NL3 = nLayerRectangular(1, 0, waveguideBand="ka");
 
-figure;
-nLayerViewer([1, 4], [], [1, 1], NL2, f, NL3, f, NumFrequencySamplesPerMarker=100);
+% figure;
+% nLayerViewer([1, 4], [], [1, 1], NL2, f, NL3, f, NumFrequencySamplesPerMarker=10);
 
 % nLayer.plotModeStruct(NL2.modeStructs)
 

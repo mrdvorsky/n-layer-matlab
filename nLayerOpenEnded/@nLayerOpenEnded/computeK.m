@@ -34,14 +34,8 @@ if min(f) < O.frequencyRange(1) || max(f) > O.frequencyRange(2)
 end
 
 %% Get Waveguide Fill er and ur for Each Frequency
-wgEr = zeros(O.numModes, 1, numel(f));
-for ii = 1:size(wgEr, 1)
-    if isnumeric(O.modeStructs(ii).WaveguideEr)
-        wgEr(ii, 1, :) = O.modeStructs(ii).WaveguideEr;
-    else
-        wgEr(ii, 1, :) = O.modeStructs(ii).WaveguideEr(f);
-    end
-end
+wgEr = O.waveguideEr;
+if ~isnumeric(wgEr) % Function Handle
 
 wgUr = zeros(size(wgEr));
 for ii = 1:size(wgUr, 1)

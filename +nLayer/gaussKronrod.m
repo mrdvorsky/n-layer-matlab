@@ -15,6 +15,9 @@ function [nodes, weights, errorWeights] = gaussKronrod(numSegs, a, b)
 % Use of these quadrature rules will never result in evalation of the
 % function at the interval endpoints a and b.
 %
+% The endpoints a and b can be complex. If so, the integral path will be a
+% straight line in the complex plane.
+%
 % Example Usage:
 %   [nodes, weights, errorWeights] = gaussKronrod(N, a, b);
 %   q = sum(fun(nodes) .* weights, 1);
@@ -24,6 +27,7 @@ function [nodes, weights, errorWeights] = gaussKronrod(numSegs, a, b)
 %   numSegs - Number of uniformly-sized segments to subdivide [a, b].
 %   a - Scalar integration lower bound. Must be real and finite.
 %   b - Scalar integration upper bound. Must be real and finite.
+%
 % Outputs:
 %   nodes - Column vector of coordinates at which to evaluate function.
 %   weights - Column vector of weights to perform weighted sum.
@@ -34,8 +38,8 @@ function [nodes, weights, errorWeights] = gaussKronrod(numSegs, a, b)
 
 arguments
     numSegs(1, 1) {mustBeInteger, mustBePositive} = 10;
-    a(1, 1) {mustBeReal, mustBeFinite} = -1;
-    b(1, 1) {mustBeReal, mustBeFinite} = 1;
+    a(1, 1) {mustBeFinite} = -1;
+    b(1, 1) {mustBeFinite} = 1;
 end
 
 %% Generate Gauss-Kronrod Weights and Nodes

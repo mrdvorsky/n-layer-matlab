@@ -1,5 +1,5 @@
-function [Smn] = calculate_impl(O, f, er, ur, thk)
-%CALCULATE_IMPL Calculate Smn for a multimoded waveguide looking into structure.
+function [Smn] = calculate(O, f, er, ur, thk)
+%CALCULATE Calculate Smn for a multimoded waveguide looking into structure.
 % Computes the S-parameter matrix (Smn) of an open-ended multimoded
 % waveguide looking into a multilayer structure defined by "er", "ur",
 % "thk", and at the frequencies defined by "f".
@@ -13,15 +13,19 @@ function [Smn] = calculate_impl(O, f, er, ur, thk)
 arguments
     O;
     f(:, 1);
-    er(:, :);
-    ur(:, :);
-    thk(1, :);
+    er(1, :);
+    ur(1, :);
+    thk(1, :) {mustBeNonempty};
 end
 
 %% Check if Integral Weights Should be Regenerated
 if O.shouldRecomputeWeights
     O.computeIntegralWeights();
 end
+
+%% Validate Structure
+[er, ur, thk] = nLayer.validateStructure(er, ur, thk, ...
+    CheckStructureValues=O.checkStructureValues);
 
 %% Compute A and K
 [A] = O.computeA(f, er, ur, thk);

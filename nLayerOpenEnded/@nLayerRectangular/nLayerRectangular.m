@@ -3,7 +3,9 @@ classdef nLayerRectangular < nLayerOpenEnded
     % This class can be used to calculate the reflection coefficient seen
     % by a rectangular waveguide looking into a multilayer structure. Note
     % that the units of all parameters should match that of the speed of
-    % light specified by the speedOfLight parameter (default is mm GHz).
+    % light specified by the "distanceUnitScale" and "frequencyUnitScale"
+    % parameters (defaults are mm and GHz), both of which can be set in the
+    % constructor.
     %
     % Example Usage:
     %   NL = nLayerRectangular(maxM, maxN, waveguideBand="X");
@@ -14,33 +16,20 @@ classdef nLayerRectangular < nLayerOpenEnded
     %       prop1=val1, prop2=val2, ...);
     %
     %   gam = NL.calculate(f, er, ur, thk);
-    %   gam = NL.calculate(f, er, [], thk);
-    %   gam = NL.calculate(f, [], ur, thk);
-    %   gam = NL.calculate(f, er, [], thk, BackingConductivity=sigma);
-    %
-    % nLayerRectangular Properties:
-    %   waveguideA - Waveguide broad dimension.
-    %   waveguideB - Waveguide narrow dimension.
-    %   speedOfLight (299.792458) - Speed of light (default is mm GHz).
-    %   verbosity (0) - Verbosity level. Set to 1 for basic command line
-    %       output. Set to 2 for a per-frequency output.
-    %   convergenceAbsTol (0.001) - Default tolerance for reflection
-    %       coefficient calculations.
-    %   checkStructureValues (true) - Flag used in the "verifyStructure"
-    %       function. If true, this function will throw errors if
-    %       non-physical values of er, ur, or thk are passed in.
+    %   gam = NL.calculate(f, er, {}, thk);
+    %   gam = NL.calculate(f, {}, ur, thk);
     %
     % Author: Matt Dvorsky
 
     properties (Access=public, AbortSet)
-        waveguideBand(1, 1) rectangularWaveguideBand;       % Waveguide band.
+        waveguideBand(1, 1) nLayer.rectangularWaveguideBand;    % Waveguide band.
 
         maxModeIndexM(1, 1) {mustBeInteger, mustBeNonnegative} = 1; % Maximum value of 'm' for considered TEmn or TMmn modes.
         maxModeIndexN(1, 1) {mustBeInteger, mustBeNonnegative} = 0; % Maximum value of 'n' for considered TEmn or TMmn modes.
     end
     properties (Dependent, Access=public, AbortSet)
-        waveguideA(1, 1) {mustBePositive, mustBeFinite};    % Waveguide broad dimension.
-        waveguideB(1, 1) {mustBePositive, mustBeFinite};    % Waveguide narrow dimension.
+        waveguideA(1, 1) {mustBePositive, mustBeFinite};    % Waveguide broad dimension (along x-axis).
+        waveguideB(1, 1) {mustBePositive, mustBeFinite};    % Waveguide narrow dimension (along y-axis).
     end
     properties (Access=private)
         waveguideA_custom(1, 1);
@@ -72,26 +61,21 @@ classdef nLayerRectangular < nLayerOpenEnded
             O.maxModeIndexM = maxIndexM;
             O.maxModeIndexN = maxIndexN;
 
-            O.frequencyRange = [1.01, 1.99] ...
+            O.frequencyRange = [1.0, 2.0] ...
                 .* (0.5 * O.speedOfLight ./ O.waveguideA);
-
-            if O.numModes > 0
-                O.excitationModeIndices = 1;
-                O.receiveModeIndices = 1;
-            end
         end
     end
 
     %% Class Functions
     methods (Access=protected)
-        [modeStruct] = defineWaveguideModes(O);
+        [waveguideModes] = defineWaveguideModes(O);
     end
 
     %% Class Setters
     methods
         function set.waveguideBand(O, newBand)
             O.waveguideBand = newBand;
-            O.regenerateModeStructs();
+            O.shouldRegenerateWaveguideModeObjects = true;
         end
         function set.waveguideA(O, newA)
             O.waveguideA_custom = newA;
@@ -106,11 +90,11 @@ classdef nLayerRectangular < nLayerOpenEnded
 
         function set.maxModeIndexM(O, newMaxInd)
             O.maxModeIndexM = newMaxInd;
-            O.regenerateModeStructs();
+            O.shouldRegenerateWaveguideModeObjects = true;
         end
         function set.maxModeIndexN(O, newMaxInd)
             O.maxModeIndexN = newMaxInd;
-            O.regenerateModeStructs();
+            O.shouldRegenerateWaveguideModeObjects = true;
         end
     end
 

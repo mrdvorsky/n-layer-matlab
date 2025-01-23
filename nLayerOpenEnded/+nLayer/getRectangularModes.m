@@ -47,8 +47,13 @@ modesAll = [modes_TE; modes_TM];
 modeTypes = [repmat("TE", size(modes_TE, 1), 1); ...
     repmat("TM", size(modes_TM, 1), 1)];
 
+if isempty(modesAll)
+    modeStructs = [];
+    return;
+end
+
 %#ok<*AGROW>
-for ii = 1:size(modesAll, 1)
+for ii = flip(1:size(modesAll, 1))
     m = modesAll(ii, 1);
     n = modesAll(ii, 2);
     modeStructs(1, ii) = nLayer.getRectangularModeStruct(...
@@ -56,8 +61,10 @@ for ii = 1:size(modesAll, 1)
 end
 
 %% Sort by Cutoff
-[~, sortInd] = sort([modeStructs.CutoffWavenumber]);
-modeStructs = modeStructs(sortInd);
+% if ~isempty(modeStructs)
+%     [~, sortInd] = sort([modeStructs.CutoffWavenumber]);
+%     modeStructs = modeStructs(sortInd);
+% end
 
 end
 

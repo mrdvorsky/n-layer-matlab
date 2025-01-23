@@ -3,26 +3,29 @@ clear;
 close all;
 
 %% Inputs
-er = {4 - 0.4j};
+er = {4 - 0.000004j};
 ur = {1};
-thk = {1.2};
+thk = {2};
 
-f = linspace(32, 40, 201);
+% f = linspace(32, 40, 201);
+f = linspace(36.2, 36.4, 11);
 % f = 36.61;
 
 wgR = 30/128 * 25.4;
-numModes = 5;
+numModes = 10;
+f_res = 36.28;
 
 %% nLayerCircularTE_old
 tic;
 NL1 = nLayerCircularTE_old(numModes, waveguideR=wgR, ...
-    convergenceAbsTol=1e-5, verbosity=1);
+    convergenceAbsTol=1e-5, verbosity=1, ...
+    interpolationPoints_kRho=4096*4);
 toc;
 
 %% nLayerCircular
 tic;
 NL2 = nLayerCircular(0, numModes, waveguideBand="Ka_TE01", modeSymmetryAxial="TE");
-NL2.calculate(f(1), er, ur, thk);
+NL2.calculate(f_res, er, ur, thk);
 toc;
 
 %% Calculate

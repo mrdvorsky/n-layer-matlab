@@ -25,8 +25,6 @@ clear;
 close all;
 
 %% Inputs
-wgR = 5.8;
-
 % More frequency samples for the resonant case
 f = linspace(32, 40, 51).';
 fRes = linspace(32, 40, 2001).';
@@ -44,12 +42,12 @@ convergenceTol = 1e-3;
 % load it (second line here). See documentation for nLayerCircularTE for
 % more details.
 
-NL = nLayerCircularTE(numModes, waveguideR=wgR);
+NL = nLayerCircular(0, numModes, waveguideBand="Ka_TE01", modeSymmetryAxial="TE");
 % NL = load("nLayer_circularKaBand").NL;
 
 % Optionally, specify convergence tolerance and verbosity
-NL.convergenceAbsTol = convergenceTol;
-NL.verbosity = 1;
+% NL.convergenceAbsTol = convergenceTol;
+% NL.verbosity = 1;
 
 %% Calculate structure 1
 % One layer conductor-backed structure (different losses).
@@ -58,7 +56,7 @@ er1 = 4 - 1j.*10.^linspace(-0, -3, 7).';
 ur1 = [];
 thk1 = [1.2];
 
-NL.printStructure(er1(1, :), ur1, thk1, Title="Case 1");
+nLayer.printStructure(er1(1, :), ur1, thk1, Title="Case 1");
 tic;
 gam1 = zeros(length(f), length(er1));
 for ii = 1:length(er1)
@@ -83,7 +81,7 @@ er2 = 4 - 0.1j;
 ur2 = [];
 thk2 = 2.^linspace(-3, -0, 7);
 
-NL.printStructure(er2, ur2, thk2(1), Title="Case 2");
+nLayer.printStructure(er2, ur2, thk2(1), Title="Case 2");
 tic;
 gam2 = zeros(length(f), length(thk2));
 for ii = 1:length(thk2)
@@ -108,7 +106,7 @@ er3 = 4 - 1j.*10.^linspace(-1, -4, 7).';
 ur3 = [];
 thk3 = [2];
 
-NL.printStructure(er3(1, :), ur3, thk3, Title="Case 3");
+nLayer.printStructure(er3(1, :), ur3, thk3, Title="Case 3");
 tic;
 gam3 = zeros(length(fRes), length(er3));
 for ii = 1:length(er3)
@@ -134,7 +132,7 @@ ur4 = [];
 thk4 = [2];
 sigma4 = 10.^linspace(1, 5, 9).';
 
-NL.printStructure(er4(1, :), ur4, thk4, BackingConductivity=sigma4(1), ...
+nLayer.printStructure(er4(1, :), ur4, thk4, BackingConductivity=sigma4(1), ...
     Title="Case 4");
 tic;
 gam4 = zeros(length(fRes), length(sigma4));

@@ -24,11 +24,11 @@ classdef circularWaveguideBand
     %
     % Author: Matt Dvorsky
 
-    enumeration     % Define as "BandName  (r_inches)".
-        X_TE01   (93/128);
-        Ka_TE01  (30/128);
-        Q_TE01   (23/128);
-        V_TE01   (17/128);
+    enumeration     % Define as "BandName  (d_inches)".
+        X_TE01   (93/64);
+        Ka_TE01  (30/64);
+        Q_TE01   (23/64);
+        V_TE01   (17/64);
 
         X_Low    (1.094);
         X_Mid    (0.938);
@@ -71,8 +71,8 @@ classdef circularWaveguideBand
         waveguideR;
     end
     methods (Access=public)
-        function O = circularWaveguideBand(r_inches)
-            O.waveguideR = 0.0254 * r_inches;
+        function O = circularWaveguideBand(d_inches)
+            O.waveguideR = (0.5*0.0254) * d_inches;
         end
     end
     methods (Access=public)

@@ -92,6 +92,11 @@ Nphi = 4*64;
 % end
 
 %% Compute Moment Integrals
+% for ii = 1:numel(krc)
+%     krc{ii} = single(krc{ii});
+% end
+% kphi = single(kphi);
+
 for ii = 1:numel(krc)
     kx = krc{ii} .* cos(kphi);
     ky = krc{ii} .* sin(kphi);
@@ -111,11 +116,11 @@ for ii = 1:numel(krc)
     
     Ah_moments{ii} = -innerProduct(moment_weights{ii}, ...
         innerProduct(weights_kphi .* modeSpecWhm, circshift(modeSpecWhn, 128, 5), 5) ...
-        .* krc{ii}.^(ii>=0), 4);
+        .* krc{ii}, 4);
     
     Ae_moments{ii} = -innerProduct(moment_weights{ii}, ...
         innerProduct(weights_kphi .* modeSpecWem, circshift(modeSpecWen, 128, 5), 5) ...
-        .* krc{ii}.^(ii>=0), 4);
+        .* krc{ii}, 4);
 end
 
 %% Compute Nodes and Weights
@@ -130,9 +135,6 @@ for ii = 1:numel(krc)
             WeightingMoments=Ae_moments{ii}(:, mm));
     end
 end
-
-% Ah_weights{1} = Ah_weights{1} .* krcNodes{1};
-% Ae_weights{1} = Ae_weights{1} .* krcNodes{1};
 
 %% Combine Weights and Nodes
 krcNodes = cell2mat(krcNodes.');

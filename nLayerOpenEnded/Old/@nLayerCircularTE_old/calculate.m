@@ -1,4 +1,4 @@
-function [gam] = calculate_impl(O, f, er, ur, thk)
+function [gam] = calculate(O, f, er, ur, thk)
 %CALCULATE_IMPL Calculate S11 for circular waveguide TE01 mode excitation.
 % Computes the reflection coefficient of the circular waveguide TE01 mode
 % when looking into a multilayer structure defined by er, ur, thk at the

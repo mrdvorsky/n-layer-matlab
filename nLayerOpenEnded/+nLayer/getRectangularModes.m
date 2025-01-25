@@ -1,4 +1,4 @@
-function [modeStructs] = getRectangularModes(maxM, maxN, wgA, wgB, options)
+function [waveguideModes] = getRectangularModes(maxM, maxN, wgA, wgB, options)
 %GETRECTANGULARMODES Get "waveguideMode" objects for rectangular waveguide.
 % 
 % Author: Matt Dvorsky
@@ -47,24 +47,18 @@ modesAll = [modes_TE; modes_TM];
 modeTypes = [repmat("TE", size(modes_TE, 1), 1); ...
     repmat("TM", size(modes_TM, 1), 1)];
 
-if isempty(modesAll)
-    modeStructs = [];
-    return;
-end
-
 %#ok<*AGROW>
+waveguideModes = nLayer.waveguideMode.empty;
 for ii = flip(1:size(modesAll, 1))
     m = modesAll(ii, 1);
     n = modesAll(ii, 2);
-    modeStructs(1, ii) = nLayer.getRectangularModeStruct(...
+    waveguideModes(1, ii) = nLayer.getRectangularModeStruct(...
         m, n, wgA, wgB, modeTypes(ii));
 end
 
 %% Sort by Cutoff
-% if ~isempty(modeStructs)
-%     [~, sortInd] = sort([modeStructs.CutoffWavenumber]);
-%     modeStructs = modeStructs(sortInd);
-% end
+[~, sortInd] = sort([waveguideModes.kc0]);
+waveguideModes = waveguideModes(sortInd);
 
 end
 

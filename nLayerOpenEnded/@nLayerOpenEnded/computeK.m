@@ -1,22 +1,13 @@
 function [K] = computeK(O, f)
-%COMPUTEK Computes kA and kB.
-% Computes the matrices kA and kB, which are used to compute the
-% unnormalized mode S-parameter matrix.
+%COMPUTEK Computes the matrix K.
+% This function computes the matrix K as a function of each frequency
+% specified by "f", which is used to compute the mode S-parameter matrix.
 %
-% Inputs:
-%   f - vector of frequencies to consider.
-% Outputs:
-%   kA, kB - Matrices used to compute S-parameters.
-%
-% Example Usage (for single frequency, unnormalized S-parameter matrix):
-%   [A] = O.computeA(f(ii), er, ur, thk);
-%   [B] = O.computeB();
-%   [kA, kB] = O.computeK(f(ii));
-%   S = (A.*kA + B.*kB) \ (-A.*kA + B.*kB);
-%
-% Although the example above shows usage with a scalar value for "f", the
-% input "f" can be a vector. In this case, the size of the 3rd dimension
-% of each output matrix will be equal to numel(f).
+% Example Usage:
+%   [A] = O.computeA(f, er, ur, thk);
+%   [K] = O.computeK(f);
+%   idMat = eye(size(A, 1));
+%   Smn = pagemldivide(idMat + A.*K, idMat - A.*K);
 %
 % Author: Matt Dvorsky
 
@@ -35,21 +26,19 @@ end
 
 %% Get Waveguide Fill er and ur for Each Frequency
 wgEr = O.waveguideEr;
-if ~isnumeric(wgEr) % Function Handle
+if ~isnumeric(wgEr)     % If wgEr is a function Handle.
+    wgEr = wgEr(f);
+end
 
-wgUr = zeros(size(wgEr));
-for ii = 1:size(wgUr, 1)
-    if isnumeric(O.modeStructs(ii).WaveguideUr)
-        wgUr(ii, 1, :) = O.modeStructs(ii).WaveguideUr;
-    else
-        wgUr(ii, 1, :) = O.modeStructs(ii).WaveguideUr(f);
-    end
+wgUr = O.waveguideEr;
+if ~isnumeric(wgUr)     % If wgUr is a function Handle.
+    wgUr = wgUr(f);
 end
 
 %% Mode Coefficients
 k0 = 2*pi .* f ./ O.speedOfLight;
 
-beta = conj(sqrt(k0.^2 .* wgEr .* wgUr - O.mode_kc0(:).^2));
+beta = sqrt(k0.^2 .* wgEr .* wgUr - O.mode_kc0(:).^2);
 beta = complex(real(beta), -abs(imag(beta)));
 
 %% Compute K

@@ -47,15 +47,7 @@ classdef nLayerRectangular < nLayerOpenEnded
             arguments
                 maxIndexM(1, 1) {mustBeInteger, mustBeNonnegative};
                 maxIndexN(1, 1) {mustBeInteger, mustBeNonnegative};
-            end
-            arguments
                 classProperties.?nLayerRectangular;
-            end
-
-            % Set Class Parameter Values
-            propPairs = namedargs2cell(classProperties);
-            for ii = 1:2:numel(propPairs)
-                O.(propPairs{ii}) = propPairs{ii + 1};
             end
 
             O.maxModeIndexM = maxIndexM;
@@ -63,6 +55,12 @@ classdef nLayerRectangular < nLayerOpenEnded
 
             O.frequencyRange = [1.0, 2.0] ...
                 .* (0.5 * O.speedOfLight ./ O.waveguideA);
+
+             % Set Class Parameter Values
+            propPairs = namedargs2cell(classProperties);
+            for ii = 1:2:numel(propPairs)
+                O.(propPairs{ii}) = propPairs{ii + 1};
+            end
         end
     end
 

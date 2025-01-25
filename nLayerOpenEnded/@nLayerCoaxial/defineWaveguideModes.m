@@ -1,7 +1,7 @@
-function [modeStructs] = defineWaveguideModes(O, symmetryX, symmetryY, symmetryAxial)
-%DEFINEWAVEGUIDEMODES Defines waveguide modes for coaxial waveguides.
-% Defines the mode spectrums for a coaxial waveguide. Returns a
-% modeStruct array as required by the "nLayerOpenEnded" class.
+function [waveguideModes] = defineWaveguideModes(O, symmetryX, symmetryY, symmetryAxial)
+%DEFINEWAVEGUIDEMODES Defines waveguide modes for a coaxial waveguide.
+% Defines the "nLayer.waveguideMode" objects for a coaxial waveguide,
+% as required by the "nLayerOpenEnded" class.
 %
 % Author: Matt Dvorsky
 
@@ -13,10 +13,11 @@ arguments
 end
 
 %% Get Waveguide Mode Info
-modeStructs = nLayer.getCoaxialModes(...
-    O.maxModeIndexM, O.maxModeIndexN, ...
+waveguideModes = nLayer.getCoaxialModes(...
+    O.modeIndexM, O.maxModeIndexN, ...
     O.waveguideRi, O.waveguideRo, ...
-    SymmetryX=symmetryX, SymmetryY=symmetryY, SymmetryAxial=symmetryAxial);
+    SymmetryX=symmetryX, SymmetryY=symmetryY, ...
+    SymmetryAxial=symmetryAxial);
 
 end
 

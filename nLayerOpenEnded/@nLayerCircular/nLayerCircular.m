@@ -1,38 +1,28 @@
 classdef nLayerCircular < nLayerOpenEnded
     %NLAYERCIRCULAR Implementation of nLayerForward for circular waveguides.
     % This class can be used to calculate the reflection coefficient seen
-    % by a rectangular waveguide looking into a multilayer structure. Note
+    % by a circular waveguide looking into a multilayer structure. Note
     % that the units of all parameters should match that of the speed of
-    % light specified by the speedOfLight parameter (default is mm GHz).
+    % light specified by the "distanceUnitScale" and "frequencyUnitScale"
+    % parameters (defaults are mm and GHz), both of which can be set in the
+    % constructor.
     %
     % Example Usage:
     %   NL = nLayerCircular(0, maxN, waveguideBand="Ka_TE01", modeSymmetryAxial="TE");
-    %   NL = nLayerCircular(maxM, maxN, waveguideR=6);
-    %   NL = nLayerCircular(maxM, maxN, distanceUnitScale=1, waveguideR=6e-3);
-    %   NL = nLayerCircular(maxM, maxN, prop1=val1, prop2=val2, ...);
+    %   NL = nLayerCircular(m, maxN, waveguideR=3);
+    %   NL = nLayerCircular(m, maxN, distanceUnitScale=1, waveguideR=3e-3);
+    %   NL = nLayerCircular(m, maxN, prop1=val1, prop2=val2, ...);
     %
     %   gam = NL.calculate(f, er, ur, thk);
-    %   gam = NL.calculate(f, er, [], thk);
-    %   gam = NL.calculate(f, [], ur, thk);
-    %   gam = NL.calculate(f, er, [], thk, BackingConductivity=sigma);
-    %
-    % nLayerRectangular Properties:
-    %   waveguideR - Waveguide radius dimension.
-    %   speedOfLight (299.792458) - Speed of light (default is mm GHz).
-    %   verbosity (0) - Verbosity level. Set to 1 for basic command line
-    %       output. Set to 2 for a per-frequency output.
-    %   convergenceAbsTol (0.001) - Default tolerance for reflection
-    %       coefficient calculations.
-    %   checkStructureValues (true) - Flag used in the "verifyStructure"
-    %       function. If true, this function will throw errors if
-    %       non-physical values of er, ur, or thk are passed in.
+    %   gam = NL.calculate(f, er, {}, thk);
+    %   gam = NL.calculate(f, {}, ur, thk);
     %
     % Author: Matt Dvorsky
 
     properties (Access=public, AbortSet)
-        waveguideBand(1, 1) circularWaveguideBand;          % Waveguide band.
+        waveguideBand(1, 1) nLayer.circularWaveguideBand;   % Waveguide band.
 
-        maxModeIndexM(1, 1) {mustBeInteger, mustBeNonnegative} = 0; % Maximum value of 'm' for considered TEmn or TMmn modes.
+        modeIndexM(1, 1) {mustBeInteger, mustBeNonnegative} = 0;    % Value of 'm' for considered TEmn or TMmn modes.
         maxModeIndexN(1, 1) {mustBeInteger, mustBePositive} = 1;    % Maximum value of 'n' for considered TEmn or TMmn modes.
     end
     properties (Dependent, Access=public, AbortSet)
@@ -42,25 +32,33 @@ classdef nLayerCircular < nLayerOpenEnded
         waveguideR_custom(1, 1);
     end
 
-    %% Class Functions
-    methods (Access=protected)
-        [modeStruct] = defineWaveguideModes(O);
-    end
-
     %% Class Constructor
     methods
-        function O = nLayerCircular(maxIndexM, maxIndexN, classProperties)
+        function O = nLayerCircular(indexM, maxIndexN, classProperties)
             %NLAYERCIRCULAR Construct an instance of this class.
             % Inputs:
-            %   maxIndexM - Highest index 'm' of TEmn and TMmn modes to consider.
+            %   indexM - Index 'm' of TEmn and TMmn modes to consider.
             %   maxIndexN - Highest index 'n' of TEmn and TMmn modes to consider.
 
             arguments
-                maxIndexM(1, 1) {mustBeInteger, mustBeNonnegative};
+                indexM(1, 1) {mustBeInteger, mustBeNonnegative};
                 maxIndexN(1, 1) {mustBeInteger, mustBePositive};
-            end
-            arguments
                 classProperties.?nLayerCircular;
+            end
+
+            O.modeIndexM = indexM;
+            O.maxModeIndexN = maxIndexN;
+
+            switch O.modeSymmetryAxial
+                case "TE"
+                    O.frequencyRange = [3.8317, 7.0156] ./ (2*pi) ...
+                        .* (O.speedOfLight ./ O.waveguideR);
+                case "TM"
+                    O.frequencyRange = [2.4048, 5.5201] ./ (2*pi) ...
+                        .* (O.speedOfLight ./ O.waveguideR);
+                case "None"
+                    O.frequencyRange = [1.8412, 2.4048] ./ (2*pi) ...
+                        .* (O.speedOfLight ./ O.waveguideR);
             end
 
             % Set Class Parameter Values
@@ -68,47 +66,32 @@ classdef nLayerCircular < nLayerOpenEnded
             for ii = 1:2:numel(propPairs)
                 O.(propPairs{ii}) = propPairs{ii + 1};
             end
-
-            O.maxModeIndexM = maxIndexM;
-            O.maxModeIndexN = maxIndexN;
-
-            switch O.modeSymmetryAxial
-                case "TE"
-                    O.frequencyRange = [1.01, 1.99] ./ (2*pi) ...
-                        .* (3.8317 * O.speedOfLight ./ O.waveguideR);
-                case "TM"
-                    O.frequencyRange = [1.01, 1.99] ./ (2*pi) ...
-                        .* (2.4048 * O.speedOfLight ./ O.waveguideR);
-                case "None"
-                    O.frequencyRange = [1.85, 2.39] ./ (2*pi) ...
-                        .* (O.speedOfLight ./ O.waveguideR);
-            end
-            
-            if O.numModes > 0
-                O.excitationModeIndices = 1;
-                O.receiveModeIndices = 1;
-            end
         end
+    end
+
+    %% Class Functions
+    methods (Access=protected)
+        [waveguideModes] = defineWaveguideModes(O);
     end
 
     %% Class Setters
     methods
         function set.waveguideBand(O, newBand)
             O.waveguideBand = newBand;
-            O.regenerateModeStructs();
+            O.shouldRegenerateWaveguideModeObjects = true;
         end
         function set.waveguideR(O, newR)
             O.waveguideR_custom = newR;
             O.waveguideBand = "Custom";
         end
 
-        function set.maxModeIndexM(O, newMaxInd)
-            O.maxModeIndexM = newMaxInd;
-            O.regenerateModeStructs();
+        function set.modeIndexM(O, newMaxInd)
+            O.modeIndexM = newMaxInd;
+            O.shouldRegenerateWaveguideModeObjects = true;
         end
         function set.maxModeIndexN(O, newMaxInd)
             O.maxModeIndexN = newMaxInd;
-            O.regenerateModeStructs();
+            O.shouldRegenerateWaveguideModeObjects = true;
         end
     end
 

@@ -26,8 +26,8 @@ classdef nLayerOpenEnded < nLayerForward
         modeSymmetryAxial string ...        % Axial symmetry.
             {mustBeMember(modeSymmetryAxial, ["TE", "TM", "None"])} = "None";
 
-        waveguideEr(1, 1) {nLayer.mustBeErUrCallable} = 1;  % Array of filled waveguide permittivity values for each mode.
-        waveguideUr(1, 1) {nLayer.mustBeErUrCallable} = 1;  % Array of filled waveguide permeability values for each mode.
+        waveguideEr(1, 1) {nLayer.mustBeErUrCallable} = 1;  % Array of filled waveguide permittivity values or function handle.
+        waveguideUr(1, 1) {nLayer.mustBeErUrCallable} = 1;  % Array of filled waveguide permeability values or function handle.
 
         excitationModeIndices(1, :) {mustBeInteger, mustBePositive} = [1];  % Array of indices of excitation modes (i.e., 'n' in Smn).
         receiveModeIndices(1, :) {mustBeInteger, mustBePositive} = [1];     % Array of indices of receiving modes (i.e., 'm' in Smn).
@@ -59,11 +59,11 @@ classdef nLayerOpenEnded < nLayerForward
 
     %% Class Functions
     methods (Access=public)
-        [gam] = calculate(O, f, er, ur, thk);
+        [Smn] = calculate(O, f, er, ur, thk);
         [outputLabels] = getOutputLabels(O);
     end
     methods (Access=protected)
-        [modeStructs] = defineWaveguideModes(O, ...
+        [waveguideModes] = defineWaveguideModes(O, ...
             symmetryX, symmetryY, symmetryAxial);
     end
     methods (Access=private)
@@ -122,16 +122,16 @@ classdef nLayerOpenEnded < nLayerForward
         end
 
         function [kc0] = get.mode_kc0(O)
-            kc0 = [O.waveguideModes.CutoffWavenumber];
+            kc0 = [O.waveguideModes.kc0];
         end
         function [fc] = get.mode_fc0(O)
             fc = O.speedOfLight * O.mode_kc0 ./ (2*pi);
         end
         function [types] = get.modeTypes(O)
-            types = [O.waveguideModes.ModeType];
+            types = [O.waveguideModes.modeType];
         end
         function [labels] = get.modeLabels(O)
-            labels = [O.waveguideModes.ModeLabel];
+            labels = [O.waveguideModes.modeLabel];
         end
         function [num] = get.numModes(O)
             num = numel(O.waveguideModes);

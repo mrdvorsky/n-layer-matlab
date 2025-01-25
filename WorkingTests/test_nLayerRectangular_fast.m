@@ -5,19 +5,19 @@ close all;
 %% Inputs
 er = {2.1 - 0.0005j};
 ur = {1};
-thk = {3};
+thk = {15};
 
-f = linspace(26.5, 40, 801);
+f = linspace(8.2, 12.4, 801);
 
 %% nLayerRectangularOld
 tic;
-NL1 = nLayerRectangular_old(1, 0, waveguideBand="ka", ...
+NL1 = nLayerRectangular_old(3, 2, waveguideBand="X", ...
     convergenceAbsTol=1e-6, verbosity=1);
 toc;
 
 %% nLayerRectangularFast
 tic;
-NL2 = nLayerRectangular(3, 2, waveguideBand="ka");
+NL2 = nLayerRectangular(3, 2, waveguideBand="X");
 NL2.calculate(f(1), er, ur, thk);
 toc;
 

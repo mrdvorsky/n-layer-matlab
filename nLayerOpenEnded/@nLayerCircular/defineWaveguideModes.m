@@ -1,7 +1,7 @@
-function [modeStructs] = defineWaveguideModes(O, symmetryX, symmetryY, symmetryAxial)
-%DEFINEWAVEGUIDEMODES Defines waveguide modes for circular waveguide.
-% Defines the mode spectrums for a circular waveguide. Returns a
-% modeStruct as required by the "nLayerOpenEnded" class.
+function [waveguideModes] = defineWaveguideModes(O, symmetryX, symmetryY, symmetryAxial)
+%DEFINEWAVEGUIDEMODES Defines waveguide modes for a circular waveguide.
+% Defines the "nLayer.waveguideMode" objects for a circular waveguide,
+% as required by the "nLayerOpenEnded" class.
 %
 % Author: Matt Dvorsky
 
@@ -13,10 +13,11 @@ arguments
 end
 
 %% Get Waveguide Mode Info
-modeStructs = nLayer.getCircularModes(...
-    O.maxModeIndexM, O.maxModeIndexN, ...
+waveguideModes = nLayer.getCircularModes(...
+    O.modeIndexM, O.maxModeIndexN, ...
     O.waveguideR, ...
-    SymmetryX=symmetryX, SymmetryY=symmetryY, SymmetryAxial=symmetryAxial);
+    SymmetryX=symmetryX, SymmetryY=symmetryY, ...
+    SymmetryAxial=symmetryAxial);
 
 end
 

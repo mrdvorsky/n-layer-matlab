@@ -1,10 +1,10 @@
-function [modeStructs] = getCoaxialModes(maxM, maxN, wgRi, wgRo, options)
-%GETCOAXIALMODES Get "waveguideMode" objects for coaxial waveguide.
+function [waveguideModes] = getCoaxialModes(m, maxN, wgRi, wgRo, options)
+%GETCOAXIALMODES Get "waveguideMode" objects for a coaxial waveguide.
 %
 % Author: Matt Dvorsky
 
 arguments
-    maxM(1, 1) {mustBeInteger, mustBeNonnegative};
+    m(1, 1) {mustBeInteger, mustBeNonnegative};
     maxN(1, 1) {mustBeInteger, mustBeNonnegative};
     wgRi(1, 1) {mustBePositive};
     wgRo(1, 1) {mustBePositive};
@@ -25,8 +25,8 @@ elseif strcmp(options.SymmetryAxial, "TM")
     modes_TM = [0*(0:maxN); (0:maxN)].';
     modes_TE = [];
 else
-    modes_TE = [reshape((0:maxM).' + 0*(1:maxN), [], 1), ...
-        reshape(0*(0:maxM).' + (1:maxN), [], 1)];
+    modes_TE = [reshape((m).' + 0*(1:maxN), [], 1), ...
+        reshape(0*(m).' + (1:maxN), [], 1)];
     modes_TM = [0, 0; modes_TE];
 end
 
@@ -41,16 +41,17 @@ modesAll = [modesAll; modesAll(modesAll(:, 1) ~= 0, :)];
 isRotated = [isRotated; true(size(modesAll, 1) - numel(isRotated), 1)];
 
 %#ok<*AGROW>
+waveguideModes = nLayer.waveguideMode.empty;
 for ii = 1:size(modesAll, 1)
     m = modesAll(ii, 1);
     n = modesAll(ii, 2);
-    modeStructs(1, ii) = nLayer.getCoaxialModeStruct(...
+    waveguideModes(1, ii) = nLayer.getCoaxialModeStruct(...
         m, n, wgRi, wgRo, modeTypes(ii), isRotated(ii));
 end
 
 %% Sort by Cutoff
-[~, sortInd] = sort([modeStructs.CutoffWavenumber]);
-modeStructs = modeStructs(sortInd);
+[~, sortInd] = sort([waveguideModes.kc0]);
+waveguideModes = waveguideModes(sortInd);
 
 end
 

@@ -49,6 +49,12 @@ classdef nLayerCircular < nLayerOpenEnded
             O.modeIndexM = indexM;
             O.maxModeIndexN = maxIndexN;
 
+            % Set Class Parameter Values
+            propPairs = namedargs2cell(classProperties);
+            for ii = 1:2:numel(propPairs)
+                O.(propPairs{ii}) = propPairs{ii + 1};
+            end
+
             switch O.modeSymmetryAxial
                 case "TE"
                     O.frequencyRange = [3.8317, 7.0156] ./ (2*pi) ...
@@ -61,10 +67,8 @@ classdef nLayerCircular < nLayerOpenEnded
                         .* (O.speedOfLight ./ O.waveguideR);
             end
 
-            % Set Class Parameter Values
-            propPairs = namedargs2cell(classProperties);
-            for ii = 1:2:numel(propPairs)
-                O.(propPairs{ii}) = propPairs{ii + 1};
+            if isfield(classProperties, "frequencyRange")
+                O.frequencyRange = classProperties.frequencyRange;
             end
         end
     end

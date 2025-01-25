@@ -1,5 +1,5 @@
 function [waveguideModes] = getCircularModes(m, maxN, wgR, options)
-%GETCIRCULARMODES Get "waveguideMode" objects for circular waveguide.
+%GETCIRCULARMODES Get "waveguideMode" objects for a circular waveguide.
 %
 % Author: Matt Dvorsky
 

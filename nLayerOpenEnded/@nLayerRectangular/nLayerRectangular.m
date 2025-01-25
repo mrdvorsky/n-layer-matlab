@@ -53,13 +53,17 @@ classdef nLayerRectangular < nLayerOpenEnded
             O.maxModeIndexM = maxIndexM;
             O.maxModeIndexN = maxIndexN;
 
-            O.frequencyRange = [1.0, 2.0] ...
-                .* (0.5 * O.speedOfLight ./ O.waveguideA);
-
-             % Set Class Parameter Values
+            % Set Class Parameter Values
             propPairs = namedargs2cell(classProperties);
             for ii = 1:2:numel(propPairs)
                 O.(propPairs{ii}) = propPairs{ii + 1};
+            end
+
+            O.frequencyRange = [1.0, 2.0] ...
+                .* (0.5 * O.speedOfLight ./ O.waveguideA);
+
+            if isfield(classProperties, "frequencyRange")
+                O.frequencyRange = classProperties.frequencyRange;
             end
         end
     end

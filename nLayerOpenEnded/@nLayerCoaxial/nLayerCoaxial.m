@@ -56,16 +56,22 @@ classdef nLayerCoaxial < nLayerOpenEnded
             if O.modeIndexM == 0
                 O.modeSymmetryAxial = "TM";
             end
-            
+
             % Set Class Parameter Values
             propPairs = namedargs2cell(classProperties);
             for ii = 1:2:numel(propPairs)
                 O.(propPairs{ii}) = propPairs{ii + 1};
             end
 
-            [kc] = besseljy_zeros(O.modeIndexM, 1, O.waveguideRi, O.waveguideRo);
-            O.frequencyRange = [0, kc] ./ (2*pi) ...
-                .* O.speedOfLight;
+            if strcmp(O.modeSymmetryAxial, "TM")
+                [kc] = besseljy_zeros(O.modeIndexM, 1, O.waveguideRi, O.waveguideRo);
+                O.frequencyRange = [0, kc] ./ (2*pi) ...
+                    .* O.speedOfLight;
+            elseif strcmp(O.modeSymmetryAxial, "TE")
+                [kc] = besseljyprime_zeros(O.modeIndexM, 1, O.waveguideRi, O.waveguideRo);
+                O.frequencyRange = [0, kc] ./ (2*pi) ...
+                    .* O.speedOfLight;
+            end
 
             if isfield(classProperties, "frequencyRange")
                 O.frequencyRange = classProperties.frequencyRange;

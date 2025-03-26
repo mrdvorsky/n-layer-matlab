@@ -1,4 +1,4 @@
-function [gam] = calculate_impl(O, f, er, ur, thk)
+function [gam] = calculate(O, f, er, ur, thk)
 %CALCULATEGAMMA Calculate S11 for rectangular waveguide TEmn mode excitation.
 % Computes the reflection coefficient of the rectangular waveguide TE10
 % mode when looking into a multilayer structure defined by er, ur, thk at

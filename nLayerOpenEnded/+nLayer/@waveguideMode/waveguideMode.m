@@ -34,7 +34,7 @@ classdef waveguideMode < matlab.mixin.Copyable
     methods
         function O = waveguideMode(classProperties)
             %WAVEGUIDEMODE Construct an instance of this class.
-            
+
             arguments
                 classProperties.?nLayer.waveguideMode;
             end
@@ -45,6 +45,11 @@ classdef waveguideMode < matlab.mixin.Copyable
                 O.(propPairs{ii}) = propPairs{ii + 1};
             end
         end
+    end
+
+    %% Class Functions
+    methods (Access=public)
+        [] = plotVectorField(O, options);
     end
 
     %% Class Getters

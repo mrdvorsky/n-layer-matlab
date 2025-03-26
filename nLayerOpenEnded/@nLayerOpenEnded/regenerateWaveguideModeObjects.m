@@ -11,6 +11,11 @@ arguments
 end
 
 %% Redefine Mode Structs
+if strcmp(class(O), "nLayerOpenEnded")
+    O.shouldRegenerateWaveguideModeObjects = false;
+    return;
+end
+
 if O.shouldRegenerateWaveguideModeObjects
     O.waveguideModes = O.defineWaveguideModes(...
         O.modeSymmetryX, O.modeSymmetryY, O.modeSymmetryAxial);

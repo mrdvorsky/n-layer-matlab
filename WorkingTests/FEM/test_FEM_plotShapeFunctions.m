@@ -23,12 +23,13 @@ x = sum(xi123 .* xt, 3);
 y = sum(xi123 .* yt, 3);
 
 %% Get Coordinates of Zeros
-[xs, ys] = fem_getGlobalElementCoordinates(xt, yt, [1, 2, 3], orderNum);
+[xs, ys] = fem_getGlobalElementCoordinates(orderNum, xt, yt, [1, 2, 3]);
 
 %% Plot
 for ii = 1:size(val, 3)
     figure;
-    surf(x, y, val(:, :, ii));
+    surf(x, y, val(:, :, ii), EdgeColor="none");
+    shading interp;
     hold on;
     plot(xs, ys, ".w", MarkerSize=10);
     axis image;

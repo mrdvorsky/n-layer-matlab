@@ -12,20 +12,22 @@ classdef nLayerOpenEnded < nLayerForward
     %
     % Author: Matt Dvorsky
 
+    %% Public Properties
     properties (GetAccess=public, SetAccess=protected)
         waveguideModes(1, :) ...   % Array of "nLayer.waveguideMode" objects, defining the properties of each mode.
             nLayer.waveguideMode = nLayer.waveguideMode.empty;
     end
-    properties (Access=public, AbortSet)
-        frequencyRange(1, :) {mustBeNonnegative, mustBeFinite} = [1, 2];   % Operating frequency range of the object.
+    properties (Dependent, Access=public, AbortSet)
+        frequencyRange(1, :) {mustBeNonnegative, mustBeFinite}; % Operating frequency range of the object.
         
-        modeSymmetryX string ...            % Symmetry of reflection about the x-axis.
-            {mustBeMember(modeSymmetryX, ["PEC", "PMC", "None"])} = "PEC";
-        modeSymmetryY string ...            % Symmetry of reflection about the y-axis.
-            {mustBeMember(modeSymmetryY, ["PEC", "PMC", "None"])} = "PMC";
-        modeSymmetryAxial string ...        % Axial symmetry.
-            {mustBeMember(modeSymmetryAxial, ["TE", "TM", "None"])} = "None";
-
+        modeSymmetryX(1, 1) string ...          % Symmetry of reflection about the x-axis.
+            {mustBeMember(modeSymmetryX, ["PEC", "PMC", "None"])};
+        modeSymmetryY(1, 1) string ...          % Symmetry of reflection about the y-axis.
+            {mustBeMember(modeSymmetryY, ["PEC", "PMC", "None"])};
+        modeSymmetryAxial(1, 1) string ...      % Axial symmetry.
+            {mustBeMember(modeSymmetryAxial, ["TE", "TM", "None"])};
+    end
+    properties (Access=public)
         waveguideEr(1, 1) {nLayer.mustBeErUrCallable} = 1;  % Array of filled waveguide permittivity values or function handle.
         waveguideUr(1, 1) {nLayer.mustBeErUrCallable} = 1;  % Array of filled waveguide permeability values or function handle.
 
@@ -42,6 +44,17 @@ classdef nLayerOpenEnded < nLayerForward
         numModes_TE;        % Number of TE modes considered.
         numModes_TM;        % Number of TM modes considered.
         numModes_Hybrid;    % Number of Hybrid modes considered.
+    end
+
+    %% Private Properties
+    properties (Hidden, Access=protected)
+        frequencyRange_private(1, 2) {mustBeNonnegative, mustBeFinite} = [1, 2];
+        modeSymmetryX_private(1, 1) string ...
+            {mustBeMember(modeSymmetryX_private, ["PEC", "PMC", "None"])} = "PEC";
+        modeSymmetryY_private(1, 1) string ...
+            {mustBeMember(modeSymmetryY_private, ["PEC", "PMC", "None"])} = "PMC";
+        modeSymmetryAxial_private(1, 1) string ...
+            {mustBeMember(modeSymmetryAxial_private, ["TE", "TM", "None"])} = "None";
     end
     properties (Hidden, Access=protected)
         fixed_kr;       % Fixed-point integral coordindates kr.
@@ -75,13 +88,20 @@ classdef nLayerOpenEnded < nLayerForward
 
     %% Class Constructor
     methods (Access=public)
-        function O = nLayerOpenEnded(modeStructs)
+        function O = nLayerOpenEnded(waveguideModes, classProperties)
             arguments
-                modeStructs(:, 1) nLayer.waveguideMode = nLayer.waveguideMode.empty;
+                waveguideModes(:, 1) nLayer.waveguideMode = nLayer.waveguideMode.empty;
+                classProperties.?nLayerOpenEnded;
             end
 
-            if ~isempty(modeStructs)
-                O.waveguideModes = modeStructs;
+            if ~isempty(waveguideModes)
+                O.waveguideModes = waveguideModes;
+            end
+
+            % Set Class Parameter Values
+            propPairs = namedargs2cell(classProperties);
+            for ii = 1:2:numel(propPairs)
+                O.(propPairs{ii}) = propPairs{ii + 1};
             end
         end
     end
@@ -89,28 +109,38 @@ classdef nLayerOpenEnded < nLayerForward
     %% Class Setters
     methods
         function set.frequencyRange(O, newFreqRange)
-            O.frequencyRange = [min(newFreqRange), max(newFreqRange)];
-            O.shouldRecomputeWeights = true;        %#ok<MCSUP>
+            O.frequencyRange_private = [min(newFreqRange), max(newFreqRange)];
+            O.shouldRecomputeWeights = true;
         end
 
         function set.modeSymmetryX(O, newSym)
-            O.modeSymmetryX = newSym;
-            O.shouldRegenerateWaveguideModeObjects = true;  %#ok<MCSUP>
+            O.modeSymmetryX_private = newSym;
+            if strcmp(newSym, "PEC") && strcmp(O.modeSymmetryAxial, "TM")
+                O.modeSymmetryAxial_private = "None";
+            elseif strcmp(newSym, "PMC") && strcmp(O.modeSymmetryAxial, "TE")
+                O.modeSymmetryAxial_private = "None";
+            end
+            O.shouldRegenerateWaveguideModeObjects = true;
         end
         function set.modeSymmetryY(O, newSym)
-            O.modeSymmetryY = newSym;
-            O.shouldRegenerateWaveguideModeObjects = true;  %#ok<MCSUP>
+            O.modeSymmetryY_private = newSym;
+            if strcmp(newSym, "PEC") && strcmp(O.modeSymmetryAxial, "TM")
+                O.modeSymmetryAxial_private = "None";
+            elseif strcmp(newSym, "PMC") && strcmp(O.modeSymmetryAxial, "TE")
+                O.modeSymmetryAxial_private = "None";
+            end
+            O.shouldRegenerateWaveguideModeObjects = true;
         end
         function set.modeSymmetryAxial(O, newSym)
-            O.modeSymmetryAxial = newSym;
+            O.modeSymmetryAxial_private = newSym;
             if strcmp(newSym, "TE")
-                O.modeSymmetryX = "PEC";        %#ok<MCSUP>
-                O.modeSymmetryY = "PEC";        %#ok<MCSUP>
+                O.modeSymmetryX_private = "PEC";
+                O.modeSymmetryY_private = "PEC";
             elseif strcmp(newSym, "TM")
-                O.modeSymmetryX = "PMC";        %#ok<MCSUP>
-                O.modeSymmetryY = "PMC";        %#ok<MCSUP>
+                O.modeSymmetryX_private = "PMC";
+                O.modeSymmetryY_private = "PMC";
             end
-            O.shouldRegenerateWaveguideModeObjects = true;  %#ok<MCSUP>
+            O.shouldRegenerateWaveguideModeObjects = true;
         end
     end
 
@@ -119,6 +149,19 @@ classdef nLayerOpenEnded < nLayerForward
         function [waveguideModes] = get.waveguideModes(O)
             O.regenerateWaveguideModeObjects();
             waveguideModes = O.waveguideModes;
+        end
+
+        function [freq_range] = get.frequencyRange(O)
+            freq_range = O.frequencyRange_private;
+        end
+        function [symX] = get.modeSymmetryX(O)
+            symX = O.modeSymmetryX_private;
+        end
+        function [symY] = get.modeSymmetryY(O)
+            symY = O.modeSymmetryY_private;
+        end
+        function [symAx] = get.modeSymmetryAxial(O)
+            symAx = O.modeSymmetryAxial_private;
         end
 
         function [kc0] = get.mode_kc0(O)

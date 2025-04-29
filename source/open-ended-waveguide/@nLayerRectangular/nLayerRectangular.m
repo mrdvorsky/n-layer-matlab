@@ -1,5 +1,5 @@
 classdef nLayerRectangular < nLayerOpenEnded
-    %NLAYERRECTANGULAR Implementation of nLayerForward for rectangular waveguides.
+    %Implementation of nLayerForward for rectangular waveguides.
     % This class can be used to calculate the reflection coefficient seen
     % by a rectangular waveguide looking into a multilayer structure. Note
     % that the units of all parameters should match that of the speed of

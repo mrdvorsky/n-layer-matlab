@@ -35,7 +35,7 @@ classdef nLayerCircular < nLayerOpenEnded
     %% Class Constructor
     methods
         function O = nLayerCircular(indexM, maxIndexN, classProperties)
-            %NLAYERCIRCULAR Construct an instance of this class.
+            %Construct an instance of this class.
             % Inputs:
             %   indexM - Index 'm' of TEmn and TMmn modes to consider.
             %   maxIndexN - Highest index 'n' of TEmn and TMmn modes to consider.

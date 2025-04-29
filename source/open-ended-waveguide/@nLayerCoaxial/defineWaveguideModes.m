@@ -1,5 +1,5 @@
 function [waveguideModes] = defineWaveguideModes(O, symmetryX, symmetryY, symmetryAxial)
-%DEFINEWAVEGUIDEMODES Defines waveguide modes for a coaxial waveguide.
+%Defines waveguide modes for a coaxial waveguide.
 % Defines the "nLayer.waveguideMode" objects for a coaxial waveguide,
 % as required by the "nLayerOpenEnded" class.
 %

@@ -1,5 +1,5 @@
 classdef nLayerCoaxial < nLayerOpenEnded
-    %NLAYERCOAXIAL Implementation of nLayerForward for coaxial waveguides.
+    %Implementation of nLayerForward for coaxial waveguides.
     % This class can be used to calculate the reflection coefficient seen
     % by a coaxial waveguide looking into a multilayer structure. Note
     % that the units of all parameters should match that of the speed of
@@ -63,15 +63,11 @@ classdef nLayerCoaxial < nLayerOpenEnded
                 O.(propPairs{ii}) = propPairs{ii + 1};
             end
 
-            if strcmp(O.modeSymmetryAxial, "TM")
-                [kc] = besseljy_zeros(O.modeIndexM, 1, O.waveguideRi, O.waveguideRo);
-                O.frequencyRange = [0, kc] ./ (2*pi) ...
-                    .* O.speedOfLight;
-            elseif strcmp(O.modeSymmetryAxial, "TE")
-                [kc] = besseljyprime_zeros(O.modeIndexM, 1, O.waveguideRi, O.waveguideRo);
-                O.frequencyRange = [0, kc] ./ (2*pi) ...
-                    .* O.speedOfLight;
-            end
+            % if strcmp(O.modeSymmetryAxial, "TM")
+            %     [kc] = besselCrossZeros(O.modeIndexM, O.waveguideRo./O.waveguideRi, 1);
+            %     O.frequencyRange = [0, kc] ./ (2*pi) ...
+            %         .* O.speedOfLight;
+            % end
 
             if isfield(classProperties, "frequencyRange")
                 O.frequencyRange = classProperties.frequencyRange;

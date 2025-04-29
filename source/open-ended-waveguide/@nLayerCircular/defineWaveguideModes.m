@@ -1,5 +1,5 @@
 function [waveguideModes] = defineWaveguideModes(O, symmetryX, symmetryY, symmetryAxial)
-%DEFINEWAVEGUIDEMODES Defines waveguide modes for a circular waveguide.
+%Defines waveguide modes for a circular waveguide.
 % Defines the "nLayer.waveguideMode" objects for a circular waveguide,
 % as required by the "nLayerOpenEnded" class.
 %

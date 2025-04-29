@@ -1,5 +1,5 @@
 function [waveguideModes] = defineWaveguideModes(O, symmetryX, symmetryY, symmetryAxial)
-%DEFINEWAVEGUIDEMODES Defines waveguide modes for rectangular waveguide.
+%Defines waveguide modes for rectangular waveguide.
 % Defines the "nLayer.waveguideMode" objects for a rectangular waveguide,
 % as required by the "nLayerOpenEnded" class.
 %

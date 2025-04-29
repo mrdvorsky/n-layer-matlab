@@ -1,6 +1,5 @@
-function [gam] = calculate_impl(O, f, er, ur, thk)
-%CALCULATEGAMMA Calculate S11 for clamped waveguides. "Clamping" can be
-%done with any of the open-ended nLayerForward objects.
+function [gam] = calculate(O, f, er, ur, thk)
+%Calculate 2-port S-parameters of waveguides clamped over structure.
 % 
 % STRUCTURE FORMAT: When defining er, ur, and thk for each layer start with
 %   port 1 and list them in order going towards port 2. 
@@ -22,11 +21,14 @@ function [gam] = calculate_impl(O, f, er, ur, thk)
 
 arguments
     O;
-    f(:,1);
+    f(:, 1);
     er(1, :);
-    ur(1,:);
-    thk(1,:);
+    ur(1, :);
+    thk(1, :);
 end
+
+%% Check Inputs
+[er, ur, thk] = nLayer.validateStructure(er, ur, thk);
 
 magCond = O.magCond;
 layers = numel(thk);

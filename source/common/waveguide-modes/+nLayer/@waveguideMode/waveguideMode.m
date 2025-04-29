@@ -49,7 +49,6 @@ classdef waveguideMode < matlab.mixin.Copyable
 
     %% Class Functions
     methods (Access=public)
-        [] = plotVectorField(O, options);
         [] = showMode(O, options);
     end
 

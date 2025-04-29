@@ -1,5 +1,5 @@
 function [Gamma0h, Gamma0e, Gamma0hp, Gamma0ep] = computeGammaA(kr, k0, er, ur, thk)
-%COMPUTEGAMMA0 Computes Gamma0h and Gamma0e for the multilayer structure.
+%Computes Gamma0h and Gamma0e for the multilayer structure.
 % This function computes the spectrum for the multilayer structure
 % reflection coefficient for TE and TM modes as a function of "kr".
 % Specifically, it computes "Gamma0h(kr)" and "Gamma0e(kr)".

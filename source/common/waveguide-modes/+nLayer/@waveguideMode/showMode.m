@@ -1,5 +1,5 @@
-function [] = plotVectorField(O, options)
-%PLOTMODESTRUCT Plot the fields defined by this "waveguideMode" object.
+function [] = showMode(O, options)
+%Plot the fields defined by this "waveguideMode" object.
 % This function simply plots the tangential fields over the waveguide
 % aperture.
 %
@@ -10,8 +10,8 @@ arguments
 
     options.SizeX(1, 1) {mustBePositive};
     options.SizeY(1, 1) {mustBePositive};
-    options.NumPointsX(1, 1) {mustBePositive, mustBeInteger} = 999;
-    options.NumPointsY(1, 1) {mustBePositive, mustBeInteger} = 999;
+    options.NumPointsX(1, 1) {mustBePositive, mustBeInteger} = 625;
+    options.NumPointsY(1, 1) {mustBePositive, mustBeInteger} = 625;
 end
 
 %% Check Size
@@ -40,7 +40,7 @@ Ex = fftshift(ifft2(ifftshift(ExHat))) * scaleFactor;
 Ey = fftshift(ifft2(ifftshift(EyHat))) * scaleFactor;
 
 %% Plot Fields
-plotVectorField(x, y, Ex, Ey);
+showImage(x, y, sqrt(Ex.^2 + Ey.^2), DisplayFormat="Magnitude");
 
 end
 

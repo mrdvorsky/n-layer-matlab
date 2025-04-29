@@ -1,5 +1,5 @@
 function [krcNodes, Ah_weights, Ae_weights] = computeAhat(O)
-%COMPUTEAHAT Computes the matrices AhHat(kRho) and AeHat(kRho).
+%Computes the matrices AhHat(kRho) and AeHat(kRho).
 % This function ...
 %
 % Example Usage:
@@ -48,7 +48,7 @@ Nphi = 4*64;
 %% Get kRho Weights and Nodes for Integration
 % Use 4th dimension for integration over kr
 [krc, moment_weights] = ...
-    nLayer.getContourWeights(Nm, Nrho, a, b);
+    getContourWeights(Nm, Nrho, a, b);
 
 %% Compute Weights and Nodes for Integral over kphi
 % Use 5th dimension for integration over kphi

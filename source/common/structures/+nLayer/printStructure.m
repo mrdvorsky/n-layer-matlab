@@ -1,5 +1,5 @@
 function [structureString, figureString] = printStructure(er, ur, thk, options)
-%PRINTSTRUCTURE Prints or returns a string showing nLayer structure.
+%Prints or returns a string showing nLayer structure.
 %   Detailed explanation goes here
 %
 % Check sizes of inputs

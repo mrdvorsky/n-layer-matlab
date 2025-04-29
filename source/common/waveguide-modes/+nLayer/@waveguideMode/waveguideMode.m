@@ -1,5 +1,5 @@
 classdef waveguideMode < matlab.mixin.Copyable
-    %WAVEGUIDEMODE Class defining properties of a waveguide mode.
+    %Class defining properties of a waveguide mode.
     % This class defines the properties of a particular mode in a
     % waveguide, including the mode type, symmetries, spectrums, etc.
     %
@@ -33,7 +33,7 @@ classdef waveguideMode < matlab.mixin.Copyable
     %% Class Constructor
     methods
         function O = waveguideMode(classProperties)
-            %WAVEGUIDEMODE Construct an instance of this class.
+            %Construct an instance of this class.
 
             arguments
                 classProperties.?nLayer.waveguideMode;
@@ -50,6 +50,7 @@ classdef waveguideMode < matlab.mixin.Copyable
     %% Class Functions
     methods (Access=public)
         [] = plotVectorField(O, options);
+        [] = showMode(O, options);
     end
 
     %% Class Getters

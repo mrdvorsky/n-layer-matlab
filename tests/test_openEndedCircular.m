@@ -14,7 +14,7 @@ gam = NL.calculate(f, er, ur, thk);
 
 %% Plot
 figure;
-plot(gam, "", LineWidth=1.5);
+plot(gam, ".-", LineWidth=1.5);
 hold on;
 zplane([]);
 

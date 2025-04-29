@@ -65,7 +65,9 @@ writelines(libUpdateLines, fullfile(startupFileLocation, libUpdateFileName));
 %% Clean Path
 pathAll = split(path(), pathsep());
 pathAllLib = pathAll(startsWith(pathAll, libPath));
-rmpath(pathAllLib{:});
+if ~isempty(pathAllLib)
+    rmpath(pathAllLib{:});
+end
 
 %% Run Startup
 cndeMatlabTools_startup(CheckForUpdates=false);

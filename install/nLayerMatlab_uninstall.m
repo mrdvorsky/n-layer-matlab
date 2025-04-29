@@ -38,7 +38,9 @@ end
 %% Clean Path
 pathAll = split(path(), pathsep());
 pathAllLib = pathAll(startsWith(pathAll, libPath));
-rmpath(pathAllLib{:});
+if ~isempty(pathAllLib)
+    rmpath(pathAllLib{:});
+end
 
 %% Delete the Functions in UserPath Folder
 delete(fullfile(startupFileLocation, strcat(libStartupFileName, "*")));

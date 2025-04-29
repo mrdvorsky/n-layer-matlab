@@ -29,6 +29,9 @@ arguments
     thk;
 end
 
+%% Check Inputs
+[er, ur, thk] = nLayer.validateStructure(er, ur, thk);
+
 %% Fix
 er = cell2mat(er).';
 ur = cell2mat(ur).';

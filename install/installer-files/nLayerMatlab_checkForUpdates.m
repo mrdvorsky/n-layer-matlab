@@ -1,5 +1,5 @@
-function [] = cndeMatlabTools_checkForUpdates(options)
-%This function "updates" the cnde-matlab-tools library.
+function [] = nLayerMatlab_checkForUpdates(options)
+%This function "updates" the n-layer-matlab library.
 % Essentially, this function does the following:
 %   - Fetch latest from remote git repo.
 %   - Check if there is an update.
@@ -56,7 +56,7 @@ isThereAnUpdate = ~strcmp(updateLog.ID(1), ...
 if ~isThereAnUpdate
     if options.AlwaysShowPopupWindow
         msgbox(sprintf("The '%s' libary is up to date (%s).", ...
-            libName, cndeMatlabTools_getVersion()), ...
+            libName, nLayerMatlab_getVersion()), ...
             updaterTitle);
     end
     return;
@@ -96,11 +96,11 @@ end
 %% Perform Update
 pull(repo);
 msgbox(sprintf("The '%s' libary was successfully updated to %s.", ...
-    libName, cndeMatlabTools_getVersion()), ...
+    libName, nLayerMatlab_getVersion()), ...
     updaterTitle);
 
 %% Setup Paths by Reinstalling
-cndeMatlabTools_install(ShowFinishedPopup=false);
+nLayerMatlab_install(ShowFinishedPopup=false);
 
 end
 

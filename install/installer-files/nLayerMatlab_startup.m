@@ -1,4 +1,4 @@
-function [] = cndeMatlabTools_startup(options)
+function [] = nLayerMatlab_startup(options)
 %Function that is run at Matlab startup.
 % 
 % Author: Matt Dvorsky
@@ -20,7 +20,7 @@ addpath(genpath(fullfile(libPath, "source")));
 
 %% Check for Updates
 if options.CheckForUpdates
-    cndeMatlabTools_checkForUpdates(AlwaysShowPopupWindow=false);
+    nLayerMatlab_checkForUpdates(AlwaysShowPopupWindow=false);
 end
 
 end

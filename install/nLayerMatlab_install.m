@@ -1,13 +1,13 @@
-function [] = cndeMatlabTools_install(options)
-%This function "installs" the cnde-matlab-tools library.
+function [] = nLayerMatlab_install(options)
+%This function "installs" the n-layer-matlab library.
 % Essentially, this function does the following:
 %   - Creates the "startup.m" file in the userpath directory, if it does
 %       not already exist.
-%   - Adds the line "cndeMatlabTools_startup(...);" to the "startup.m"
+%   - Adds the line "nLayerMatlab_startup(...);" to the "startup.m"
 %       file, if it does not already exist.
-%   - Copies "cndeMatlabTools_startup.m" to the userpath directory.
-%   - Copies "cndeMatlabTools_checkForUpdates.m" to the userpath directory.
-%   - Runs the "cndeMatlabTools_startup" function.
+%   - Copies "nLayerMatlab_startup.m" to the userpath directory.
+%   - Copies "nLayerMatlab_checkForUpdates.m" to the userpath directory.
+%   - Runs the "nLayerMatlab_startup" function.
 %
 % Author: Matt Dvorsky
 
@@ -16,13 +16,13 @@ arguments
 end
 
 %% Inputs and Paths
-startupLineSearch = "cndeMatlabTools_startup(";
-startupLineFull   = "cndeMatlabTools_startup(CheckForUpdates=true);";
+startupLineSearch = "nLayerMatlab_startup(";
+startupLineFull   = "nLayerMatlab_startup(CheckForUpdates=true);";
 
-libStartupFileName = "cndeMatlabTools_startup.m";
-libUpdateFileName = "cndeMatlabTools_checkForUpdates.m";
+libStartupFileName = "nLayerMatlab_startup.m";
+libUpdateFileName = "nLayerMatlab_checkForUpdates.m";
 
-libName = "cnde-matlab-tools";
+libName = "n-layer-matlab";
 libPath = fileparts(fileparts(mfilename("fullpath")));
 
 startupFileLocation = userpath();

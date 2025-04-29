@@ -1,21 +1,21 @@
-function [] = cndeMatlabTools_uninstall()
-%This function "uninstalls" the cnde-matlab-tools library.
+function [] = nLayerMatlab_uninstall()
+%This function "uninstalls" the n-layer-matlab library.
 % Essentially, this function does the following:
-%   - Removes the line "cndeMatlabTools_startup(...)" from the
+%   - Removes the line "nLayerMatlab_startup(...)" from the
 %       "startup.m" file, if the line is present.
-%   - Deletes the "cndeMatlabTools_startup.m" file, if it exists.
-%   - Deletes the "cndeMatlabTools_checkForUpdates.m" file, if it exists.
+%   - Deletes the "nLayerMatlab_startup.m" file, if it exists.
+%   - Deletes the "nLayerMatlab_checkForUpdates.m" file, if it exists.
 %   - Remove library folders from path.
 %
 % Author: Matt Dvorsky
 
 %% Inputs and Paths
-startupLineSearch = "cndeMatlabTools_startup(";
+startupLineSearch = "nLayerMatlab_startup(";
 
-libStartupFileName = "cndeMatlabTools_startup.m";
-libUpdateFileName = "cndeMatlabTools_checkForUpdates.m";
+libStartupFileName = "nLayerMatlab_startup.m";
+libUpdateFileName = "nLayerMatlab_checkForUpdates.m";
 
-libName = "cnde-matlab-tools";
+libName = "n-layer-matlab";
 libPath = fileparts(fileparts(mfilename("fullpath")));
 
 startupFileLocation = userpath();

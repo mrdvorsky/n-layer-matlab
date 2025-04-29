@@ -1,5 +1,5 @@
 function [] = mustBeErUrCallable(erFun)
-%MUSTBEERURCALLABLE Throws an error if input is not a valid er or ur object.
+%Throws an error if input is not a valid er or ur object.
 % Throws an error if "erFun" is not a valid relative permittivity or
 % permeability object. A valid object will either be a numeric scalar or a
 % function that accepts a frequency argument and returns a value.
@@ -7,7 +7,7 @@ function [] = mustBeErUrCallable(erFun)
 % Example Usage:
 %   arguments
 %       erFun(1, 1) {nLayer.mustBeErUrCallable};
-%       erScaler(1, 1) {nLayer.mustBeErUrCallable};
+%       erScalar(1, 1) {nLayer.mustBeErUrCallable};
 %   end
 %
 % Author: Matt Dvorsky

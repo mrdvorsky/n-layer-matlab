@@ -1,5 +1,5 @@
 classdef rectangularWaveguideBand
-    %RECTANGULARWAVEGUIDEBAND Defines waveguide bands and their dimensions.
+    %Defines waveguide bands and their dimensions.
     % Contains the definitions of standard rectangular waveguide bands. To
     % add a new band, edit the enumeration section below.
     %
@@ -10,8 +10,8 @@ classdef rectangularWaveguideBand
     % Example Usage:
     %   arguments
     %       ...
-    %       wgBand(1, 1) rectangularWaveguideBand;  % Accepts one band.
-    %       wgBands(:, 1) rectangularWaveguideBand; % Accepts an array of bands.
+    %       wgBand(1, 1)  nLayer.rectangularWaveguideBand; % Accepts one band.
+    %       wgBands(:, 1) nLayer.rectangularWaveguideBand; % Accepts an array of bands.
     %       ...
     %   end
     %

@@ -1,5 +1,5 @@
 classdef circularWaveguideBand
-    %CIRCULARWAVEGUIDEBAND Defines waveguide bands and their dimensions.
+    %Defines waveguide bands and their dimensions.
     % Contains the definitions of standard circular waveguide bands, in
     % addition to the custom TE01 waveguide bands. To add a new band, edit
     % the enumeration section below.
@@ -11,8 +11,8 @@ classdef circularWaveguideBand
     % Example Usage:
     %   arguments
     %       ...
-    %       wgBand(1, 1) circularWaveguideBand;  % Accepts one band.
-    %       wgBands(:, 1) circularWaveguideBand; % Accepts an array of bands.
+    %       wgBand(1, 1)  nLayer.circularWaveguideBand; % Accepts one band.
+    %       wgBands(:, 1) nLayer.circularWaveguideBand; % Accepts an array of bands.
     %       ...
     %   end
     %

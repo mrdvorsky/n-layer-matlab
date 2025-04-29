@@ -29,9 +29,9 @@ end
 %% Calculate Mode Cutoff
 if isempty(options.kc)
     if strcmp(TE_TM, "TE")
-        kcAll = besseljprime_zeros(m, n) ./ wgR;
+        kcAll = besseljPrimeZeros(m, 1:n) ./ wgR;
     else
-        kcAll = besselj_zeros(m, n) ./ wgR;
+        kcAll = besseljZeros(m, 1:n) ./ wgR;
     end
     kc = kcAll(end);
 else
@@ -47,10 +47,10 @@ if strcmp(TE_TM, "TE")
     scaleTE_e = scaleTE .* m ./ wgR;
 
     if isRotated
-        WhSpec = @(~, ~, kr, kphi) scaleTE_h * besseljprime(m, wgR.*kr) ./ (kr.^2 - kc.^2) .* sin(m*kphi);
+        WhSpec = @(~, ~, kr, kphi) scaleTE_h * besseljPrime(m, wgR.*kr) ./ (kr.^2 - kc.^2) .* sin(m*kphi);
         WeSpec = @(~, ~, kr, kphi) -scaleTE_e * JmOverKr(m, wgR, kr) .* cos(m*kphi);
     else
-        WhSpec = @(~, ~, kr, kphi) scaleTE_h * besseljprime(m, wgR.*kr) ./ (kr.^2 - kc.^2) .* cos(m*kphi);
+        WhSpec = @(~, ~, kr, kphi) scaleTE_h * besseljPrime(m, wgR.*kr) ./ (kr.^2 - kc.^2) .* cos(m*kphi);
         WeSpec = @(~, ~, kr, kphi) scaleTE_e * JmOverKr(m, wgR, kr) .* sin(m*kphi);
     end
 

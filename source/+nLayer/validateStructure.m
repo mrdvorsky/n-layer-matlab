@@ -1,5 +1,5 @@
 function [er, ur, thk] = validateStructure(er, ur, thk, options)
-%VALIDATESTRUCTURE Check the multilayer structure and correct any issues.
+%Check the multilayer structure and correct any issues.
 % This function can be used to verify proper dimensions and values of the
 % inputs er, ur, thk.
 %

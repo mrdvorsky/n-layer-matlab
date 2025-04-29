@@ -1,5 +1,5 @@
 classdef coaxialConnectorType
-    %COAXIALCONNECTORTYPE Defines coaxial connector types and their dimensions.
+    %Defines coaxial connector types and their dimensions.
     % Contains the definitions of standard coaxial waveguide connectors.
     % To add a new connector type, edit the enumeration section below.
     %
@@ -10,8 +10,8 @@ classdef coaxialConnectorType
     % Example Usage:
     %   arguments
     %       ...
-    %       coaxType(1, 1) coaxialConnectorType;    % Accepts one connector.
-    %       coaxTypes(:, 1) coaxialConnectorType;   % Accepts an array of connectors.
+    %       coaxType(1, 1)  nLayer.coaxialConnectorType;   % Accepts one connector.
+    %       coaxTypes(:, 1) nLayer.coaxialConnectorType;   % Accepts an array of connectors.
     %       ...
     %   end
     %

@@ -1,5 +1,5 @@
 function [] = mustBePositiveOddInteger(num)
-%MUSTBEPOSITIVEODDINTEGER Throws an error when not a positive odd integer.
+%Throws an error when not a positive odd integer.
 %
 % Example Usage:
 %   arguments
@@ -16,7 +16,7 @@ end
 mustBeInteger(num);
 mustBePositive(num);
 if mod(num, 2) ~= 1
-    throwAsCaller(MException("MATLAB:mustBePositiveOddInteger", ...
+    throwAsCaller(MException("nLayer:mustBePositiveOddInteger", ...
         "Value must be a positive odd integer."));
 end
 

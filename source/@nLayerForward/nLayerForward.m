@@ -1,5 +1,5 @@
 classdef (Abstract) nLayerForward < matlab.mixin.Copyable
-    %NLAYERFORWARD Interface class for nLayer forward calculators.
+    %Interface class for nLayer forward calculators.
     % This class serves as an interface definition for all nLayer forward
     % calculator objects. These objects take in a multilayer structure
     % definition and output the computed reflection coefficients (or

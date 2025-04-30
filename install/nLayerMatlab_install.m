@@ -70,7 +70,7 @@ if ~isempty(pathAllLib)
 end
 
 %% Run Startup
-cndeMatlabTools_startup(CheckForUpdates=false);
+nLayerMatlab_startup(CheckForUpdates=false);
 
 %% Finished Dialogue
 if options.ShowFinishedPopup

@@ -71,7 +71,7 @@ classdef waveguideMode < matlab.mixin.Copyable
                     - cos(kphi).*O.WhSpec(kx, ky, kr, kphi);
             else
                 spec = @(kx, ky, kr, kphi) ...
-                    cos(kphi).*O.WeSpec(kx, ky, kr, kphi);
+                    sin(kphi).*O.WeSpec(kx, ky, kr, kphi);
             end
         end
         function [spec] = get.EzSpec(O)
@@ -79,7 +79,7 @@ classdef waveguideMode < matlab.mixin.Copyable
                 spec = @(~, ~, ~, ~) 0;
             else
                 spec = @(kx, ky, kr, kphi) ...
-                    O.WeSpec(kx, ky, kr, kphi) ./ kr;
+                    O.WeSpec(kx, ky, kr, kphi) ./ (1j*kr);
             end
         end
     end

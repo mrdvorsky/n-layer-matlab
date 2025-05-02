@@ -1,4 +1,4 @@
-function [] = showMode(O, options)
+function [] = showMode(self, options)
 %Plot the fields defined by this "waveguideMode" object.
 % This function simply plots the tangential fields over the waveguide
 % aperture.
@@ -6,7 +6,7 @@ function [] = showMode(O, options)
 % Author: Matt Dvorsky
 
 arguments
-    O nLayer.waveguideMode;
+    self nLayer.waveguideMode;
 
     options.SizeX(1, 1) {mustBePositive};
     options.SizeY(1, 1) {mustBePositive};
@@ -19,10 +19,10 @@ end
 
 %% Check Size
 if ~isfield(options, "SizeX")
-    options.SizeX = 1.1 * O.apertureSize;
+    options.SizeX = 1.1 * self.apertureSize;
 end
 if ~isfield(options, "SizeY")
-    options.SizeY = 1.1 * O.apertureSize;
+    options.SizeY = 1.1 * self.apertureSize;
 end
 
 %% Calculate x, y, kx, and ky
@@ -34,8 +34,8 @@ kr = hypot(kx, ky);
 kphi = atan2(ky, kx);
 
 %% Calculate Fields
-ExHat = O.ExSpec(kx, ky, kr, kphi);
-EyHat = O.EySpec(kx, ky, kr, kphi);
+ExHat = self.ExSpec(kx, ky, kr, kphi);
+EyHat = self.EySpec(kx, ky, kr, kphi);
 
 intScaleFactor = numel(kr) * abs(kx(1) - kx(2)) * abs(ky(1) - ky(2)) ...
     ./ (2*pi);

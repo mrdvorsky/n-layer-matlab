@@ -27,6 +27,31 @@ end
 %   4: kr
 %   5: kphi
 
+
+%% Contour Paths
+% The diagram belows shows the complex contour path used here. The contour
+% path is broken up into 5 separate paths, each one integrated separately.
+% Although it looks like paths 1 and 2 can be a single path, extra points
+% are needed near the origin to account for poles near the origin, which
+% can occur in some structures. The easiest way to do this is to split the
+% path into two segments, so that segment 1 can have many points.
+%
+%
+%     Im{r}
+%       ^
+%       |         Countour Path (3)
+% Lch-> |    ============================
+%       |   /                            \
+%       |  / (1,2)                    (4) \
+%       | /                                \      (5)
+%-------+-----------------------------------+=============...-> Re{r}
+%       |      x   x   x   x   x           Lcw      
+%       |   x    Poles of Gam(r)
+%       |  x
+%       |  x
+%
+
+
 %% Set Scale Factors and Integral Point Counts
 k0Max = max(O.frequencyRange) * 2*pi ./ O.speedOfLight;
 
@@ -34,7 +59,7 @@ k0Max = max(O.frequencyRange) * 2*pi ./ O.speedOfLight;
 Lc = k0Max;
 Lch = 0.5*Lc;
 Lcw = 10*Lc;
-LcFinal = 200*Lc;
+LcFinal = 10.1*Lc;
 
 krcWaypoints = {0, 0.05*Lch*(1 + 1j), Lch*(1 + 1j), (Lcw + Lch*1j), Lcw + Lch, LcFinal};
 a = krcWaypoints(1:end-1);

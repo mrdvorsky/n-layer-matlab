@@ -1,14 +1,27 @@
-function [modeStruct] = getCoaxialModeStruct(m, n, r_inner, r_outer, TE_TM, isRotated, options)
-%GETCOAXIALMODESTRUCT Get function object defining waveguide spectrums.
-% This function returns a modeStruct for the coaxial waveguide modes.
+function [modeStruct] = getCoaxialMode(m, n, r_inner, r_outer, TE_TM, isRotated)
+%Get "waveguideMode" object for specific coaxial waveguide mode.
+% This function returns a "waveguideMode" for a specific waveguide mode.
 %
-% If TE mode, the the x-axis will be PEC, and the y-axis will be the same
-% if "m" is even. For TM modes the the x-axis will be PMC, and the y-axis
-% will be the same if "m" is even.
+% For TE modes, the the x-axis will have PEC symmetry, and the y-axis will
+% have the same if "m" is even. For TM modes, the the x-axis will have PMC
+% symmetry, and the y-axis will have the same if "m" is even. If
+% "isRotated" is true, then PMC and PEC symmetries will flip for all
+% modes.
 %
-% If "isRotated" is true, then PMC and PEC will flip for all modes.
+% Example Usage:
+%   [waveguideMode] = getCoaxialMode(m, n, wgRi, wgRo, "TE", false);
+%   [waveguideMode] = getCoaxialMode(m, n, wgRi, wgRo, "TE", true);
+%   [waveguideMode] = getCoaxialMode(m, n, wgRi, wgRo, "TM", false);
+%   [waveguideMode] = getCoaxialMode(m, n, wgRi, wgRo, "TM", true);
 %
-% The TEM mode should be specified as TM00.
+%
+% Inputs:
+%   m - Scalar value of "m" the returned TEmn or TMmn mode.
+%   n - Scalar value of "n" the returned TEmn or TMmn mode.
+%   r_inner - Coaxial waveguide inner radius.
+%   r_outer - Coaxial waveguide outer radius.
+%   TE_TM - String containing "TE" or "TM".
+%   isRotated - Whether or not to swap PEC/PMC symmetries, see above.
 %
 % Author: Matt Dvorsky
 
@@ -19,10 +32,6 @@ arguments
     r_outer(1, 1) {mustBePositive, mustBeGreaterThan(r_outer, r_inner)};
     TE_TM(1, 1) string {mustBeMember(TE_TM, ["TE", "TM"])};
     isRotated(1, 1) logical;
-
-    options.kc {mustBeScalarOrEmpty} = [];
-    options.alpha {mustBeScalarOrEmpty} = [];
-    options.beta {mustBeScalarOrEmpty} = [];
 end
 
 %% Check Inputs
@@ -50,33 +59,26 @@ if (m == 0) && (n == 0)
         symmetryX="PMC", ...
         symmetryY="PMC", ...
         symmetryAxial="TM");
-    
+
     return;
 end
 
 %% Calculate Mode Cutoff
-if isempty(options.kc) || isempty(options.alpha) || isempty(options.beta)
-    if strcmp(TE_TM, "TE")
-        [kc, alpha, beta] = besseljyprime_zeros(m, n, r_inner, r_outer);
-    else    % TM
-        [kc, alpha, beta] = besseljy_zeros(m, n, r_inner, r_outer);
-    end
-    kc = kc(end);
-    a = alpha(end);
-    b = beta(end);
-else
-    kc = options.kc;
-    a = options.alpha;
-    b = options.beta;
+if strcmp(TE_TM, "TE")
+    [kc, t] = besselCrossPrimeZeros(m, r_outer./r_inner, n);
+else    % TM
+    [kc, t] = besselCrossZeros(m, r_outer./r_inner, n);
 end
+
+kc = kc ./ r_inner;
 
 %% Define Weighting Functions
 if strcmp(TE_TM, "TE")
     signTE = (-1).^((m + 1).*isRotated + m + (m>0) + ceil(0.5*m)) ...
         .* (-1j).^(m + 1);
 
-    J_inner = r_inner*besseljy(a, b, m, r_inner*kc);
-    J_outer = r_outer*besseljy(a, b, m, r_outer*kc);
+    J_inner = r_inner*besselCylinder(m, t, r_inner*kc);
+    J_outer = r_outer*besselCylinder(m, t, r_outer*kc);
 
     scaleTE = signTE ./ sqrt(0.5*(1 + (m==0))*pi) ./ kc ./ sqrt(...
         J_outer.^2 .* (1 - (m./(r_outer*kc)).^2) ...
@@ -88,17 +90,21 @@ if strcmp(TE_TM, "TE")
     scaleTE_e_outer = scaleTE .* J_outer .* m ./ r_outer;
 
     if isRotated
-        WhSpec = @(~, ~, kr, kphi) (scaleTE_h_outer*besseljprime(m, r_outer.*kr) - scaleTE_h_inner*besseljprime(m, r_inner.*kr)) ...
+        WhSpec = @(~, ~, kr, kphi) (scaleTE_h_outer*besseljPrime(m, r_outer.*kr) ...
+            - scaleTE_h_inner*besseljPrime(m, r_inner.*kr)) ...
             ./ (kr.^2 - kc.^2) .* sin(m*kphi);
-        WeSpec = @(~, ~, kr, kphi) -(scaleTE_e_outer*JmOverKr(m, r_outer, kr) - scaleTE_e_inner*JmOverKr(m, r_inner, kr)) ...
-           .* cos(m*kphi);
+        WeSpec = @(~, ~, kr, kphi) -(scaleTE_e_outer*JmOverKr(m, r_outer, kr) ...
+            - scaleTE_e_inner*JmOverKr(m, r_inner, kr)) ...
+            .* cos(m*kphi);
     else
-        WhSpec = @(~, ~, kr, kphi) (scaleTE_h_outer*besseljprime(m, r_outer.*kr) - scaleTE_h_inner*besseljprime(m, r_inner.*kr)) ...
+        WhSpec = @(~, ~, kr, kphi) (scaleTE_h_outer*besseljPrime(m, r_outer.*kr) ...
+            - scaleTE_h_inner*besseljPrime(m, r_inner.*kr)) ...
             ./ (kr.^2 - kc.^2) .* cos(m*kphi);
-        WeSpec = @(~, ~, kr, kphi) (scaleTE_e_outer*JmOverKr(m, r_outer, kr) - scaleTE_e_inner*JmOverKr(m, r_inner, kr)) ...
+        WeSpec = @(~, ~, kr, kphi) (scaleTE_e_outer*JmOverKr(m, r_outer, kr) ...
+            - scaleTE_e_inner*JmOverKr(m, r_inner, kr)) ...
             .* sin(m*kphi);
     end
-    
+
     if m == 0
         WeSpec = @(~, ~, ~, ~) 0;
     end
@@ -106,8 +112,8 @@ else    % TM
     signTM = (-1).^(m*isRotated + 1 + ceil(0.5*m)) ...
         .* (-1j).^(m + 1);
 
-    J_inner = r_inner*besseljyprime(a, b, m, r_inner*kc);
-    J_outer = r_outer*besseljyprime(a, b, m, r_outer*kc);
+    J_inner = r_inner*besselCylinderPrime(m, t, r_inner*kc);
+    J_outer = r_outer*besselCylinderPrime(m, t, r_outer*kc);
 
     scaleTM = signTM .* sqrt((2 - (m==0)) ./ pi) ...
         ./ sqrt(J_outer.^2 - J_inner.^2);

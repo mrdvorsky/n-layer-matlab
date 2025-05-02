@@ -3,16 +3,20 @@ clear;
 close all;
 
 %% Inputs
-NL = nLayerRectangular(1, 0, ...
+NL = nLayerRectangular(3, 2, ...
     modeSymmetryX="PEC", ...
     modeSymmetryY="PMC", ...
     modeSymmetryAxial="None", ...
     waveguideBand="Ka");
 
 %% Plotting
-for ii = flip(1:numel(NL.modeStructs))
+for ii = 1:NL.numModes
     figure(Position=[100, 100, 1000, 800]);
-    nLayer.plotModeStruct(NL.modeStructs(ii));
+    NL.waveguideModes(ii).showMode();
 end
+
+
+
+
 
 

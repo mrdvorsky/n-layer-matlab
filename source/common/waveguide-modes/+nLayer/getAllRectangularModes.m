@@ -1,11 +1,32 @@
-function [waveguideModes] = getRectangularModes(maxM, maxN, wgA, wgB, options)
-%GETRECTANGULARMODES Get "waveguideMode" objects for rectangular waveguide.
-% 
+function [waveguideModes] = getAllRectangularModes(m, n, wgA, wgB, options)
+%Get all possible "waveguideMode" objects for a rectangular waveguide.
+% This functions returns "waveguideMode" objects for all rectangular
+% waveguide modes that match the pattern TEmn or TMmn, for all
+% combinations of the input vectors "m" and "n";
+%
+% Optionally, symmetry filters can be applied, so that all returned mode
+% objects have the specified symmetry.
+%
+% Example Usage:
+%   % All modes, regardless of symmetry.
+%   [waveguideModes] = getAllRectangularModes(m, n, a, b);
+%
+%   % Only return modes where the x-axis could be replaced with PEC.
+%   [waveguideModes] = getAllRectangularModes(m, n, a, b, ...
+%               modeSymmetryX="PEC");
+%
+%
+% Inputs:
+%   m - Vector of "m" values for returned TEmn and TMmn modes.
+%   n - Vector of "n" values for returned TEmn and TMmn modes.
+%   wgA - Waveguide length along x-dimension.
+%   wgB - Waveguide length along y-dimension.
+%
 % Author: Matt Dvorsky
 
 arguments
-    maxM(1, 1) {mustBeInteger, mustBeNonnegative};
-    maxN(1, 1) {mustBeInteger, mustBeNonnegative};
+    m(:, 1) {mustBeInteger, mustBeNonnegative};
+    n(1, :) {mustBeInteger, mustBeNonnegative};
     wgA(1, 1) {mustBePositive};
     wgB(1, 1) {mustBePositive};
 
@@ -17,14 +38,17 @@ arguments
         ["TE", "TM", "None"])} = "None";
 end
 
-%% Generate List of Modes
-modes_TE = [reshape((0:maxM).' + 0*(0:maxN), [], 1), ...
-    reshape(0*(0:maxM).' + (0:maxN), [], 1)];
-modes_TE = modes_TE(2:end, :);  % Eliminate TE00 mode.
+%% Generate List of All Possible Modes
+rotated(1, 1, :) = [false, true];
+[m, n, rotated] = broadcastArrays(unique(m), unique(n), rotated);
+m = m(:);
+n = n(:);
+rotated = rotated(:);
 
-%% Eliminate Modes that Don't Satisfy Symmetry Conditions
+%% Filter Modes by Symmetry
+keepMode = true(size(m));
 if strcmp(options.SymmetryY, "PMC")
-    modes_TE = modes_TE(mod(modes_TE(:, 1), 2) == 1, :);
+    
 elseif strcmp(options.SymmetryY, "PEC")
     modes_TE = modes_TE(mod(modes_TE(:, 1), 2) == 0, :);
 end

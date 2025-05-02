@@ -1,9 +1,24 @@
-function [modeStruct] = getRectangularModeStruct(m, n, wgA, wgB, TE_TM)
-%GETRECTANGULARMODESTRUCT Get function object defining waveguide spectrums.
-% This function returns a modeStruct for the rectangular waveguide modes.
+function [modeStruct] = getRectangularMode(m, n, wgA, wgB, TE_TM)
+%Get "waveguideMode" object for specific rectangular waveguide mode.
+% This function returns a "waveguideMode" for a specific waveguide mode.
 %
-% If "m" is even, the y-axis will be PEC, and PMC if odd.
-% For "n", the same is true but for the x-axis.
+% If "m" is even, then the y-axis will have PEC symmetry, and will have
+% PMC symmetry if "m" is odd. For "n", the same is true but for the
+% x-axis.
+%
+% Example Usage:
+%   [waveguideMode] = getRectangularMode(m, n, wgA, wgB, "TE");
+%   [waveguideMode] = getRectangularMode(m, n, wgA, wgB, "TE");
+%   [waveguideMode] = getRectangularMode(m, n, wgA, wgB, "TM");
+%   [waveguideMode] = getRectangularMode(m, n, wgA, wgB, "TM");
+%
+%
+% Inputs:
+%   m - Scalar value of "m" the returned TEmn or TMmn mode.
+%   n - Scalar value of "n" the returned TEmn or TMmn mode.
+%   wgA - Rectangular waveguide length along the x-axis.
+%   wgB - Rectangular waveguide length along the y-axis.
+%   TE_TM - String containing "TE" or "TM".
 %
 % Author: Matt Dvorsky
 

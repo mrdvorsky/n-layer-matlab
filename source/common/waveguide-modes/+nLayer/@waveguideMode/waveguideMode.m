@@ -32,7 +32,7 @@ classdef waveguideMode < matlab.mixin.Copyable
 
     %% Class Constructor
     methods
-        function O = waveguideMode(classProperties)
+        function self = waveguideMode(classProperties)
             %Construct an instance of this class.
 
             arguments
@@ -42,44 +42,45 @@ classdef waveguideMode < matlab.mixin.Copyable
             % Set Class Parameter Values
             propPairs = namedargs2cell(classProperties);
             for ii = 1:2:numel(propPairs)
-                O.(propPairs{ii}) = propPairs{ii + 1};
+                self.(propPairs{ii}) = propPairs{ii + 1};
             end
         end
     end
 
     %% Class Functions
     methods (Access=public)
-        [] = showMode(O, options);
+        [] = showMode(self, options);
+        [] = validateModeSymmetry(self, options);
     end
 
     %% Class Getters
     methods
-        function [spec] = get.ExSpec(O)
-            if strcmp(O.modeType, "TE")
+        function [spec] = get.ExSpec(self)
+            if strcmp(self.modeType, "TE")
                 spec = @(kx, ky, kr, kphi) ...
-                    cos(kphi).*O.WeSpec(kx, ky, kr, kphi) ...
-                    + sin(kphi).*O.WhSpec(kx, ky, kr, kphi);
+                    cos(kphi).*self.WeSpec(kx, ky, kr, kphi) ...
+                    + sin(kphi).*self.WhSpec(kx, ky, kr, kphi);
             else
                 spec = @(kx, ky, kr, kphi) ...
-                    cos(kphi).*O.WeSpec(kx, ky, kr, kphi);
+                    cos(kphi).*self.WeSpec(kx, ky, kr, kphi);
             end
         end
-        function [spec] = get.EySpec(O)
-            if strcmp(O.modeType, "TE")
+        function [spec] = get.EySpec(self)
+            if strcmp(self.modeType, "TE")
                 spec = @(kx, ky, kr, kphi) ...
-                    sin(kphi).*O.WeSpec(kx, ky, kr, kphi) ...
-                    - cos(kphi).*O.WhSpec(kx, ky, kr, kphi);
+                    sin(kphi).*self.WeSpec(kx, ky, kr, kphi) ...
+                    - cos(kphi).*self.WhSpec(kx, ky, kr, kphi);
             else
                 spec = @(kx, ky, kr, kphi) ...
-                    sin(kphi).*O.WeSpec(kx, ky, kr, kphi);
+                    sin(kphi).*self.WeSpec(kx, ky, kr, kphi);
             end
         end
-        function [spec] = get.EzSpec(O)
-            if strcmp(O.modeType, "TE")
+        function [spec] = get.EzSpec(self)
+            if strcmp(self.modeType, "TE")
                 spec = @(~, ~, ~, ~) 0;
             else
                 spec = @(kx, ky, kr, kphi) ...
-                    O.WeSpec(kx, ky, kr, kphi) ./ (1j*kr);
+                    self.WeSpec(kx, ky, kr, kphi) ./ (1j*kr);
             end
         end
     end

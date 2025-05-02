@@ -20,11 +20,11 @@ modeC
 NLsolver = nLayerInverse(2);
 
 %% Plot
-gam = NLC.calculate(f, er, ur, thk);
-
-figure;
-plot(gam(:, :), ".-", LineWidth=1.5);
-hold on;
-zplane([]);
+% gam = NLC.calculate(f, er, ur, thk);
+% 
+% figure;
+% plot(gam(:, :), ".-", LineWidth=1.5);
+% hold on;
+% zplane([]);
 
 

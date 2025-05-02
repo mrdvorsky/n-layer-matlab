@@ -1,11 +1,33 @@
-function [waveguideModes] = getCoaxialModes(m, maxN, wgRi, wgRo, options)
-%GETCOAXIALMODES Get "waveguideMode" objects for a coaxial waveguide.
+function [waveguideModes] = getAllCoaxialModes(m, n, wgRi, wgRo, options)
+%Get all possible "waveguideMode" objects for a coaxial waveguide.
+% This functions returns "waveguideMode" objects for all coaxial
+% waveguide modes that match the pattern TEmn or TMmn, for all
+% combinations of the input vectors "m" and "n";
+%
+% Optionally, symmetry filters can be applied, so that all returned mode
+% objects have the specified symmetry.
+%
+% Example Usage:
+%   % All modes, regardless of symmetry.
+%   [waveguideModes] = getAllCoaxialModes(m, n, wgRi, wgRo);
+%
+%   % Only return modes where the x-axis could be replaced with PEC.
+%   [waveguideModes] = getAllCoaxialModes(m, n, wgRi, wgRo, ...
+%               modeSymmetryX="PEC");
+%
+%
+% Inputs:
+%   m - Vector of "m" values for returned TEmn and TMmn modes.
+%   n - Vector of "n" values for returned TEmn and TMmn modes.
+%   wgRi - Inner radius of coaxial waveguide.
+%   wgRo - Inner radius of coaxial waveguide.
 %
 % Author: Matt Dvorsky
 
+
 arguments
-    m(1, 1) {mustBeInteger, mustBeNonnegative};
-    maxN(1, 1) {mustBeInteger, mustBeNonnegative};
+    m(:, 1) {mustBeInteger, mustBeNonnegative};
+    n(1, :) {mustBeInteger, mustBeNonnegative};
     wgRi(1, 1) {mustBePositive};
     wgRo(1, 1) {mustBePositive};
 
@@ -19,15 +41,15 @@ end
 
 %% Generate List of Modes
 if strcmp(options.SymmetryAxial, "TE")
-    modes_TE = [0*(1:maxN); (1:maxN)].';
+    modes_TE = [0*(1:n); (1:n)].';
     modes_TM = [];
 elseif strcmp(options.SymmetryAxial, "TM")
-    modes_TM = [0*(0:maxN); (0:maxN)].';
+    modes_TM = [0*(0:n); (0:n)].';
     modes_TE = [];
 else
-    modes_TE = [reshape((m).' + 0*(1:maxN), [], 1), ...
-        reshape(0*(m).' + (1:maxN), [], 1)];
-    modes_TM = [0, 0; modes_TE];
+    modes_TE = [reshape((m).' + 0*(1:n), [], 1), ...
+        reshape(0*(m).' + (1:n), [], 1)];
+    modes_TM = modes_TE;
 end
 
 %% Get "waveguideMode" Objects

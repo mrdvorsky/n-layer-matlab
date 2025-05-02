@@ -29,6 +29,12 @@ Wh2 = mode2.WhSpec(-kx, -ky, kr, kphi + pi);
 We1 = mode1.WeSpec(kx, ky, kr, kphi);
 We2 = mode2.WeSpec(-kx, -ky, kr, kphi + pi);
 
+% expScale = (0.5 - 0.5*tanh(kr - 10000));
+% Wh1 = Wh1 .* expScale;
+% Wh2 = Wh2 .* expScale;
+% We1 = We1 .* expScale;
+% We2 = We2 .* expScale;
+
 %% Integral
 crossProd = -sum(Wh1.*Wh2 .* (kr .* kr_w .* kphi_w), "all") ...
     - sum(We1.*We2 .* (kr .* kr_w .* kphi_w), "all");

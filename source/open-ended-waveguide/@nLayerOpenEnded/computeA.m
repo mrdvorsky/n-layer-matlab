@@ -22,6 +22,9 @@ end
 %% Calculate A
 k0(1, 1, 1, :) = 2*pi .* f(:) ./ O.speedOfLight;
 [Gamma0h, Gamma0e] = nLayer.computeGamma0(O.fixed_kr, k0, er, ur, thk);
+
+% Gamma0h = Gamma0h .* (0.5 - 0.5*tanh(O.fixed_kr - 10)).^2;
+% Gamma0e = Gamma0e .* (0.5 - 0.5*tanh(O.fixed_kr - 10)).^2;
 A = pagemtimes(Gamma0h, "transpose", O.fixed_Ah, "none") ...
     + pagemtimes(Gamma0e, "transpose", O.fixed_Ae, "none");
 

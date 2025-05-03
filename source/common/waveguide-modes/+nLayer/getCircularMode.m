@@ -39,15 +39,10 @@ if isRotated && (m == 0)
 end
 
 %% Calculate Mode Cutoff
-if isempty(options.kc)
-    if strcmp(TE_TM, "TE")
-        kcAll = besseljPrimeZeros(m, 1:n) ./ wgR;
-    else
-        kcAll = besseljZeros(m, 1:n) ./ wgR;
-    end
-    kc = kcAll(end);
+if strcmp(TE_TM, "TE")
+    kc = besseljPrimeZeros(m, n) ./ wgR;
 else
-    kc = options.kc;
+    kc = besseljZeros(m, n) ./ wgR;
 end
 
 %% Define Weighting Functions

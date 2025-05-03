@@ -1,4 +1,4 @@
-function [waveguideModes] = defineWaveguideModes(O, symmetryX, symmetryY, symmetryAxial)
+function [waveguideModes] = defineWaveguideModes(self, symmetryX, symmetryY, symmetryAxial)
 %Defines waveguide modes for a circular waveguide.
 % Defines the "nLayer.waveguideMode" objects for a circular waveguide,
 % as required by the "nLayerOpenEnded" class.
@@ -6,16 +6,16 @@ function [waveguideModes] = defineWaveguideModes(O, symmetryX, symmetryY, symmet
 % Author: Matt Dvorsky
 
 arguments
-    O;
+    self nLayerCircular;
     symmetryX string {mustBeMember(symmetryX, ["PEC", "PMC", "None"])};
     symmetryY string {mustBeMember(symmetryY, ["PEC", "PMC", "None"])};
     symmetryAxial string {mustBeMember(symmetryAxial, ["TE", "TM", "None"])};
 end
 
 %% Get Waveguide Mode Info
-waveguideModes = nLayer.getCircularModes(...
-    O.modeIndexM, O.maxModeIndexN, ...
-    O.waveguideR, ...
+waveguideModes = nLayer.getAllCircularModes(...
+    0:self.modeIndexM, 1:self.maxModeIndexN, ...
+    self.waveguideR, ...
     SymmetryX=symmetryX, SymmetryY=symmetryY, ...
     SymmetryAxial=symmetryAxial);
 

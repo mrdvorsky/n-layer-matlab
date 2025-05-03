@@ -32,48 +32,63 @@ arguments
     wgRo(1, 1) {mustBePositive};
 
     options.SymmetryX string {mustBeMember(options.SymmetryX, ...
-        ["PEC", "PMC", "None"])} = "PEC";
+        ["PEC", "PMC", "None"])} = "None";
     options.SymmetryY string {mustBeMember(options.SymmetryY, ...
-        ["PEC", "PMC", "None"])} = "PMC";
+        ["PEC", "PMC", "None"])} = "None";
     options.SymmetryAxial string {mustBeMember(options.SymmetryAxial, ...
         ["TE", "TM", "None"])} = "None";
 end
 
-%% Generate List of Modes
-if strcmp(options.SymmetryAxial, "TE")
-    modes_TE = [0*(1:n); (1:n)].';
-    modes_TM = [];
-elseif strcmp(options.SymmetryAxial, "TM")
-    modes_TM = [0*(0:n); (0:n)].';
-    modes_TE = [];
-else
-    modes_TE = [reshape((m).' + 0*(1:n), [], 1), ...
-        reshape(0*(m).' + (1:n), [], 1)];
-    modes_TM = modes_TE;
+%% Generate List of All Possible Modes
+[isRotated, TE_TM, n, m] = ndgrid([false, true], ["TE", "TM"], ...
+    unique(n), unique(m));
+
+m = m(:);
+n = n(:);
+TE_TM = TE_TM(:);
+isRotated = isRotated(:);
+
+%% Filter Out Rotated TE0n and TM0n Modes
+keepMode = ~((m == 0) & isRotated) & (n > 0) ...
+    | ((m == 0) & (n == 0) & strcmp(TE_TM, "TM") & ~isRotated);
+
+%% Filter Modes by Symmetry
+if strcmp(options.SymmetryX, "PEC")
+    keepMode = keepMode ...
+        & xor(isRotated, strcmp(TE_TM, "TE"));
+elseif strcmp(options.SymmetryX, "PMC")
+    keepMode = keepMode ...
+        & xor(~isRotated, strcmp(TE_TM, "TE"));
 end
+
+if strcmp(options.SymmetryY, "PEC")
+    keepMode = keepMode ...
+        & xor(xor((mod(m, 2) == 1), isRotated), strcmp(TE_TM, "TE"));
+elseif strcmp(options.SymmetryY, "PMC")
+    keepMode = keepMode ...
+        & xor(xor((mod(m, 2) == 0), isRotated), strcmp(TE_TM, "TE"));
+end
+
+if strcmp(options.SymmetryAxial, "TE")
+    keepMode = keepMode ...
+        & ((m == 0) & strcmp(TE_TM, "TE"));
+elseif strcmp(options.SymmetryAxial, "TM")
+    keepMode = keepMode ...
+        & ((m == 0) & strcmp(TE_TM, "TM"));
+end
+
+% Apply Filter
+m = m(keepMode);
+n = n(keepMode);
+TE_TM = TE_TM(keepMode);
+isRotated = isRotated(keepMode);
 
 %% Get "waveguideMode" Objects
-modesAll = [modes_TE; modes_TM];
-modeTypes = [repmat("TE", size(modes_TE, 1), 1); ...
-    repmat("TM", size(modes_TM, 1), 1)];
-
-isRotated = false(size(modesAll, 1), 1);
-modeTypes = [modeTypes; modeTypes(modesAll(:, 1) ~= 0)];
-modesAll = [modesAll; modesAll(modesAll(:, 1) ~= 0, :)];
-isRotated = [isRotated; true(size(modesAll, 1) - numel(isRotated), 1)];
-
-%#ok<*AGROW>
 waveguideModes = nLayer.waveguideMode.empty;
-for ii = 1:size(modesAll, 1)
-    m = modesAll(ii, 1);
-    n = modesAll(ii, 2);
-    waveguideModes(1, ii) = nLayer.getCoaxialModeStruct(...
-        m, n, wgRi, wgRo, modeTypes(ii), isRotated(ii));
+for ii = flip(1:numel(m))
+    waveguideModes(1, ii) = nLayer.getCoaxialMode(...
+        m(ii), n(ii), wgRi, wgRo, TE_TM(ii), isRotated(ii));
 end
-
-%% Sort by Cutoff
-[~, sortInd] = sort([waveguideModes.kc0]);
-waveguideModes = waveguideModes(sortInd);
 
 end
 

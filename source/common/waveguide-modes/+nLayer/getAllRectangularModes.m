@@ -31,58 +31,52 @@ arguments
     wgB(1, 1) {mustBePositive};
 
     options.SymmetryX string {mustBeMember(options.SymmetryX, ...
-        ["PEC", "PMC", "None"])} = "PEC";
+        ["PEC", "PMC", "None"])} = "None";
     options.SymmetryY string {mustBeMember(options.SymmetryY, ...
-        ["PEC", "PMC", "None"])} = "PMC";
+        ["PEC", "PMC", "None"])} = "None";
     options.SymmetryAxial string {mustBeMember(options.SymmetryAxial, ...
         ["TE", "TM", "None"])} = "None";
 end
 
 %% Generate List of All Possible Modes
-rotated(1, 1, :) = [false, true];
-[m, n, rotated] = broadcastArrays(unique(m), unique(n), rotated);
+[TE_TM, n, m] = ndgrid(["TE", "TM"], unique(n), unique(m));
+
 m = m(:);
 n = n(:);
-rotated = rotated(:);
+TE_TM = TE_TM(:);
+
+%% Filter Out TE00, TMm0, and TM0n Modes
+keepMode = (((m > 0) | (n > 0)) & TE_TM == "TE") ...
+    | (((m > 0) & (n > 0)) & TE_TM == "TM");
 
 %% Filter Modes by Symmetry
-keepMode = true(size(m));
 if strcmp(options.SymmetryY, "PMC")
-    
+    keepMode = keepMode & (mod(m, 2) == 1);
 elseif strcmp(options.SymmetryY, "PEC")
-    modes_TE = modes_TE(mod(modes_TE(:, 1), 2) == 0, :);
+    keepMode = keepMode & (mod(m, 2) == 0);
 end
 
 if strcmp(options.SymmetryX, "PMC")
-    modes_TE = modes_TE(mod(modes_TE(:, 2), 2) == 1, :);
+    keepMode = keepMode & (mod(n, 2) == 1);
 elseif strcmp(options.SymmetryX, "PEC")
-    modes_TE = modes_TE(mod(modes_TE(:, 2), 2) == 0, :);
+    keepMode = keepMode & (mod(n, 2) == 0);
 end
 
 if ~strcmp(options.SymmetryAxial, "None")
     error("Axial mode symmetry not supported for rectangular waveguides.");
 end
 
-%% Set TM Modes
-modes_TM = modes_TE(modes_TE(:, 1) > 0 & modes_TE(:, 2) > 0, :);
+% Apply Filter
+m = m(keepMode);
+n = n(keepMode);
+TE_TM = TE_TM(keepMode);
 
 %% Get "waveguideMode" Objects
-modesAll = [modes_TE; modes_TM];
-modeTypes = [repmat("TE", size(modes_TE, 1), 1); ...
-    repmat("TM", size(modes_TM, 1), 1)];
-
-%#ok<*AGROW>
 waveguideModes = nLayer.waveguideMode.empty;
-for ii = flip(1:size(modesAll, 1))
-    m = modesAll(ii, 1);
-    n = modesAll(ii, 2);
-    waveguideModes(1, ii) = nLayer.getRectangularModeStruct(...
-        m, n, wgA, wgB, modeTypes(ii));
+for ii = flip(1:numel(m))
+    waveguideModes(1, ii) = nLayer.getRectangularMode(...
+        m(ii), n(ii), wgA, wgB, TE_TM(ii));
 end
-
-%% Sort by Cutoff
-[~, sortInd] = sort([waveguideModes.kc0]);
-waveguideModes = waveguideModes(sortInd);
 
 end
 

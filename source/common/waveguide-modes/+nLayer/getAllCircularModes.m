@@ -35,41 +35,55 @@ arguments
         ["TE", "TM", "None"])} = "None";
 end
 
-%% Generate List of Modes
+%% Generate List of All Possible Modes
+[isRotated, TE_TM, n, m] = ndgrid([false, true], ["TE", "TM"], ...
+    unique(n), unique(m));
+
+m = m(:);
+n = n(:);
+TE_TM = TE_TM(:);
+isRotated = isRotated(:);
+
+
+%% Filter Out Rotated TE0n and TM0n Modes
+keepMode = ~((m == 0) & isRotated);
+
+%% Filter Modes by Symmetry
+if strcmp(options.SymmetryX, "PEC")
+    keepMode = keepMode ...
+        & xor(isRotated, strcmp(TE_TM, "TE"));
+elseif strcmp(options.SymmetryX, "PMC")
+    keepMode = keepMode ...
+        & xor(~isRotated, strcmp(TE_TM, "TE"));
+end
+
+if strcmp(options.SymmetryY, "PEC")
+    keepMode = keepMode ...
+        & xor(xor((mod(m, 2) == 1), isRotated), strcmp(TE_TM, "TE"));
+elseif strcmp(options.SymmetryY, "PMC")
+    keepMode = keepMode ...
+        & xor(xor((mod(m, 2) == 0), isRotated), strcmp(TE_TM, "TE"));
+end
+
 if strcmp(options.SymmetryAxial, "TE")
-    modes_TE = [0*(1:n); (1:n)].';
-    modes_TM = [];
+    keepMode = keepMode ...
+        & ((m == 0) & strcmp(TE_TM, "TE"));
 elseif strcmp(options.SymmetryAxial, "TM")
-    modes_TM = [0*(1:n); (1:n)].';
-    modes_TE = [];
-else
-    modes_TE = [reshape((m).' + 0*(1:n), [], 1), ...
-        reshape(0*(m).' + (1:n), [], 1)];
-    modes_TM = modes_TE;
+    keepMode = keepMode ...
+        & ((m == 0) & strcmp(TE_TM, "TM"));
 end
 
-%% Get "nLayer.waveguideMode" Objects
-modesAll = [modes_TE; modes_TM];
-modeTypes = [repmat("TE", size(modes_TE, 1), 1); ...
-    repmat("TM", size(modes_TM, 1), 1)];
+% Apply Filter
+m = m(keepMode);
+n = n(keepMode);
+TE_TM = TE_TM(keepMode);
+isRotated = isRotated(keepMode);
 
-isRotated = false(size(modesAll, 1), 1);
-modeTypes = [modeTypes; modeTypes(modesAll(:, 1) ~= 0)];
-modesAll = [modesAll; modesAll(modesAll(:, 1) ~= 0, :)];
-isRotated = [isRotated; true(size(modesAll, 1) - numel(isRotated), 1)];
-
-%#ok<*AGROW>
+%% Get "waveguideMode" Objects
 waveguideModes = nLayer.waveguideMode.empty;
-for ii = 1:size(modesAll, 1)
-    m = modesAll(ii, 1);
-    n = modesAll(ii, 2);
-    waveguideModes(1, ii) = nLayer.getCircularModeStruct(...
-        m, n, wgR, modeTypes(ii), isRotated(ii));
+for ii = flip(1:numel(m))
+    waveguideModes(1, ii) = nLayer.getCircularMode(...
+        m(ii), n(ii), wgR, TE_TM(ii), isRotated(ii));
 end
 
-%% Sort by Cutoff
-[~, sortInd] = sort([waveguideModes.kc0]);
-waveguideModes = waveguideModes(sortInd);
-
 end
-

@@ -54,6 +54,19 @@ classdef waveguideMode < matlab.mixin.Copyable
         [] = validateModeSymmetry(self, options);
     end
 
+    %% Static Functions
+    methods (Access=public)
+        [waveguideMode] = getRectangularMode(m, n, wgA, wgB, TE_TM);
+        [waveguideMode] = getCircularMode(m, n, wgR, TE_TM, isRotated);
+        [waveguideMode] = getCoaxialMode(m, n, wgRi, wgRo, TE_TM, isRotated);
+
+        [waveguideModes] = getAllRectangularModes(m, n, wgA, wgB, options);
+        [waveguideModes] = getAllCircularModes(m, n, wgR, options);
+        [waveguideModes] = getAllCoaxialModes(m, n, wgRi, wgRo, options);
+
+        [crossProd] = modeCrossProduct(mode1, mode2, options);
+    end
+
     %% Class Getters
     methods
         function [spec] = get.ExSpec(self)

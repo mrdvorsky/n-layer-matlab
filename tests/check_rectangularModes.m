@@ -12,6 +12,9 @@ NL = nLayerRectangular(2, 2, waveguideBand="Ka", ...
 %% Validate Symmetries
 for ii = 1:NL.numModes
     NL.waveguideModes(ii).validateModeSymmetry();
+    NL.waveguideModes(ii).validateModeAmplitude(...
+        NumIntegralPointsPhi=400, ...
+        NumIntegralPointsRho=2*16000, AbsTol=1e-3);
 end
 
 %% Plot

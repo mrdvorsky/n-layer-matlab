@@ -11,6 +11,9 @@ NL = nLayerCoaxial(2, 2, waveguideRi=1.1, waveguideRo=2, ...
 %% Validate Symmetries
 for ii = 1:NL.numModes
     NL.waveguideModes(ii).validateModeSymmetry();
+    NL.waveguideModes(ii).validateModeAmplitude(...
+        NumIntegralPointsPhi=8, ...
+        NumIntegralPointsRho=16*16000, AbsTol=1e-4);
 end
 
 %% Plot

@@ -11,6 +11,9 @@ NL = nLayerCircular(2, 2, waveguideBand="Ka_TE01", ...
 %% Validate Symmetries
 for ii = 1:NL.numModes
     NL.waveguideModes(ii).validateModeSymmetry();
+    NL.waveguideModes(ii).validateModeAmplitude(...
+        NumIntegralPointsPhi=10, ...
+        NumIntegralPointsRho=4*16000);
 end
 
 %% Plot

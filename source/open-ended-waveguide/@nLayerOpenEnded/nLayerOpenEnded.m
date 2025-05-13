@@ -1,5 +1,5 @@
 classdef nLayerOpenEnded < nLayerForward
-    %NLAYEROPENENDED Implementation of nLayerForward for open-ended waveguides.
+    %Implementation of nLayerForward for open-ended waveguides.
     % This class can be used to calculate the reflection coefficient seen
     % by an arbitrary waveguide(s) looking into a multilayer structure.
     % This class is meant to either be subclassed, where the subclass
@@ -19,7 +19,7 @@ classdef nLayerOpenEnded < nLayerForward
     end
     properties (Dependent, Access=public, AbortSet)
         frequencyRange(1, :) {mustBeNonnegative, mustBeFinite}; % Operating frequency range of the object.
-        
+
         modeSymmetryX(1, 1) string ...          % Symmetry of reflection about the x-axis.
             {mustBeMember(modeSymmetryX, ["PEC", "PMC", "None"])};
         modeSymmetryY(1, 1) string ...          % Symmetry of reflection about the y-axis.
@@ -60,7 +60,7 @@ classdef nLayerOpenEnded < nLayerForward
         fixed_kr;       % Fixed-point integral coordindates kr.
         fixed_Ah;       % Fixed-point integral weights for Ah.
         fixed_Ae;       % Fixed-point integral weights for Ae.
-        
+
         shouldRecomputeWeights(1, 1) logical = true;    % Flag to recompute integral weights.
         shouldRegenerateWaveguideModeObjects(1, 1) logical = true;  % Flag to regenerate waveguideMode objects.
     end
@@ -72,121 +72,121 @@ classdef nLayerOpenEnded < nLayerForward
 
     %% Class Functions
     methods (Access=public)
-        [Smn] = calculate(O, f, er, ur, thk);
-        [outputLabels] = getOutputLabels(O);
+        [Smn] = calculate(self, f, er, ur, thk);
+        [outputLabels] = getOutputLabels(self);
     end
     methods (Access=protected)
-        [waveguideModes] = defineWaveguideModes(O, ...
+        [waveguideModes] = defineWaveguideModes(self, ...
             symmetryX, symmetryY, symmetryAxial);
     end
     methods (Access=private)
-        [] = computeIntegralWeights(O, options);
-        [krc, AhHat, AeHat] = computeAhat(O);
-        [A] = computeA(O, f, er, ur, thk);
-        [K] = computeK(O, f);
+        [] = computeIntegralWeights(self, options);
+        [krc, AhHat, AeHat] = computeAhat(self);
+        [A] = computeA(self, f, er, ur, thk);
+        [K] = computeK(self, f);
     end
 
     %% Class Constructor
     methods (Access=public)
-        function O = nLayerOpenEnded(waveguideModes, classProperties)
+        function self = nLayerOpenEnded(waveguideModes, classProperties)
             arguments
                 waveguideModes(:, 1) waveguideMode = waveguideMode.empty;
                 classProperties.?nLayerOpenEnded;
             end
 
             if ~isempty(waveguideModes)
-                O.waveguideModes = waveguideModes;
+                self.waveguideModes = waveguideModes;
             end
 
             % Set Class Parameter Values
             propPairs = namedargs2cell(classProperties);
             for ii = 1:2:numel(propPairs)
-                O.(propPairs{ii}) = propPairs{ii + 1};
+                self.(propPairs{ii}) = propPairs{ii + 1};
             end
         end
     end
 
     %% Class Setters
     methods
-        function set.frequencyRange(O, newFreqRange)
-            O.frequencyRange_private = [min(newFreqRange), max(newFreqRange)];
-            O.shouldRecomputeWeights = true;
+        function set.frequencyRange(self, newFreqRange)
+            self.frequencyRange_private = [min(newFreqRange), max(newFreqRange)];
+            self.shouldRecomputeWeights = true;
         end
 
-        function set.modeSymmetryX(O, newSym)
-            O.modeSymmetryX_private = newSym;
-            if strcmp(newSym, "PEC") && strcmp(O.modeSymmetryAxial, "TM")
-                O.modeSymmetryAxial_private = "None";
-            elseif strcmp(newSym, "PMC") && strcmp(O.modeSymmetryAxial, "TE")
-                O.modeSymmetryAxial_private = "None";
+        function set.modeSymmetryX(self, newSym)
+            self.modeSymmetryX_private = newSym;
+            if strcmp(newSym, "PEC") && strcmp(self.modeSymmetryAxial, "TM")
+                self.modeSymmetryAxial_private = "None";
+            elseif strcmp(newSym, "PMC") && strcmp(self.modeSymmetryAxial, "TE")
+                self.modeSymmetryAxial_private = "None";
             end
-            O.shouldRegenerateWaveguideModeObjects = true;
+            self.shouldRegenerateWaveguideModeObjects = true;
         end
-        function set.modeSymmetryY(O, newSym)
-            O.modeSymmetryY_private = newSym;
-            if strcmp(newSym, "PEC") && strcmp(O.modeSymmetryAxial, "TM")
-                O.modeSymmetryAxial_private = "None";
-            elseif strcmp(newSym, "PMC") && strcmp(O.modeSymmetryAxial, "TE")
-                O.modeSymmetryAxial_private = "None";
+        function set.modeSymmetryY(self, newSym)
+            self.modeSymmetryY_private = newSym;
+            if strcmp(newSym, "PEC") && strcmp(self.modeSymmetryAxial, "TM")
+                self.modeSymmetryAxial_private = "None";
+            elseif strcmp(newSym, "PMC") && strcmp(self.modeSymmetryAxial, "TE")
+                self.modeSymmetryAxial_private = "None";
             end
-            O.shouldRegenerateWaveguideModeObjects = true;
+            self.shouldRegenerateWaveguideModeObjects = true;
         end
-        function set.modeSymmetryAxial(O, newSym)
-            O.modeSymmetryAxial_private = newSym;
+        function set.modeSymmetryAxial(self, newSym)
+            self.modeSymmetryAxial_private = newSym;
             if strcmp(newSym, "TE")
-                O.modeSymmetryX_private = "PEC";
-                O.modeSymmetryY_private = "PEC";
+                self.modeSymmetryX_private = "PEC";
+                self.modeSymmetryY_private = "PEC";
             elseif strcmp(newSym, "TM")
-                O.modeSymmetryX_private = "PMC";
-                O.modeSymmetryY_private = "PMC";
+                self.modeSymmetryX_private = "PMC";
+                self.modeSymmetryY_private = "PMC";
             end
-            O.shouldRegenerateWaveguideModeObjects = true;
+            self.shouldRegenerateWaveguideModeObjects = true;
         end
     end
 
     %% Class Getters
     methods
-        function [waveguideModes] = get.waveguideModes(O)
-            O.regenerateWaveguideModeObjects();
-            waveguideModes = O.waveguideModes;
+        function [waveguideModes] = get.waveguideModes(self)
+            self.regenerateWaveguideModeObjects();
+            waveguideModes = self.waveguideModes;
         end
 
-        function [freq_range] = get.frequencyRange(O)
-            freq_range = O.frequencyRange_private;
+        function [freq_range] = get.frequencyRange(self)
+            freq_range = self.frequencyRange_private;
         end
-        function [symX] = get.modeSymmetryX(O)
-            symX = O.modeSymmetryX_private;
+        function [symX] = get.modeSymmetryX(self)
+            symX = self.modeSymmetryX_private;
         end
-        function [symY] = get.modeSymmetryY(O)
-            symY = O.modeSymmetryY_private;
+        function [symY] = get.modeSymmetryY(self)
+            symY = self.modeSymmetryY_private;
         end
-        function [symAx] = get.modeSymmetryAxial(O)
-            symAx = O.modeSymmetryAxial_private;
+        function [symAx] = get.modeSymmetryAxial(self)
+            symAx = self.modeSymmetryAxial_private;
         end
 
-        function [kc0] = get.mode_kc0(O)
-            kc0 = [O.waveguideModes.kc0];
+        function [kc0] = get.mode_kc0(self)
+            kc0 = [self.waveguideModes.kc0];
         end
-        function [fc] = get.mode_fc0(O)
-            fc = O.speedOfLight * O.mode_kc0 ./ (2*pi);
+        function [fc] = get.mode_fc0(self)
+            fc = self.speedOfLight * self.mode_kc0 ./ (2*pi);
         end
-        function [types] = get.modeTypes(O)
-            types = [O.waveguideModes.modeType];
+        function [types] = get.modeTypes(self)
+            types = [self.waveguideModes.modeType];
         end
-        function [labels] = get.modeLabels(O)
-            labels = [O.waveguideModes.modeLabel];
+        function [labels] = get.modeLabels(self)
+            labels = [self.waveguideModes.modeLabel];
         end
-        function [num] = get.numModes(O)
-            num = numel(O.waveguideModes);
+        function [num] = get.numModes(self)
+            num = numel(self.waveguideModes);
         end
-        function [num] = get.numModes_TE(O)
-            num = sum(strcmp(O.modeTypes, "TE"));
+        function [num] = get.numModes_TE(self)
+            num = sum(strcmp(self.modeTypes, "TE"));
         end
-        function [num] = get.numModes_TM(O)
-            num = sum(strcmp(O.modeTypes, "TM"));
+        function [num] = get.numModes_TM(self)
+            num = sum(strcmp(self.modeTypes, "TM"));
         end
-        function [num] = get.numModes_Hybrid(O)
-            num = sum(strcmp(O.modeTypes, "Hybrid"));
+        function [num] = get.numModes_Hybrid(self)
+            num = sum(strcmp(self.modeTypes, "Hybrid"));
         end
     end
 

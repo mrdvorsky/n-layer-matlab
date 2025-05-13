@@ -1,5 +1,5 @@
-function [] = validate(O)
-%VALIDATE Checks that the nLayerInverse object is valid.
+function [] = validate(self)
+%Checks that the nLayerInverse object is valid.
 % This function checks that the sizes of the initialValue_{...},
 % rangeMin_{...}, and rangeMax_{...} are vectors with a length of
 % layerCount. Also checks that the layersToSolve_{...} parameters have
@@ -12,17 +12,18 @@ function [] = validate(O)
 % Example Usage:
 %   NLsolver.validate();
 %
+%
 % Author: Matt Dvorsky
 
 arguments
-    O;
+    self nLayerInverse;
 end
 
 %% Check Validity
 % Use the setter functions, since they already check these things.
-O.setInitialValues();
-O.setLayersToSolve();
-O.setRanges();
+self.setInitialValues();
+self.setLayersToSolve();
+self.setRanges();
 
 end
 

@@ -52,6 +52,7 @@ classdef waveguideMode < matlab.mixin.Copyable
         [] = showMode(self, options);
         [Ex, Ey] = getModeFields(self, x, y);
         [] = validateModeSymmetry(self, options);
+        [] = validateModeAmplitude(self, options);
     end
 
     %% Static Functions

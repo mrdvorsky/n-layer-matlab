@@ -19,6 +19,7 @@ classdef nLayerRectangular < nLayerOpenEnded
     %   gam = NL.calculate(f, er, {}, thk);
     %   gam = NL.calculate(f, {}, ur, thk);
     %
+    %
     % Author: Matt Dvorsky
 
     properties (Access=public, AbortSet)
@@ -38,7 +39,7 @@ classdef nLayerRectangular < nLayerOpenEnded
 
     %% Class Constructor
     methods
-        function O = nLayerRectangular(maxIndexM, maxIndexN, classProperties)
+        function self = nLayerRectangular(maxIndexM, maxIndexN, classProperties)
             %NLAYERRECTANGULAR Construct an instance of this class.
             % Inputs:
             %   maxIndexM - Highest index 'm' of TEmn and TMmn modes to consider.
@@ -50,71 +51,71 @@ classdef nLayerRectangular < nLayerOpenEnded
                 classProperties.?nLayerRectangular;
             end
 
-            O.maxModeIndexM = maxIndexM;
-            O.maxModeIndexN = maxIndexN;
+            self.maxModeIndexM = maxIndexM;
+            self.maxModeIndexN = maxIndexN;
 
             % Set Class Parameter Values
             propPairs = namedargs2cell(classProperties);
             for ii = 1:2:numel(propPairs)
-                O.(propPairs{ii}) = propPairs{ii + 1};
+                self.(propPairs{ii}) = propPairs{ii + 1};
             end
 
-            O.frequencyRange = [1.0, 2.0] ...
-                .* (0.5 * O.speedOfLight ./ O.waveguideA);
+            self.frequencyRange = [1.0, 2.0] ...
+                .* (0.5 * self.speedOfLight ./ self.waveguideA);
 
             if isfield(classProperties, "frequencyRange")
-                O.frequencyRange = classProperties.frequencyRange;
+                self.frequencyRange = classProperties.frequencyRange;
             end
         end
     end
 
     %% Class Functions
     methods (Access=protected)
-        [waveguideModes] = defineWaveguideModes(O);
+        [waveguideModes] = defineWaveguideModes(self);
     end
 
     %% Class Setters
     methods
-        function set.waveguideBand(O, newBand)
-            O.waveguideBand = newBand;
-            O.shouldRegenerateWaveguideModeObjects = true;
+        function set.waveguideBand(self, newBand)
+            self.waveguideBand = newBand;
+            self.shouldRegenerateWaveguideModeObjects = true;
         end
-        function set.waveguideA(O, newA)
-            O.waveguideA_custom = newA;
-            O.waveguideB_custom = O.waveguideB;
-            O.waveguideBand = "Custom";
+        function set.waveguideA(self, newA)
+            self.waveguideA_custom = newA;
+            self.waveguideB_custom = self.waveguideB;
+            self.waveguideBand = "Custom";
         end
-        function set.waveguideB(O, newB)
-            O.waveguideB_custom = newB;
-            O.waveguideA_custom = O.waveguideA;
-            O.waveguideBand = "Custom";
+        function set.waveguideB(self, newB)
+            self.waveguideB_custom = newB;
+            self.waveguideA_custom = self.waveguideA;
+            self.waveguideBand = "Custom";
         end
 
-        function set.maxModeIndexM(O, newMaxInd)
-            O.maxModeIndexM = newMaxInd;
-            O.shouldRegenerateWaveguideModeObjects = true;
+        function set.maxModeIndexM(self, newMaxInd)
+            self.maxModeIndexM = newMaxInd;
+            self.shouldRegenerateWaveguideModeObjects = true;
         end
-        function set.maxModeIndexN(O, newMaxInd)
-            O.maxModeIndexN = newMaxInd;
-            O.shouldRegenerateWaveguideModeObjects = true;
+        function set.maxModeIndexN(self, newMaxInd)
+            self.maxModeIndexN = newMaxInd;
+            self.shouldRegenerateWaveguideModeObjects = true;
         end
     end
 
     %% Class Getters
     methods
-        function [a] = get.waveguideA(O)
-            if O.waveguideBand == "Custom"
-                a = O.waveguideA_custom;
+        function [a] = get.waveguideA(self)
+            if self.waveguideBand == "Custom"
+                a = self.waveguideA_custom;
                 return;
             end
-            [a, ~] = O.waveguideBand.getDimensions(O.distanceUnitScale);
+            [a, ~] = self.waveguideBand.getDimensions(self.distanceUnitScale);
         end
-        function [b] = get.waveguideB(O)
-            if O.waveguideBand == "Custom"
-                b = O.waveguideB_custom;
+        function [b] = get.waveguideB(self)
+            if self.waveguideBand == "Custom"
+                b = self.waveguideB_custom;
                 return;
             end
-            [~, b] = O.waveguideBand.getDimensions(O.distanceUnitScale);
+            [~, b] = self.waveguideBand.getDimensions(self.distanceUnitScale);
         end
     end
 

@@ -39,7 +39,7 @@ end
 
 % Cell array of function handles or scalar values.
 for ii = 1:numel(erFun)
-    if isnumeric(erFun{ii}) && numel(erFun{ii}) == 1
+    if isnumeric(erFun{ii}) && isscalar(erFun{ii})
         continue;
     end
 

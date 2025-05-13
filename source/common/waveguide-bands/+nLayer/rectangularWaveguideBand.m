@@ -60,19 +60,19 @@ classdef rectangularWaveguideBand
         waveguideB;
     end
     methods (Access=public)
-        function O = rectangularWaveguideBand(a_inches, b_inches)
-            O.waveguideA = 0.0254 * a_inches;
-            O.waveguideB = 0.0254 * b_inches;
+        function self = rectangularWaveguideBand(a_inches, b_inches)
+            self.waveguideA = 0.0254 * a_inches;
+            self.waveguideB = 0.0254 * b_inches;
         end
     end
     methods (Access=public)
-        function [a, b] = getDimensions(O, distanceScaleFactor)
+        function [a, b] = getDimensions(self, distanceScaleFactor)
             arguments
-                O;
+                self nLayer.rectangularWaveguideBand;
                 distanceScaleFactor(1, 1) {mustBePositive, mustBeFinite} = 0.001;
             end
-            a = O.waveguideA ./ distanceScaleFactor;
-            b = O.waveguideB ./ distanceScaleFactor;
+            a = self.waveguideA ./ distanceScaleFactor;
+            b = self.waveguideB ./ distanceScaleFactor;
         end
     end
 end

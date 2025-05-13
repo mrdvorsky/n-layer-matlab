@@ -20,6 +20,11 @@ kphi = atan2(ky, kx);
 ExHat = self.ExSpec(kx, ky, kr, kphi);
 EyHat = self.EySpec(kx, ky, kr, kphi);
 
+ExHat(:, 1) = 0;
+EyHat(:, 1) = 0;
+ExHat(1, :) = 0;
+EyHat(1, :) = 0;
+
 intScaleFactor = numel(kr) * abs(kx(1) - kx(2)) * abs(ky(1) - ky(2)) ...
     ./ (2*pi);
 

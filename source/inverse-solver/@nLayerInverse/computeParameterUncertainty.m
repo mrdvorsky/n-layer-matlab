@@ -1,5 +1,5 @@
-function [Uncertainty] = computeParameterUncertainty(O, NL, f, options)
-%COMPUTEPARAMETERUNCERTAINTY Calculates uncertainty in parameter estimates.
+function [Uncertainty] = computeParameterUncertainty(self, NL, f, options)
+%Calculates uncertainty in parameter estimates.
 % Computes the uncertainty in the structure values that are solved for
 % using the "solveStructure" function. This function works similar to the
 % "solveStructure" function, except it takes pairs of an nLayerForward
@@ -18,6 +18,7 @@ function [Uncertainty] = computeParameterUncertainty(O, NL, f, options)
 %       NL1, f1, gam1, ...
 %       NL2, f2, gam2, ...
 %       NoiseStd=0.03);
+%
 %
 % This function is mostly useful for predicting the parameter uncertainty
 % given a specific multilayered structure measurement setup. The
@@ -39,20 +40,18 @@ function [Uncertainty] = computeParameterUncertainty(O, NL, f, options)
 % Author: Matt Dvorsky
 
 arguments
-    O;
+    self nLayerInverse;
 end
-
 arguments(Repeating)
-    NL(1, 1) {mustBeA(NL, "nLayerForward")};
+    NL(1, 1) nLayerForward;
     f(:, 1) {mustBeNonempty};
 end
-
 arguments
     options.NoiseStd(1, 1) {mustBeNonnegative} = 0.01;
 end
 
 %% Calculate Uncertainty Using "computeParameterUncertaintyMultiple"
-inputParams = [repmat({O}, 1, numel(NL)); NL; f];
+inputParams = [repmat({self}, 1, numel(NL)); NL; f];
 [Uncertainty] = nLayerInverse.computeParameterUncertaintyMultiple(...
     inputParams{:}, NoiseStd=options.NoiseStd);
 

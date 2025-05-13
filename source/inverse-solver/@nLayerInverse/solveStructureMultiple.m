@@ -1,5 +1,5 @@
 function [Parameters, Gamma, Uncertainty] = solveStructureMultiple(NLsolver, NL, f, gam, options)
-%SOLVESTRUCTUREMULTIPLE Perform simultaneous curve fitting on multiple nLayerInverse objects.
+%Perform simultaneous curve fitting on multiple nLayerInverse objects.
 % This function takes quadruplets of nLayerInverse objects, nLayerForward
 % objects, frequency vectors, and measurements, and tries to find the
 % missing structure parameters of er, ur, thk to minimize the sum of the
@@ -42,6 +42,7 @@ function [Parameters, Gamma, Uncertainty] = solveStructureMultiple(NLsolver, NL,
 %       NLsolver1, NL, f, gam1, ...
 %       NLsolver2, NL, f, gam2);
 %
+%
 % If the NLsolver objects have different min/max ranges and initial values
 % for the common parameters, the initial values for the first NLsolver will
 % be used, and the tightest min/max ranges for each parameter will be used.
@@ -73,8 +74,8 @@ function [Parameters, Gamma, Uncertainty] = solveStructureMultiple(NLsolver, NL,
 % Author: Matt Dvorsky
 
 arguments (Repeating)
-    NLsolver(1, 1) {mustBeA(NLsolver, "nLayerInverse")};
-    NL(1, 1) {mustBeA(NL, "nLayerForward")};
+    NLsolver(1, 1) nLayerInverse;
+    NL(1, 1) nLayerForward;
     f(:, 1) {mustBeNonempty};
     gam {mustBeCorrectGamSize(f, gam)};
 end

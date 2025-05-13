@@ -38,23 +38,23 @@ classdef coaxialConnectorType
         fillEr;
     end
     methods (Access=public)
-        function O = coaxialConnectorType(do_mm, di_mm, er)
+        function self = coaxialConnectorType(do_mm, di_mm, er)
             if di_mm >= do_mm
                 error("Outer radius must be larger than inner.");
             end
-            O.innerDiameter = 0.001 * di_mm;
-            O.outerDiameter = 0.001 * do_mm;
-            O.fillEr = er;
+            self.innerDiameter = 0.001 * di_mm;
+            self.outerDiameter = 0.001 * do_mm;
+            self.fillEr = er;
         end
     end
     methods (Access=public)
-        function [di, do] = getDimensions(O, distanceScaleFactor)
+        function [di, do] = getDimensions(self, distanceScaleFactor)
             arguments
-                O;
+                self nLayer.coaxialConnectorType;
                 distanceScaleFactor(1, 1) {mustBePositive, mustBeFinite} = 0.001;
             end
-            di = O.innerDiameter ./ distanceScaleFactor;
-            do = O.outerDiameter ./ distanceScaleFactor;
+            di = self.innerDiameter ./ distanceScaleFactor;
+            do = self.outerDiameter ./ distanceScaleFactor;
         end
     end
 end

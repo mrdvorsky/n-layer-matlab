@@ -71,17 +71,17 @@ classdef circularWaveguideBand
         waveguideR;
     end
     methods (Access=public)
-        function O = circularWaveguideBand(d_inches)
-            O.waveguideR = (0.5*0.0254) * d_inches;
+        function self = circularWaveguideBand(d_inches)
+            self.waveguideR = (0.5*0.0254) * d_inches;
         end
     end
     methods (Access=public)
-        function [r] = getDimensions(O, distanceScaleFactor)
+        function [r] = getDimensions(self, distanceScaleFactor)
             arguments
-                O;
+                self nLayer.circularWaveguideBand;
                 distanceScaleFactor(1, 1) {mustBePositive, mustBeFinite} = 0.001;
             end
-            r = O.waveguideR ./ distanceScaleFactor;
+            r = self.waveguideR ./ distanceScaleFactor;
         end
     end
 end

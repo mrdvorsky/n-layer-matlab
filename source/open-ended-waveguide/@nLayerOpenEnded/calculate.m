@@ -1,5 +1,5 @@
-function [Smn] = calculate(O, f, er, ur, thk)
-%CALCULATE Calculate Smn for a multimoded waveguide looking into structure.
+function [Smn] = calculate(self, f, er, ur, thk)
+%Calculate Smn for a multimoded waveguide looking into structure.
 % Computes the S-parameter matrix (Smn) of an open-ended multimoded
 % waveguide looking into a multilayer structure defined by "er", "ur",
 % "thk", and at the frequencies defined by "f".
@@ -12,6 +12,7 @@ function [Smn] = calculate(O, f, er, ur, thk)
 %   gam = NL.calculate(f, er, ur, thk);
 %   gam = NL.calculate(f, {er1, er2}, {}, {thk1, thk2});
 %   gam = NL.calculate(f, {}, ur, thk);
+%
 %
 % Inputs:
 %   f - Array of frequencies. Must have compatible size with each layer of
@@ -32,7 +33,8 @@ function [Smn] = calculate(O, f, er, ur, thk)
 % Author: Matt Dvorsky
 
 arguments
-    O;
+    self nLayerOpenEnded;
+
     f(:, 1);
     er(1, :);
     ur(1, :);
@@ -40,17 +42,17 @@ arguments
 end
 
 %% Check if Integral Weights Should be Regenerated
-if O.shouldRecomputeWeights
-    O.computeIntegralWeights();
+if self.shouldRecomputeWeights
+    self.computeIntegralWeights();
 end
 
 %% Validate Structure
 [er, ur, thk] = nLayer.validateStructure(er, ur, thk, ...
-    CheckStructureValues=O.checkStructureValues);
+    CheckStructureValues=self.checkStructureValues);
 
 %% Compute A and K
-[A] = O.computeA(f, er, ur, thk);
-[K] = O.computeK(f);
+[A] = self.computeA(f, er, ur, thk);
+[K] = self.computeK(f);
 
 %% Calculate S-parameter Matrix at each Frequency
 A_times_K = A.*K;
@@ -59,7 +61,7 @@ idMat = eye(size(A, 1));
 Smn = pagemldivide(idMat + A_times_K, idMat - A_times_K);
 
 %% Get S-parameter Submatrix
-Smn = permute(Smn(O.receiveModeIndices, O.excitationModeIndices, :), [3, 1, 2]);
+Smn = permute(Smn(self.receiveModeIndices, self.excitationModeIndices, :), [3, 1, 2]);
 
 end
 

@@ -17,6 +17,7 @@ classdef nLayerCircular < nLayerOpenEnded
     %   gam = NL.calculate(f, er, {}, thk);
     %   gam = NL.calculate(f, {}, ur, thk);
     %
+    %
     % Author: Matt Dvorsky
 
     properties (Access=public, AbortSet)
@@ -34,7 +35,7 @@ classdef nLayerCircular < nLayerOpenEnded
 
     %% Class Constructor
     methods
-        function O = nLayerCircular(indexM, maxIndexN, classProperties)
+        function self = nLayerCircular(indexM, maxIndexN, classProperties)
             %Construct an instance of this class.
             % Inputs:
             %   indexM - Index 'm' of TEmn and TMmn modes to consider.
@@ -46,67 +47,67 @@ classdef nLayerCircular < nLayerOpenEnded
                 classProperties.?nLayerCircular;
             end
 
-            O.modeIndexM = indexM;
-            O.maxModeIndexN = maxIndexN;
+            self.modeIndexM = indexM;
+            self.maxModeIndexN = maxIndexN;
 
             % Set Class Parameter Values
             propPairs = namedargs2cell(classProperties);
             for ii = 1:2:numel(propPairs)
-                O.(propPairs{ii}) = propPairs{ii + 1};
+                self.(propPairs{ii}) = propPairs{ii + 1};
             end
 
-            switch O.modeSymmetryAxial
+            switch self.modeSymmetryAxial
                 case "TE"
-                    O.frequencyRange = [3.8317, 7.0156] ./ (2*pi) ...
-                        .* (O.speedOfLight ./ O.waveguideR);
+                    self.frequencyRange = [3.8317, 7.0156] ./ (2*pi) ...
+                        .* (self.speedOfLight ./ self.waveguideR);
                 case "TM"
-                    O.frequencyRange = [2.4048, 5.5201] ./ (2*pi) ...
-                        .* (O.speedOfLight ./ O.waveguideR);
+                    self.frequencyRange = [2.4048, 5.5201] ./ (2*pi) ...
+                        .* (self.speedOfLight ./ self.waveguideR);
                 case "None"
-                    O.frequencyRange = [1.8412, 2.4048] ./ (2*pi) ...
-                        .* (O.speedOfLight ./ O.waveguideR);
+                    self.frequencyRange = [1.8412, 2.4048] ./ (2*pi) ...
+                        .* (self.speedOfLight ./ self.waveguideR);
             end
 
             if isfield(classProperties, "frequencyRange")
-                O.frequencyRange = classProperties.frequencyRange;
+                self.frequencyRange = classProperties.frequencyRange;
             end
         end
     end
 
     %% Class Functions
     methods (Access=protected)
-        [waveguideModes] = defineWaveguideModes(O);
+        [waveguideModes] = defineWaveguideModes(self);
     end
 
     %% Class Setters
     methods
-        function set.waveguideBand(O, newBand)
-            O.waveguideBand = newBand;
-            O.shouldRegenerateWaveguideModeObjects = true;
+        function set.waveguideBand(self, newBand)
+            self.waveguideBand = newBand;
+            self.shouldRegenerateWaveguideModeObjects = true;
         end
-        function set.waveguideR(O, newR)
-            O.waveguideR_custom = newR;
-            O.waveguideBand = "Custom";
+        function set.waveguideR(self, newR)
+            self.waveguideR_custom = newR;
+            self.waveguideBand = "Custom";
         end
 
-        function set.modeIndexM(O, newMaxInd)
-            O.modeIndexM = newMaxInd;
-            O.shouldRegenerateWaveguideModeObjects = true;
+        function set.modeIndexM(self, newMaxInd)
+            self.modeIndexM = newMaxInd;
+            self.shouldRegenerateWaveguideModeObjects = true;
         end
-        function set.maxModeIndexN(O, newMaxInd)
-            O.maxModeIndexN = newMaxInd;
-            O.shouldRegenerateWaveguideModeObjects = true;
+        function set.maxModeIndexN(self, newMaxInd)
+            self.maxModeIndexN = newMaxInd;
+            self.shouldRegenerateWaveguideModeObjects = true;
         end
     end
 
     %% Class Getters
     methods
-        function [r] = get.waveguideR(O)
-            if O.waveguideBand == "Custom"
-                r = O.waveguideR_custom;
+        function [r] = get.waveguideR(self)
+            if self.waveguideBand == "Custom"
+                r = self.waveguideR_custom;
                 return;
             end
-            [r] = O.waveguideBand.getDimensions(O.distanceUnitScale);
+            [r] = self.waveguideBand.getDimensions(self.distanceUnitScale);
         end
     end
 

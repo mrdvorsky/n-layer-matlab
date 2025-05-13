@@ -1,5 +1,5 @@
 function [Uncertainty] = computeParameterUncertaintyMultiple(NLsolver, NL, f, options)
-%COMPUTEPARAMETERUNCERTAINTYMULTIPLE Calculates uncertainty in parameter estimates.
+%Calculates uncertainty in parameter estimates.
 % Computes the uncertainty in the structure values that are solved for
 % using the "solveStructureMultiple" function. This function works similar
 % to the "solveStructureMultiple" function, except it takes triplets of
@@ -26,6 +26,7 @@ function [Uncertainty] = computeParameterUncertaintyMultiple(NLsolver, NL, f, op
 %       NLsolver2, NL, f, ...
 %       NoiseStd=0.005);
 %
+%
 % This function is mostly useful for predicting the parameter uncertainty
 % given a specific multilayered structure measurement setup. The
 % uncertainty is calculated assuming a specific uncertainty in the
@@ -48,11 +49,10 @@ function [Uncertainty] = computeParameterUncertaintyMultiple(NLsolver, NL, f, op
 % Author: Matt Dvorsky
 
 arguments(Repeating)
-    NLsolver(1, 1) {mustBeA(NLsolver, "nLayerInverse")};
-    NL(1, 1) {mustBeA(NL, "nLayerForward")};
+    NLsolver(1, 1) nLayerInverse;
+    NL(1, 1) nLayerForward;
     f(:, 1) {mustBeNonempty};
 end
-
 arguments
     options.NoiseStd(1, 1) {mustBeNonnegative} = 0.01;
 end

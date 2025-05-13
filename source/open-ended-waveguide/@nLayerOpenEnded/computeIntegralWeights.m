@@ -1,23 +1,23 @@
-function [] = computeIntegralWeights(O)
-%COMPUTEINTEGRALWEIGHTS Compute weights and nodes for mode integrals.
+function [] = computeIntegralWeights(self)
+%Compute weights and nodes for mode integrals.
 % This function is called whenever a parameter changes that would change
 % the mode spectrums.
 %
 % Author: Matt Dvorsky
 
 arguments
-    O;
+    self nLayerOpenEnded;
 end
 
 %% Fixed Point Integration Weights and Nodes
-[O.fixed_kr, O.fixed_Ah, O.fixed_Ae] = ...
-    O.computeAhat();
+[self.fixed_kr, self.fixed_Ah, self.fixed_Ae] = ...
+    self.computeAhat();
 
-O.fixed_Ah = reshape(O.fixed_Ah, numel(O.fixed_kr), 1, []);
-O.fixed_Ae = reshape(O.fixed_Ae, numel(O.fixed_kr), 1, []);
+self.fixed_Ah = reshape(self.fixed_Ah, numel(self.fixed_kr), 1, []);
+self.fixed_Ae = reshape(self.fixed_Ae, numel(self.fixed_kr), 1, []);
 
 %% Set Flag
-O.shouldRecomputeWeights = false;
+self.shouldRecomputeWeights = false;
 
 end
 

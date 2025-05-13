@@ -1,5 +1,5 @@
-function [varargout] = solveStructure(O, NL, f, gam, options)
-%SOLVESTRUCTURE Perform curve fitting to solve for structure parameters.
+function [varargout] = solveStructure(self, NL, f, gam, options)
+%Perform curve fitting to solve for structure parameters.
 % This function takes triplets of nLayerForward objects, frequency vectors,
 % and measurements, and tries to find the missing structure parameters of
 % er, ur, thk using curve fitting to minimize the rms values of
@@ -20,6 +20,7 @@ function [varargout] = solveStructure(O, NL, f, gam, options)
 %   [Params, Gamma, Uncert] = NLsolver.solveStructure(...
 %       NL1, f1, gam1, ...
 %       NL2, f2, gam2);
+%
 %
 % Inputs:
 %   NL (Repeating) - A valid nLayerForward object.
@@ -44,10 +45,10 @@ function [varargout] = solveStructure(O, NL, f, gam, options)
 % Author: Matt Dvorsky
 
 arguments
-    O;
+    self nLayerInverse;
 end
 arguments(Repeating)
-    NL(1, 1) {mustBeA(NL, "nLayerForward")};
+    NL(1, 1) nLayerForward;
     f(:, 1) {mustBeNonempty};
     gam {mustBeCorrectGamSize(f, gam)};
 end
@@ -56,7 +57,7 @@ arguments
 end
 
 %% Perform Curve Fitting Using 'solveStructureMultiple'
-inputParams = [repmat({O}, 1, numel(NL)); NL; f; gam];
+inputParams = [repmat({self}, 1, numel(NL)); NL; f; gam];
 [varargout{1:nargout}] = nLayerInverse.solveStructureMultiple(...
     inputParams{:}, NoiseStdMin=options.NoiseStdMin);
 
@@ -70,6 +71,7 @@ end
 end
 
 
+%% Custom Validation Function
 function mustBeCorrectGamSize(f, gam)
     if iscell(f)    % Fix MATLAB bug.
         currentInd = find(cellfun(@(x) numel(x) > 0, f), 1, "last");

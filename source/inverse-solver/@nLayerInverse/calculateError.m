@@ -1,5 +1,5 @@
 function [gamError, gamErrorComplex] = calculateError(NLsolver, x, NL, f, gamActual, options)
-%CALCULATEERROR Helper function to calculate error in a given curve fit iteration.
+%Helper function to calculate error in a given curve fit iteration.
 % This function takes the linearized structure parameter guess (x)
 % specified by the curve fitting function and calculates the error vector
 % (or mse) between the measurements (gam) and the simulated measurements
@@ -14,6 +14,7 @@ arguments
     NL(:, 1) cell;
     f(:, 1) cell;
     gamActual(:, 1) cell;
+
     options.VectorOutput = true;
 end
 

@@ -41,16 +41,16 @@ classdef (Abstract) nLayerForward < matlab.mixin.Copyable
 
     %% Class Getters
     methods
-        function [speedOfLight] = get.speedOfLight(O)
+        function [speedOfLight] = get.speedOfLight(self)
             speedOfLight = 299792458 ...
-                ./ (O.distanceUnitScale * O.frequencyUnitScale);
+                ./ (self.distanceUnitScale * self.frequencyUnitScale);
         end
     end
 
     %% Class Functions
     methods (Abstract, Access=public)
-        [gam] = calculate(O, f, er, ur, thk, options);
-        [outputLabels] = getOutputLabels(O);
+        [gam] = calculate(self, f, er, ur, thk, options);
+        [outputLabels] = getOutputLabels(self);
     end
 
 end

@@ -1,5 +1,5 @@
-function [] = setRanges(O, options)
-%SETRANGES Sets the min and max ranges for each variable and layer.
+function [] = setRanges(self, options)
+%Sets the min and max ranges for each variable and layer.
 % This function is simply a setter for the rangeMin_{...} and
 % rangeMax_{...} parameters that does some bounds and size checking. Any
 % unspecified parameter ranges will be left unchanged.
@@ -11,32 +11,33 @@ function [] = setRanges(O, options)
 % Author: Matt Dvorsky
 
 arguments
-    O;
-    options.ErpMin (1, :) = O.rangeMin_erp;
-    options.ErppMin(1, :) = O.rangeMin_erpp;
-    options.UrpMin (1, :) = O.rangeMin_urp;
-    options.UrppMin(1, :) = O.rangeMin_urpp;
-    options.ThkMin (1, :) = O.rangeMin_thk;
-    
-    options.ErpMax (1, :) = O.rangeMax_erp;
-    options.ErppMax(1, :) = O.rangeMax_erpp;
-    options.UrpMax (1, :) = O.rangeMax_urp;
-    options.UrppMax(1, :) = O.rangeMax_urpp;
-    options.ThkMax (1, :) = O.rangeMax_thk;
+    self nLayerInverse;
+
+    options.ErpMin (1, :) = self.rangeMin_erp;
+    options.ErppMin(1, :) = self.rangeMin_erpp;
+    options.UrpMin (1, :) = self.rangeMin_urp;
+    options.UrppMin(1, :) = self.rangeMin_urpp;
+    options.ThkMin (1, :) = self.rangeMin_thk;
+
+    options.ErpMax (1, :) = self.rangeMax_erp;
+    options.ErppMax(1, :) = self.rangeMax_erpp;
+    options.UrpMax (1, :) = self.rangeMax_urp;
+    options.UrppMax(1, :) = self.rangeMax_urpp;
+    options.ThkMax (1, :) = self.rangeMax_thk;
 end
 
 %% Assign Ranges
-O.rangeMin_erp  = options.ErpMin;
-O.rangeMin_erpp = options.ErppMin;
-O.rangeMin_urp  = options.UrpMin;
-O.rangeMin_urpp = options.UrppMin;
-O.rangeMin_thk  = options.ThkMin;
+self.rangeMin_erp  = options.ErpMin;
+self.rangeMin_erpp = options.ErppMin;
+self.rangeMin_urp  = options.UrpMin;
+self.rangeMin_urpp = options.UrppMin;
+self.rangeMin_thk  = options.ThkMin;
 
-O.rangeMax_erp  = options.ErpMax;
-O.rangeMax_erpp = options.ErppMax;
-O.rangeMax_urp  = options.UrpMax;
-O.rangeMax_urpp = options.UrppMax;
-O.rangeMax_thk  = options.ThkMax;
+self.rangeMax_erp  = options.ErpMax;
+self.rangeMax_erpp = options.ErppMax;
+self.rangeMax_urp  = options.UrpMax;
+self.rangeMax_urpp = options.UrppMax;
+self.rangeMax_thk  = options.ThkMax;
 
 end
 

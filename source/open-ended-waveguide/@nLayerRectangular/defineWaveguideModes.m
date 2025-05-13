@@ -7,6 +7,7 @@ function [waveguideModes] = defineWaveguideModes(self, symmetryX, symmetryY, sym
 
 arguments
     self nLayerRectangular;
+
     symmetryX string {mustBeMember(symmetryX, ["PEC", "PMC", "None"])};
     symmetryY string {mustBeMember(symmetryY, ["PEC", "PMC", "None"])};
     symmetryAxial string {mustBeMember(symmetryAxial, ["TE", "TM", "None"])};

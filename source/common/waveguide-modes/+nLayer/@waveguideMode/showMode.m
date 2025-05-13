@@ -15,9 +15,15 @@ arguments
 
     options.ArrowDecimationFactorX(1, 1) {mustBePositive, mustBeInteger} = 10;
     options.ArrowDecimationFactorY(1, 1) {mustBePositive, mustBeInteger} = 10;
+
+    options.Axis(1, 1) matlab.graphics.axis.Axes;
 end
 
-%% Check Size
+%% Check Inputs
+if ~isfield(options, "Axis")
+    options.Axis = gca();
+end
+
 if ~isfield(options, "SizeX")
     options.SizeX = 1.1 * self.apertureSize;
 end
@@ -45,7 +51,8 @@ Ey = fftshift(ifft2(ifftshift(EyHat))) * intScaleFactor;
 
 %% Plot Field Magnitudes
 Er = hypot(Ex, Ey);
-showImage(x, y, Er, DisplayFormat="Magnitude");
+showImage(x, y, Er, DisplayFormat="Magnitude", ...
+    Axis=options.Axis);
 
 %% Plot Vectors
 dx = abs(x(2) - x(1));
@@ -65,8 +72,8 @@ yq = yq(1:decX:end, 1:decY:end);
 vq = vq(1:decX:end, 1:decY:end);
 uq = uq(1:decX:end, 1:decY:end);
 
-hold on;
-quiver(xq(:), yq(:), uq(:), vq(:), "off", "k");
+hold(options.Axis, "on");
+quiver(options.Axis, xq(:), yq(:), uq(:), vq(:), "off", "k");
 
 end
 

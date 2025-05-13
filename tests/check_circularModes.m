@@ -15,7 +15,7 @@ end
 
 %% Plot
 for ii = flip(1:NL.numModes)
-    figure;
+    figure(Position=[300, 150, 1200, 800]);
     NL.waveguideModes(ii).showMode();
     title(sprintf("%s: (x='%s', y='%s', axial='%s')", ...
         NL.waveguideModes(ii).modeLabel, ...

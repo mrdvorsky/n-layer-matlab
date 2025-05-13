@@ -1,6 +1,6 @@
-function [waveguideModes] = defineWaveguideModes(self, symmetryX, symmetryY, symmetryAxial)
+function [modes] = defineWaveguideModes(self, symmetryX, symmetryY, symmetryAxial)
 %Defines waveguide modes for a circular waveguide.
-% Defines the "nLayer.waveguideMode" objects for a circular waveguide,
+% Defines the "waveguideMode" objects for a circular waveguide,
 % as required by the "nLayerOpenEnded" class.
 %
 % Author: Matt Dvorsky
@@ -13,7 +13,7 @@ arguments
 end
 
 %% Get Waveguide Mode Info
-waveguideModes = nLayer.getAllCircularModes(...
+modes = waveguideMode.getAllCircularModes(...
     0:self.modeIndexM, 1:self.maxModeIndexN, ...
     self.waveguideR, ...
     SymmetryX=symmetryX, SymmetryY=symmetryY, ...

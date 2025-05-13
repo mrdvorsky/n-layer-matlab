@@ -1,4 +1,4 @@
-function [waveguideModes] = getAllRectangularModes(m, n, wgA, wgB, options)
+function [modes] = getAllRectangularModes(m, n, wgA, wgB, options)
 %Get all possible "waveguideMode" objects for a rectangular waveguide.
 % This functions returns "waveguideMode" objects for all rectangular
 % waveguide modes that match the pattern TEmn or TMmn, for all
@@ -9,10 +9,10 @@ function [waveguideModes] = getAllRectangularModes(m, n, wgA, wgB, options)
 %
 % Example Usage:
 %   % All modes, regardless of symmetry.
-%   [waveguideModes] = getAllRectangularModes(m, n, a, b);
+%   [modes] = getAllRectangularModes(m, n, a, b);
 %
 %   % Only return modes where the x-axis could be replaced with PEC.
-%   [waveguideModes] = getAllRectangularModes(m, n, a, b, ...
+%   [modes] = getAllRectangularModes(m, n, a, b, ...
 %               modeSymmetryX="PEC");
 %
 %
@@ -72,9 +72,9 @@ n = n(keepMode);
 TE_TM = TE_TM(keepMode);
 
 %% Get "waveguideMode" Objects
-waveguideModes = nLayer.waveguideMode.empty;
+modes = waveguideMode.empty;
 for ii = flip(1:numel(m))
-    waveguideModes(1, ii) = nLayer.getRectangularMode(...
+    modes(1, ii) = waveguideMode.getRectangularMode(...
         m(ii), n(ii), wgA, wgB, TE_TM(ii));
 end
 

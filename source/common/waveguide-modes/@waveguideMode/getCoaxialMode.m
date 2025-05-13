@@ -1,4 +1,4 @@
-function [modeStruct] = getCoaxialMode(m, n, r_inner, r_outer, TE_TM, isRotated)
+function [mode] = getCoaxialMode(m, n, r_inner, r_outer, TE_TM, isRotated)
 %Get "waveguideMode" object for specific coaxial waveguide mode.
 % This function returns a "waveguideMode" for a specific waveguide mode.
 %
@@ -9,10 +9,10 @@ function [modeStruct] = getCoaxialMode(m, n, r_inner, r_outer, TE_TM, isRotated)
 % modes.
 %
 % Example Usage:
-%   [waveguideMode] = getCoaxialMode(m, n, wgRi, wgRo, "TE", false);
-%   [waveguideMode] = getCoaxialMode(m, n, wgRi, wgRo, "TE", true);
-%   [waveguideMode] = getCoaxialMode(m, n, wgRi, wgRo, "TM", false);
-%   [waveguideMode] = getCoaxialMode(m, n, wgRi, wgRo, "TM", true);
+%   [mode] = getCoaxialMode(m, n, wgRi, wgRo, "TE", false);
+%   [mode] = getCoaxialMode(m, n, wgRi, wgRo, "TE", true);
+%   [mode] = getCoaxialMode(m, n, wgRi, wgRo, "TM", false);
+%   [mode] = getCoaxialMode(m, n, wgRi, wgRo, "TM", true);
 %
 %
 % Inputs:
@@ -49,7 +49,7 @@ end
 if (m == 0) && (n == 0)
     scaleTEM = 1j ./ sqrt(2*pi * (log(r_outer) - log(r_inner)));
 
-    modeStruct = nLayer.waveguideMode(...
+    mode = waveguideMode(...
         modeLabel="TEM", ...
         modeType=TE_TM, ...
         WhSpec=@(~, ~, ~, ~) 0, ...
@@ -157,7 +157,7 @@ if m == 0
 end
 
 %% Create Mode Struct
-modeStruct = nLayer.waveguideMode(...
+mode = waveguideMode(...
     modeLabel=sprintf("%s_{%d,%d}", TE_TM, m, n), ...
     modeType=TE_TM, ...
     WhSpec=WhSpec, ...

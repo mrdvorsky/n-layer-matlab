@@ -6,7 +6,7 @@ function [] = showMode(self, options)
 % Author: Matt Dvorsky
 
 arguments
-    self nLayer.waveguideMode;
+    self waveguideMode;
 
     options.SizeX(1, 1) {mustBePositive};
     options.SizeY(1, 1) {mustBePositive};
@@ -31,28 +31,18 @@ if ~isfield(options, "SizeY")
     options.SizeY = 1.1 * self.apertureSize;
 end
 
-%% Calculate x, y, kx, and ky
+%% Calculate x and y
 x(:, 1) = options.SizeX * linspace(-0.5, 0.5, options.NumPointsX);
 y(1, :) = options.SizeY * linspace(-0.5, 0.5, options.NumPointsY);
 
-[kx, ky] = fftCoordinates(x, y, ApplyFftShift=true);
-kr = hypot(kx, ky);
-kphi = atan2(ky, kx);
-
 %% Calculate Fields
-ExHat = self.ExSpec(kx, ky, kr, kphi);
-EyHat = self.EySpec(kx, ky, kr, kphi);
-
-intScaleFactor = numel(kr) * abs(kx(1) - kx(2)) * abs(ky(1) - ky(2)) ...
-    ./ (2*pi);
-
-Ex = fftshift(ifft2(ifftshift(ExHat))) * intScaleFactor;
-Ey = fftshift(ifft2(ifftshift(EyHat))) * intScaleFactor;
+[Ex, Ey] = self.getModeFields(x, y);
 
 %% Plot Field Magnitudes
 Er = hypot(Ex, Ey);
 showImage(x, y, Er, DisplayFormat="Magnitude", ...
-    Axis=options.Axis);
+    Axis=options.Axis, ...
+    Interpolation="Bilinear");
 
 %% Plot Vectors
 dx = abs(x(2) - x(1));
@@ -67,10 +57,10 @@ vq = arrowScaleFactor * real(Ey);
 xq = x - 0.5*uq;
 yq = y - 0.5*vq;
 
-xq = xq(1:decX:end, 1:decY:end);
-yq = yq(1:decX:end, 1:decY:end);
-vq = vq(1:decX:end, 1:decY:end);
-uq = uq(1:decX:end, 1:decY:end);
+xq = xq(round(0.5*decX):decX:end, round(0.5*decY):decY:end);
+yq = yq(round(0.5*decX):decX:end, round(0.5*decY):decY:end);
+vq = vq(round(0.5*decX):decX:end, round(0.5*decY):decY:end);
+uq = uq(round(0.5*decX):decX:end, round(0.5*decY):decY:end);
 
 hold(options.Axis, "on");
 quiver(options.Axis, xq(:), yq(:), uq(:), vq(:), "off", "k");

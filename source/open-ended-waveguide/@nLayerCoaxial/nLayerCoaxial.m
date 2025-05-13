@@ -39,7 +39,7 @@ classdef nLayerCoaxial < nLayerOpenEnded
     %% Class Constructor
     methods
         function O = nLayerCoaxial(indexM, maxIndexN, classProperties)
-            %NLAYERCOAXIAL Construct an instance of this class.
+            %Construct an instance of this class.
             % Inputs:
             %   indexM - Index 'm' of TEmn and TMmn modes to consider.
             %   maxIndexN - Highest index 'n' of TEmn and TMmn modes to consider.

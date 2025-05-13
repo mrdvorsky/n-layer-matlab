@@ -36,7 +36,7 @@ classdef waveguideMode < matlab.mixin.Copyable
             %Construct an instance of this class.
 
             arguments
-                classProperties.?nLayer.waveguideMode;
+                classProperties.?waveguideMode;
             end
 
             % Set Class Parameter Values
@@ -55,7 +55,7 @@ classdef waveguideMode < matlab.mixin.Copyable
     end
 
     %% Static Functions
-    methods (Access=public)
+    methods (Static, Access=public)
         [waveguideMode] = getRectangularMode(m, n, wgA, wgB, TE_TM);
         [waveguideMode] = getCircularMode(m, n, wgR, TE_TM, isRotated);
         [waveguideMode] = getCoaxialMode(m, n, wgRi, wgRo, TE_TM, isRotated);

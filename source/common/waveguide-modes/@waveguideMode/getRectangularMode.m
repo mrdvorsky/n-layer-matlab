@@ -1,4 +1,4 @@
-function [modeStruct] = getRectangularMode(m, n, wgA, wgB, TE_TM)
+function [mode] = getRectangularMode(m, n, wgA, wgB, TE_TM)
 %Get "waveguideMode" object for specific rectangular waveguide mode.
 % This function returns a "waveguideMode" for a specific waveguide mode.
 %
@@ -7,10 +7,10 @@ function [modeStruct] = getRectangularMode(m, n, wgA, wgB, TE_TM)
 % x-axis.
 %
 % Example Usage:
-%   [waveguideMode] = getRectangularMode(m, n, wgA, wgB, "TE");
-%   [waveguideMode] = getRectangularMode(m, n, wgA, wgB, "TE");
-%   [waveguideMode] = getRectangularMode(m, n, wgA, wgB, "TM");
-%   [waveguideMode] = getRectangularMode(m, n, wgA, wgB, "TM");
+%   [mode] = getRectangularMode(m, n, wgA, wgB, "TE");
+%   [mode] = getRectangularMode(m, n, wgA, wgB, "TE");
+%   [mode] = getRectangularMode(m, n, wgA, wgB, "TM");
+%   [mode] = getRectangularMode(m, n, wgA, wgB, "TM");
 %
 %
 % Inputs:
@@ -90,7 +90,7 @@ if mod(n, 2) == 0
     symmetryX = "PEC";
 end
 
-modeStruct = nLayer.waveguideMode(...
+mode = waveguideMode(...
     modeLabel=sprintf("%s_{%d,%d}", TE_TM, m, n), ...
     modeType=TE_TM, ...
     WhSpec=WhSpec, ...

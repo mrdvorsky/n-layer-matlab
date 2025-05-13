@@ -1,4 +1,4 @@
-function [waveguideMode] = getCircularMode(m, n, wgR, TE_TM, isRotated)
+function [mode] = getCircularMode(m, n, wgR, TE_TM, isRotated)
 %Get "waveguideMode" object for specific circular waveguide mode.
 % This function returns a "waveguideMode" for a specific waveguide mode.
 %
@@ -9,10 +9,10 @@ function [waveguideMode] = getCircularMode(m, n, wgR, TE_TM, isRotated)
 % modes.
 %
 % Example Usage:
-%   [waveguideMode] = getCircularMode(m, n, wgR, "TE", false);
-%   [waveguideMode] = getCircularMode(m, n, wgR, "TE", true);
-%   [waveguideMode] = getCircularMode(m, n, wgR, "TM", false);
-%   [waveguideMode] = getCircularMode(m, n, wgR, "TM", true);
+%   [mode] = getCircularMode(m, n, wgR, "TE", false);
+%   [mode] = getCircularMode(m, n, wgR, "TE", true);
+%   [mode] = getCircularMode(m, n, wgR, "TM", false);
+%   [mode] = getCircularMode(m, n, wgR, "TM", true);
 %
 %
 % Inputs:
@@ -103,7 +103,7 @@ if m == 0
 end
 
 %% Create Mode Struct
-waveguideMode = nLayer.waveguideMode(...
+mode = waveguideMode(...
     modeLabel=sprintf("%s_{%d,%d}", TE_TM, m, n), ...
     modeType=TE_TM, ...
     WhSpec=WhSpec, ...

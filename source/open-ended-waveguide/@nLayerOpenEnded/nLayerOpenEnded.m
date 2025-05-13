@@ -14,8 +14,8 @@ classdef nLayerOpenEnded < nLayerForward
 
     %% Public Properties
     properties (GetAccess=public, SetAccess=protected)
-        waveguideModes(1, :) ...   % Array of "nLayer.waveguideMode" objects, defining the properties of each mode.
-            nLayer.waveguideMode = nLayer.waveguideMode.empty;
+        waveguideModes(1, :) ...   % Array of "waveguideMode" objects, defining the properties of each mode.
+            waveguideMode = waveguideMode.empty;
     end
     properties (Dependent, Access=public, AbortSet)
         frequencyRange(1, :) {mustBeNonnegative, mustBeFinite}; % Operating frequency range of the object.
@@ -90,7 +90,7 @@ classdef nLayerOpenEnded < nLayerForward
     methods (Access=public)
         function O = nLayerOpenEnded(waveguideModes, classProperties)
             arguments
-                waveguideModes(:, 1) nLayer.waveguideMode = nLayer.waveguideMode.empty;
+                waveguideModes(:, 1) waveguideMode = waveguideMode.empty;
                 classProperties.?nLayerOpenEnded;
             end
 

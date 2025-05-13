@@ -5,13 +5,13 @@ function [Ex, Ey] = getModeFields(self, x, y)
 % Author: Matt Dvorsky
 
 arguments
-    self nLayer.waveguideMode;
+    self waveguideMode;
 
     x(:, 1);
     y(1, :);
 end
 
-%% Calculate x, y, kx, and ky
+%% Calculate kx, ky, kr, and kphi
 [kx, ky] = fftCoordinates(x, y, ApplyFftShift=true);
 kr = hypot(kx, ky);
 kphi = atan2(ky, kx);

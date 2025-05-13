@@ -1,6 +1,6 @@
-function [waveguideModes] = getAllCoaxialModes(m, n, wgRi, wgRo, options)
-%Get all possible "waveguideMode" objects for a coaxial waveguide.
-% This functions returns "waveguideMode" objects for all coaxial
+function [modes] = getAllCircularModes(m, n, wgR, options)
+%Get all possible "waveguideMode" objects for a circular waveguide.
+% This functions returns "waveguideMode" objects for all circular
 % waveguide modes that match the pattern TEmn or TMmn, for all
 % combinations of the input vectors "m" and "n";
 %
@@ -9,27 +9,23 @@ function [waveguideModes] = getAllCoaxialModes(m, n, wgRi, wgRo, options)
 %
 % Example Usage:
 %   % All modes, regardless of symmetry.
-%   [waveguideModes] = getAllCoaxialModes(m, n, wgRi, wgRo);
+%   [modes] = getAllCircularModes(m, n, wgR);
 %
 %   % Only return modes where the x-axis could be replaced with PEC.
-%   [waveguideModes] = getAllCoaxialModes(m, n, wgRi, wgRo, ...
-%               modeSymmetryX="PEC");
+%   [modes] = getAllCircularModes(m, n, wgR, modeSymmetryX="PEC");
 %
 %
 % Inputs:
 %   m - Vector of "m" values for returned TEmn and TMmn modes.
 %   n - Vector of "n" values for returned TEmn and TMmn modes.
-%   wgRi - Inner radius of coaxial waveguide.
-%   wgRo - Inner radius of coaxial waveguide.
+%   wgR - Radius of circular waveguide.
 %
 % Author: Matt Dvorsky
 
-
 arguments
     m(:, 1) {mustBeInteger, mustBeNonnegative};
-    n(1, :) {mustBeInteger, mustBeNonnegative};
-    wgRi(1, 1) {mustBePositive};
-    wgRo(1, 1) {mustBePositive};
+    n(1, :) {mustBeInteger, mustBePositive};
+    wgR(1, 1) {mustBePositive};
 
     options.SymmetryX string {mustBeMember(options.SymmetryX, ...
         ["PEC", "PMC", "None"])} = "None";
@@ -48,9 +44,9 @@ n = n(:);
 TE_TM = TE_TM(:);
 isRotated = isRotated(:);
 
+
 %% Filter Out Rotated TE0n and TM0n Modes
-keepMode = ~((m == 0) & isRotated) & (n > 0) ...
-    | ((m == 0) & (n == 0) & strcmp(TE_TM, "TM") & ~isRotated);
+keepMode = ~((m == 0) & isRotated);
 
 %% Filter Modes by Symmetry
 if strcmp(options.SymmetryX, "PEC")
@@ -84,11 +80,10 @@ TE_TM = TE_TM(keepMode);
 isRotated = isRotated(keepMode);
 
 %% Get "waveguideMode" Objects
-waveguideModes = nLayer.waveguideMode.empty;
+modes = waveguideMode.empty;
 for ii = flip(1:numel(m))
-    waveguideModes(1, ii) = nLayer.getCoaxialMode(...
-        m(ii), n(ii), wgRi, wgRo, TE_TM(ii), isRotated(ii));
+    modes(1, ii) = waveguideMode.getCircularMode(...
+        m(ii), n(ii), wgR, TE_TM(ii), isRotated(ii));
 end
 
 end
-

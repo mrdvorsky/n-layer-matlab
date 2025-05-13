@@ -4,7 +4,7 @@ function [] = validateModeSymmetry(self, options)
 % Author: Matt Dvorsky
 
 arguments
-    self nLayer.waveguideMode;
+    self waveguideMode;
 
     options.NumSamplesRho(1, 1) {mustBeInteger, mustBePositive} = 100;
     options.NumSamplesPhi(1, 1) {mustBeInteger, mustBePositive} = 100;

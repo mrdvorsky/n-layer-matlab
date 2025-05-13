@@ -10,7 +10,6 @@ function [outputLabels] = getOutputLabels(self)
 %
 % Outputs:
 %   outputLabels - Vector of strings labeling each output channel.
-%       Currently only outputs ["S_{TE10,TE10}"].
 %
 % Author: Matt Dvorsky
 
@@ -19,7 +18,13 @@ arguments
 end
 
 %% Return Output Channel List
-outputLabels = "S_{TE10,TE10}";
+[modeLabelsRx, modeLabelsTx] = ndgrid(...
+    self.modeLabels(self.receiveModeIndices), ...
+    self.modeLabels(self.excitationModeIndices));
+
+outputLabels = reshape(...
+    compose("S_{%s,%s}", modeLabelsRx(:), modeLabelsTx(:)), ...
+    [1, size(modeLabelsTx)]);
 
 end
 

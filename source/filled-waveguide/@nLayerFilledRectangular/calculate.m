@@ -1,4 +1,4 @@
-function [gam] = calculate(O, f, er, ur, thk)
+function [gam] = calculate(self, f, er, ur, thk)
 %CALCULATEGAMMA Calculate S11 for rectangular waveguide TEmn mode excitation.
 % Computes the reflection coefficient of the rectangular waveguide TE10
 % mode when looking into a multilayer structure defined by er, ur, thk at
@@ -22,15 +22,17 @@ function [gam] = calculate(O, f, er, ur, thk)
 % Author: Trent Moritz
 
 arguments
-    O;
-    f;
+    self nLayerFilledRectangular;
+
+    f(:, 1);
     er;
     ur;
     thk;
 end
 
 %% Check Inputs
-[er, ur, thk] = nLayer.validateStructure(er, ur, thk);
+[er, ur, thk] = nLayer.validateStructure(er, ur, thk, ...
+    CheckStructureValues=false);
 
 %% Fix
 er = cell2mat(er).';
@@ -38,11 +40,11 @@ ur = cell2mat(ur).';
 thk = cell2mat(thk).';
 
 %% Define Variables
-a = O.waveguideA;
-b = O.waveguideB;
-m = O.modeTE_m;
-n = O.modeTE_n;
-c = O.speedOfLight;
+a = self.waveguideA;
+b = self.waveguideB;
+m = self.modeTE_m;
+n = self.modeTE_n;
+c = self.speedOfLight;
 
 k0 = (2*pi) .* f./c;
 eta0 = 120*pi;
@@ -87,8 +89,8 @@ S22 = (-A_final + B_final./z_ref - C_final.*z_ref + D_final) ./ ...
 %% Set Output
 gam = reshape([S11, S12, S21, S22], length(f), 2, 2);
 
-if ~isempty(O.outputIndices)
-    gam = gam(:, O.outputIndices);
+if ~isempty(self.outputIndices)
+    gam = gam(:, self.outputIndices);
 end
 
 end

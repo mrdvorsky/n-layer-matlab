@@ -1,3 +1,6 @@
+% Author: Matt Dvorsky
+
+%% Clear Workspace
 clc;
 clear;
 close all;

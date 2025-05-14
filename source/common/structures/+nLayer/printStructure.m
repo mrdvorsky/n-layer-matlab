@@ -29,7 +29,7 @@ end
 %% Check Inputs
 [er, ur, thk] = nLayer.validateStructure(er, ur, thk, ...
     CheckStructureValues=false, ...
-    RequireConstantValuesPerLayer=true);
+    RequireScalarValuesPerLayer=true);
 
 er = cell2mat(er);
 ur = cell2mat(ur);

@@ -3,7 +3,7 @@ function [versionString] = nLayerMatlab_getVersion()
 %
 % Author: Matt Dvorsky
 
-versionString = "v0.9.0";
+versionString = "v0.9.1";
 
 end
 

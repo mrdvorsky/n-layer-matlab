@@ -9,14 +9,17 @@ er = 2.1 - 0.01j;
 ur = 1;
 thk = 10;
 
+%% Create Object
 NL = nLayerFilledRectangular(1, 0, waveguideBand="X");
 
-%% Plot
+%% Calculate
+nLayer.printStructure(er, ur, thk);
 gam = NL.calculate(f, er, ur, thk);
 
+%% Plot
 figure;
-plot(gam(:, :), "", LineWidth=1.5);
-hold on;
-zplane([]);
+plotComplex(f, gam(:, :), ".-", LineWidth=1.5);
+legend(NL.getOutputLabels());
+grid on;
 
 

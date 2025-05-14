@@ -5,12 +5,15 @@ close all;
 %% Inputs
 f(:, 1) = linspace(32, 40, 800);
 
-er = 4 - 0.001j;
+er = 4 - 0.1j;
 ur = 1;
 thk = 2;
 
 %% Create Object
-NL = nLayerCircular(0, 5, waveguideBand="Ka_TE01", modeSymmetryAxial="TE");
+NL = nLayerRectangular(5, 4, waveguideBand="Ka", modeSymmetryX="PEC", modeSymmetryY="PEC");
+NL.waveguideA = 1.4 * NL.waveguideA;
+
+NL.frequencyRange = f;
 
 %% Calculate
 nLayer.printStructure(er, ur, thk);
@@ -21,4 +24,3 @@ figure;
 plotComplex(f, gam, ".-", LineWidth=1.5);
 legend(NL.getOutputLabels());
 grid on;
-

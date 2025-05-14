@@ -39,7 +39,7 @@ arguments
 end
 
 %% Generate List of All Possible Modes
-[TE_TM, n, m] = ndgrid(["TE", "TM"], unique(n), unique(m));
+[TE_TM, m, n] = ndgrid(["TE", "TM"], unique(m), unique(n));
 
 m = m(:);
 n = n(:);

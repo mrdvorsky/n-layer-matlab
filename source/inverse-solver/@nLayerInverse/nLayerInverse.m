@@ -26,7 +26,7 @@ classdef nLayerInverse < matlab.mixin.Copyable
     properties (Access=public)
         initialValue_er(1, :) {} = 1;               % Structure er values.
         initialValue_ur(1, :) {} = 1;               % Structure ur values.
-        initialValue_thk(1, :) {mustBeNonnegative} = 0;     % Structure thk values.
+        initialValue_thk(1, :) {} = 0;     % Structure thk values.
 
         layersToSolve_erp(1, :)  {mustBeInteger, mustBePositive} = [];  % Layer indices to solve for erp.
         layersToSolve_erpp(1, :) {mustBeInteger, mustBePositive} = [];  % Layer indices to solve for erpp.
@@ -130,16 +130,17 @@ classdef nLayerInverse < matlab.mixin.Copyable
     methods
         % Setters for initial structure values.
         function set.initialValue_er(self, er)
-            checkInitialValues(self, er);
+            er = checkInitialValues(self, er);
             self.initialValue_er = er;
         end
         function set.initialValue_ur(self, ur)
-            checkInitialValues(self, ur);
+            ur = checkInitialValues(self, ur);
             self.initialValue_ur = ur;
         end
         function set.initialValue_thk(self, thk)
-            checkInitialValues(self, thk);
+            thk = checkInitialValues(self, thk);
             self.initialValue_thk = thk;
+            mustBeNonnegative(thk);
         end
 
         % Setters for layers to solve.
@@ -214,7 +215,15 @@ end
 
 
 %% Helper Functions
-function checkInitialValues(self, erUrThk)
+function [erUrThk] = checkInitialValues(self, erUrThk)
+    if iscell(erUrThk)
+        if ~all(cellfun(@isscalar, erUrThk))
+            error("nLayerInverse:cellArrayWithNonScalars", ...
+                "If the parameter 'initialValue_{er, ur, thk}' " + ...
+                "is a cell array, it must be a vector of scalars.");
+        end
+        erUrThk = cell2mat(erUrThk);
+    end
     if self.layerCount ~= numel(erUrThk)
         error("nLayerInverse:layerCountMismatch", ...
             "The parameters 'initialValue_{er, ur, thk}' " + ...

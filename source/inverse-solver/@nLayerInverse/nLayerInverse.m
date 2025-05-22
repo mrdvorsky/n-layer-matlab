@@ -24,8 +24,8 @@ classdef nLayerInverse < matlab.mixin.Copyable
         layerCount(1, 1) {mustBeInteger, mustBePositive} = 1;   % Number of layers in the structure.
     end
     properties (Access=public)
-        initialValue_er(1, :) {} = 1;               % Structure er values.
-        initialValue_ur(1, :) {} = 1;               % Structure ur values.
+        initialValue_er(1, :) {} = 1;      % Structure er values.
+        initialValue_ur(1, :) {} = 1;      % Structure ur values.
         initialValue_thk(1, :) {} = 0;     % Structure thk values.
 
         layersToSolve_erp(1, :)  {mustBeInteger, mustBePositive} = [];  % Layer indices to solve for erp.
@@ -85,7 +85,7 @@ classdef nLayerInverse < matlab.mixin.Copyable
             self.initialValue_ur = repmat(self.initialValue_ur, numLayers, 1);
             self.initialValue_thk = repmat(self.initialValue_thk, numLayers, 1);
             self.setRanges();
-            
+
             self.constraints_thk_Aeq = zeros(0, numLayers);
             self.constraints_thk_A = zeros(0, numLayers);
             self.constraints_thk_b = zeros(0, 1);

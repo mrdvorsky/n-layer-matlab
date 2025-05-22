@@ -1,5 +1,5 @@
 function [varargout] = nLayerViewer(er, ur, thk, NL, f, options)
-%NLAYERVIEWER Function to open NLayer Viewer in a new figure window.
+%Function to open NLayer Viewer in a new figure window.
 % This function allows users to compute multiple NLayer solvers and
 % plot them to be viewed and compared. The sliders update in real-time
 % allowing for a quick visual analysis of a material structure.
@@ -119,27 +119,13 @@ if ~isfield(options, "StructureAxisSize")
     options.StructureAxisSize = 0.1 + 0.1*length(thk);
 end
 
-if (iscell(er))
-    er = cell2mat(er);
-end
-if (iscell(ur))
-    ur = cell2mat(ur);
-end
-if (iscell(thk))
-    thk = cell2mat(thk);
-end
+[er, ur, thk] = nLayer.validateStructure(er, ur, thk, ...
+    RequireScalarValuesPerLayer=false, ...
+    CheckStructureValues=false);
 
-if isempty(er)
-    er = ones(size(thk));
-elseif numel(er) == 1
-    er = er + zeros(size(thk));
-end
-
-if isempty(ur)
-    ur = ones(size(thk));
-elseif numel(ur) == 1
-    ur = ur + zeros(size(thk));
-end
+er = cell2mat(er);
+ur = cell2mat(ur);
+thk = cell2mat(thk);
 
 %% Create main figure and panels
 if isfield(options, "FigureHandle")
@@ -226,44 +212,22 @@ plotAxisPosition(4) = plotAxisPosition(4) ...
 plotAxis = axes(plotPanel, Position=plotAxisPosition, ...
     ButtonDownFcn=@buttonClickFunction);
 
-[h1, h2, h3] = zplane([], [], plotAxis);
-h1.HandleVisibility = "off";
-h2.HandleVisibility = "off";
-h3.HandleVisibility = "off";
-xlabel(plotAxis, "");
-ylabel(plotAxis, "");
-title(plotAxis, "");
-
-xlim(plotAxis, [-1.1, 1.1]);
-ylim(plotAxis, [-1.1, 1.1]);
-hold(plotAxis, "on");
-
-gamPlot = cell(numel(NL), 1);
-gamFitPlot = cell(numel(NL), 1);
-
 % Obtain initial parameters and calculate initial values
+hold(plotAxis, "on");
 for ii = 1:numel(NL)
     gam = NL{ii}.calculate(f{ii}, er, ur, thk);
 
+    [lineHandles, plotUpdateFuns{ii}] = plotComplex(f{ii}, gam(:, :), ...
+        Axis=plotAxis, ...
+        Linewidth=options.PlotLineWidth, ...
+        Marker=options.PlotMarkerType, ...
+        MarkerSize=options.PlotMarkerSize, ...
+        MarkerIndices=(0:options.NumFrequencyMarkers - 1) * options.NumFrequencySamplesPerMarker + 1);
+
     plotLabels = NL{ii}.getOutputLabels();
-    gamFitPlot{ii} = cell(size(gam(:, :), 2), 1);
-
-    for pp = 1:size(gam(:, :), 2)
-        gamFitPlot{ii}{pp} = plot(plotAxis, gam(:, pp), ...
-            Linewidth=options.PlotLineWidth, ...
-            DisplayName=plotLabels(pp), ...
-            Marker=options.PlotMarkerType, ...
-            MarkerSize=options.PlotMarkerSize, ...
-            MarkerIndices=(0:options.NumFrequencyMarkers - 1) * options.NumFrequencySamplesPerMarker + 1);
+    for pp = 1:numel(lineHandles)
+        lineHandles(ii).DisplayName = plotLabels(pp);
     end
-end
-
-handles.markerPlot = plot(-1, -1, ".k", MarkerSize=8, ...
-    HitTest="off", DisplayName=sprintf("f = %g GHz", f{1}(1)));
-handles.markerFreq = f{1}(1);
-
-for ii = 1:numel(plotAxis.Children)
-    plotAxis.Children(ii).HitTest = "off";
 end
 
 if options.ShowLegend
@@ -275,10 +239,8 @@ if options.ShowLegend
 end
 
 hold(plotAxis, "off");
-
 handles.plotAxis = plotAxis;
-handles.gamPlot = gamPlot;
-handles.gamFitPlot = gamFitPlot;
+handles.plotUpdateFuns = plotUpdateFuns;
 
 %% Figure Size Change Callback
 fig.SizeChangedFcn = @figureResizeCallback;
@@ -860,12 +822,12 @@ end
 
 %% Value extractor
 function [er, erp, ur, urp, thk] = valueExtractor(handles)
-valueExtracted = @(s) s.Value;
-er =  lerp_arr(cellfun(valueExtracted, handles.uiSliders.erSliders), handles.uiSliders.erRange);
-erp = lerp_arr(cellfun(valueExtracted, handles.uiSliders.erpSliders), handles.uiSliders.erpRange);
-ur =  lerp_arr(cellfun(valueExtracted, handles.uiSliders.urSliders), handles.uiSliders.urRange);
-urp = lerp_arr(cellfun(valueExtracted, handles.uiSliders.urpSliders), handles.uiSliders.urpRange);
-thk = lerp_arr(cellfun(valueExtracted, handles.uiSliders.thkSliders), handles.uiSliders.thkRange);
+    valueExtracted = @(s) s.Value;
+    er =  lerp_arr(cellfun(valueExtracted, handles.uiSliders.erSliders), handles.uiSliders.erRange);
+    erp = lerp_arr(cellfun(valueExtracted, handles.uiSliders.erpSliders), handles.uiSliders.erpRange);
+    ur =  lerp_arr(cellfun(valueExtracted, handles.uiSliders.urSliders), handles.uiSliders.urRange);
+    urp = lerp_arr(cellfun(valueExtracted, handles.uiSliders.urpSliders), handles.uiSliders.urpRange);
+    thk = lerp_arr(cellfun(valueExtracted, handles.uiSliders.thkSliders), handles.uiSliders.thkRange);
 end
 
 %% Value reader from current value edit field
@@ -959,17 +921,13 @@ function handles = plotGam(handles)
 
 for ii = 1:size(handles.NL, 2)
     gam = handles.NL{ii}.calculate(handles.f{ii}, er, ur, thk);
-
-    for pp = 1:size(gam(:, :), 2)
-        handles.gamFitPlot{ii}{pp}.XData = real(gam(:, pp));
-        handles.gamFitPlot{ii}{pp}.YData = imag(gam(:, pp));
-    end
+    handles.plotUpdateFuns{ii}(gam(:, :));
 end
 
-gamF = handles.NL{1}.calculate(handles.markerFreq, er, ur, thk);
-handles.markerPlot.XData = real(gamF);
-handles.markerPlot.YData = imag(gamF);
-handles.updateFunction(handles.markerFreq, er, ur, thk);
+% gamF = handles.NL{1}.calculate(handles.markerFreq, er, ur, thk);
+% handles.markerPlot.XData = real(gamF);
+% handles.markerPlot.YData = imag(gamF);
+% handles.updateFunction(handles.markerFreq, er, ur, thk);
 
 [~, handles.structureText.String] = ...
     nLayer.printStructure(er, ur, thk, Title="");
@@ -994,23 +952,23 @@ function [pIndFrac] = nearest_point(line_x, line_y, xp, yp)
 end
 
 function buttonClickFunction(hObject, ~)
-    handles = guidata(hObject);
-    xy = hObject.CurrentPoint(1, 1:2);
-
-    line = handles.gamFitPlot{1}{1};
-    pInd = nearest_point(line.XData, line.YData, xy(1), xy(2));
-    f = interp1(handles.f{1}, pInd);
-    
-    [er, ur, thk] = valueReaderComplex(handles);
-    gamF = handles.NL{1}.calculate(f, er, ur, thk);
-
-    handles.markerPlot.XData = real(gamF);
-    handles.markerPlot.YData = imag(gamF);
-    handles.markerFreq = f;
-    handles.markerPlot.DisplayName = sprintf("f = %g GHz", f);
-    handles.updateFunction(handles.markerFreq, er, ur, thk);
-
-    guidata(hObject, handles);
+    % handles = guidata(hObject);
+    % xy = hObject.CurrentPoint(1, 1:2);
+    % 
+    % line = handles.gamFitPlot{1}{1};
+    % pInd = nearest_point(line.XData, line.YData, xy(1), xy(2));
+    % f = interp1(handles.f{1}, pInd);
+    % 
+    % [er, ur, thk] = valueReaderComplex(handles);
+    % gamF = handles.NL{1}.calculate(f, er, ur, thk);
+    % 
+    % handles.markerPlot.XData = real(gamF);
+    % handles.markerPlot.YData = imag(gamF);
+    % handles.markerFreq = f;
+    % handles.markerPlot.DisplayName = sprintf("f = %g GHz", f);
+    % handles.updateFunction(handles.markerFreq, er, ur, thk);
+    % 
+    % guidata(hObject, handles);
 end
 
 

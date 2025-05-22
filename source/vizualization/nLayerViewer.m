@@ -209,8 +209,7 @@ plotAxisPosition(2) = 1 - (1 - plotAxisPosition(2)) ...
     .* (1 - options.StructureAxisSize);
 plotAxisPosition(4) = plotAxisPosition(4) ...
     .* (1 - options.StructureAxisSize);
-plotAxis = axes(plotPanel, Position=plotAxisPosition, ...
-    ButtonDownFcn=@buttonClickFunction);
+plotAxis = axes(plotPanel, Position=plotAxisPosition, Box="on");
 
 % Obtain initial parameters and calculate initial values
 hold(plotAxis, "on");
@@ -218,6 +217,7 @@ for ii = 1:numel(NL)
     gam = NL{ii}.calculate(f{ii}, er, ur, thk);
 
     [lineHandles, plotUpdateFuns{ii}] = plotComplex(f{ii}, gam(:, :), ...
+        AddCustomDataTips=true, ...
         Axis=plotAxis, ...
         Linewidth=options.PlotLineWidth, ...
         Marker=options.PlotMarkerType, ...
@@ -226,9 +226,11 @@ for ii = 1:numel(NL)
 
     plotLabels = NL{ii}.getOutputLabels();
     for pp = 1:numel(lineHandles)
-        lineHandles(ii).DisplayName = plotLabels(pp);
+        lineHandles(pp).DisplayName = plotLabels(pp);
     end
 end
+
+datacursormode(fig, "on");
 
 if options.ShowLegend
     if isfield(options, "Legend")

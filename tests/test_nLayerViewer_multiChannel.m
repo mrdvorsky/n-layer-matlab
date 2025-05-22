@@ -11,9 +11,9 @@ ur = {};
 thk = {2, 0.1};
 
 %% Create nLayer Object
-NL = nLayerCircular(0, 5, waveguideBand="Ka_TE01", modeSymmetryAxial="TE");
+NL = nLayerFilledRectangular(1, 0, waveguideBand="Ka");
 
 %% Plot
 figure;
-nLayerViewer(er, ur, thk, NL, [32, 40]);
+nLayerViewer(er, ur, thk, NL, [26.5, 40]);
 

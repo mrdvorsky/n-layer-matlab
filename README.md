@@ -1,6 +1,6 @@
 # Multi-layered Dielectric Structure Simulator
 
-![version](https://img.shields.io/badge/version-0.9.1-blue)
+![version](https://img.shields.io/badge/version-1.0.0-blue)
 ![MATLAB](https://img.shields.io/badge/MATLAB-R2023b%2B-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 

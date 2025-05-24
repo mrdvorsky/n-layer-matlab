@@ -24,40 +24,25 @@ function [] = nLayerViewer(er, ur, thk, NL, f, options)
 %   (none)
 %
 % Options (name-value pairs):
-%   ShowLegend (true) - If true, legend will be enabled.
-%   Legend - Array of strings that can be displayed along with the
-%       various plots of different NLayer solvers. If not specified,
-%       default names will be used.
-%   ErBounds ([1, 10]) - Bounds of the dielectric constant (er). The
-%       size of the variable is dependent on the number of layers
-%       defined.
-%   ErpBounds [0.01, 10]) - Bounds of the dielectric loss (erp). The size
-%       of the variable is dependent on the number of layers defined.
-%   UrBounds ([1, 10]) - Bounds of the magnetic constant (ur). The
-%       size of the variable is dependent on the number of layers
-%       defined.
-%   UrpBounds [0.01, 10]) - Bounds of the magnetic loss (urp). The size
-%       of the variable is dependent on the number of layers defined.
-%   ThkBounds [0.1, 100]) - Bounds of the thickness (thk). The size of the
-%       variable is dependent on the number of layers defined.
-%   GamInterp (10) - The number of points the calculated reflection
-%       coefficients is interpolated to.
-%   PlotLineWidth (1.5) - The width of the plotted lines.
-%   PlotDotWidth (1.5) - The width of the plotted dots.
-%   FigureHandle (optional) - Handle of a figure to use. If not specified,
-%       will use current active figure or create a new figure.
-%   MainFigDim ([100, 100, 1000, 600]) - Main figure dimensions (pixels).
-%       The array elements are [left, bottom, width, height].
-%   PlotPanelSize (0.6) - Relative size of the plot panel to the main
-%       figure window.
-%   SliderXPos (0.15) - Position of sliders on the X-axis relative to
-%       the size of the parent panel.
-%   SliderYPos (0.15) - Position of sliders on the Y-axis relative to
-%       the size of the parent panel.
-%   SliderLength (0.6) - Length of the  sliders relative to the size of
-%       the parent panel.
-%   SliderWidth (0.12) - Width of the sliders relative to the size of
-%       the parent panel.
+%   Figure (gcf) - Handle to existing figure to use.
+%   FigureSize ([0.15, 0.15, 0.7, 0.7]) - Figure "Position" field to set,
+%       in normalized units.
+%   FontSize (10) - Font size to use.
+%
+%   ErpBounds       ([1, 10]) - Permittivity real part bounds.
+%   ErLossTanBounds ([0, 1])  - Permittivity loss tangent bounds.
+%   UrpBounds       ([1, 10]) - Permeability real part bounds.
+%   UrLossTanBounds ([0, 1])  - Permeability loss tangent bounds.
+%   ThkBounds       ([0, 10)  - Thickness bounds.
+%
+%   PlotPanelWidth (0.6) - Relative width of plot panel.
+%   PlotLineWidth  (1)   - Line width for polar plot.
+%   PlotMarkerSize (8)   - Marker size for polar plot.
+%   PlotMarkerType (".") - Type of marker for polar plot.
+%   ShowLegend    (true) - Whether to show plot legend.
+%
+%   NumFrequencies      (801) - Total number of frequency points to use.
+%   NumFrequencyMarkers (31)  - Number of marker points on plot.
 %
 % Author: Matt Dvorsky
 
@@ -71,36 +56,24 @@ arguments (Repeating)
     f  (:, 1) {mustBeNonempty};
 end
 arguments
-    % Figure options
     options.Figure     (1, 1) matlab.ui.Figure;
-    options.FigureSize (1, 4) {mustBeReal} = [100, 100, 1000, 600];
+    options.FigureSize (1, 4) {mustBeFractional} = [0.15, 0.15, 0.7, 0.7];
+    options.FontSize   (1, 1) {mustBePositive} = 10;
 
-    % Legend
-    options.ShowLegend      (1, 1) logical = true;
-    options.PlotPanelWidth  (1, 1) {mustBeFractional} = 0.6;
-    options.PanelFontSize   (1, 1) {mustBePositive} = 10;
-
-    % Slider parameters
-    options.SliderXPos      (1, 1) {mustBeFractional} = 0.15;
-    options.SliderYPos      (1, 1) {mustBeFractional} = 0.15;
-    options.SliderLength    (1, 1) {mustBeFractional} = 0.6;
-    options.SliderWidth     (1, 1) {mustBeFractional} = 0.12;
-
-    % Structure property bounds
     options.ErpBounds       (:, 2) {mustBeReal, mustBeFinite} = [1, 10];
     options.ErLossTanBounds (:, 2) {mustBeReal, mustBeFinite} = [0, 1];
     options.UrpBounds       (:, 2) {mustBeReal, mustBeFinite} = [1, 10];
     options.UrLossTanBounds (:, 2) {mustBeReal, mustBeFinite} = [0, 1];
     options.ThkBounds (:, 2) {mustBeNonnegative, mustBeFinite} = [0, 10];
 
-    % Frequency Settings
     options.NumFrequencies      (1, 1) {mustBeInteger, mustBePositive} = 801;
-    options.NumFrequencyMarkers (1, 1) {mustBeInteger, mustBePositive} = 21;
+    options.NumFrequencyMarkers (1, 1) {mustBeInteger, mustBePositive} = 31;
 
-    % Plot settings
+    options.PlotPanelWidth  (1, 1) {mustBeFractional} = 0.6;
     options.PlotLineWidth   (1, 1) {mustBePositive} = 1;
-    options.PlotMarkerSize  (1, 1) {mustBePositive} = 5;
+    options.PlotMarkerSize  (1, 1) {mustBePositive} = 8;
     options.PlotMarkerType  (1, 1) string = ".";
+    options.ShowLegend      (1, 1) logical = true;
 end
 mustHaveAtLeastOneRepeatingArg(NL);
 
@@ -119,7 +92,7 @@ end
 [plotPanel, sliderPanels] = setupFigureAndPanels(fig, ...
     options.FigureSize, ...
     options.PlotPanelWidth, ...
-    options.PanelFontSize);
+    options.FontSize);
 setupCopyExportMenu(fig);
 [plotAxis, structureTextHandle] = setupPlotPanel(plotPanel, numel(thk));
 setupSliders(fig, sliderPanels, er, ur, thk, ...
@@ -131,9 +104,15 @@ setupSliders(fig, sliderPanels, er, ur, thk, ...
     @structureUpdateFun);
 
 %% Setup Initial Polar Plot
-numFreqsPerMarker = ceil(options.NumFrequencies ./ options.NumFrequencyMarkers);
-numF =  numFreqsPerMarker .* options.NumFrequencyMarkers;
-fMarkerInds = (1:options.NumFrequencyMarkers) .* numFreqsPerMarker;
+if options.NumFrequencyMarkers >= 2
+    numFreqsPerMarker = ceil((options.NumFrequencies - 1) ...
+        ./ (options.NumFrequencyMarkers - 1));
+    numF = 1 + numFreqsPerMarker.*(options.NumFrequencyMarkers - 1);
+    fMarkerInds = 1 + (0:options.NumFrequencyMarkers - 1).*(numFreqsPerMarker);
+else
+    numF = options.NumFrequencies;
+    fMarkerInds = [];
+end
 
 plotUpdateFuns = cell(numel(NL), 1);
 hold(plotAxis, "on");
@@ -143,7 +122,7 @@ for ii = 1:numel(NL)
 
     [lineHandles, plotUpdateFuns{ii}] = plotComplex(...
         f{ii}, ...
-        zeros(numel(f{ii}, numel(plotLabels))), ...
+        zeros(numel(f{ii}), numel(plotLabels)), ...
         "", ...
         AddCustomDataTips=true, ...
         Axis=plotAxis, ...
@@ -177,12 +156,6 @@ end
 
 
 
-
-% function figureResizeCallback(fig, ~)
-%     handles = guidata(fig);
-%     figMinRatio = min(fig.Position([3, 4]) ./ [1000, 600]);
-%     handles.structureText.FontSize = round(9 .* figMinRatio);
-% end
 
 %% Update Functions
 function structureUpdateFun(fig, er, ur, thk)

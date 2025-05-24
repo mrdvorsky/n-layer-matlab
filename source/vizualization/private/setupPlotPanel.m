@@ -5,7 +5,7 @@ function [plotAxis, structureTextHandle] = setupPlotPanel(plotPanel, numLayers)
 % Author: Matt Dvorsky
 
 arguments
-    plotPanel(1, 1);
+    plotPanel(1, 1) matlab.ui.container.Panel;
     numLayers(1, 1) {mustBePositive, mustBeInteger};
 end
 

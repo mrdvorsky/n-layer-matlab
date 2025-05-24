@@ -14,6 +14,7 @@ end
 
 %% Setup Figure
 clf(fig);
+fig.Units = "normalized";
 fig.Position = figSize;
 fig.ToolBar = "none";
 

@@ -116,9 +116,10 @@ end
 
 function fieldCallback(src, ~, slider, cvField, minField, maxField, sliderListener, userCallback)
     newVal = str2double(src.String);
-
-    if isnan(newVal)
-        src.String = num2str(src.Value);
+    oldVal = src.Value;
+    
+    if isnan(newVal) || ~isreal(newVal)
+        src.String = num2str(oldVal);
         return;
     end
 
@@ -134,7 +135,14 @@ function fieldCallback(src, ~, slider, cvField, minField, maxField, sliderListen
     sliderListener.Enabled = true;
 
     if src == cvField
-        valueChangedCallback(cvField.Value, userCallback);
+        try
+            valueChangedCallback(cvField.Value, userCallback);
+        catch ex
+            src.String = num2str(oldVal);
+            src.Value = oldVal;
+
+            rethrow(ex);
+        end
     end
 end
 

@@ -61,6 +61,19 @@ end
 function sliderHandler(val, fig, structureUpdateFun, layerInd, sInd)
     fig.UserData.structure(layerInd, sInd) = val;
 
-    [er, ur, thk] = arrayToStructure(fig.UserData.structure);
-    structureUpdateFun(fig, er, ur, thk);
+    try
+        [er, ur, thk] = arrayToStructure(fig.UserData.structure);
+        structureUpdateFun(fig, er, ur, thk);
+    catch ex
+        panel = fig.Children(end);
+        oldColor = panel.BackgroundColor;
+        for ii = 1:2
+            panel.BackgroundColor = "red";
+            pause(0.1);
+            panel.BackgroundColor = oldColor;
+            pause(0.1);
+        end
+
+        rethrow(ex);
+    end
 end

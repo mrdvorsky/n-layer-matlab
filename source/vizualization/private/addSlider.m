@@ -69,7 +69,7 @@ upperBoundField = uicontrol(Style="edit", ...
 
 %% Setup CallBacks
 % Use "addlistener" to update while slider is moving.
-sliderHandle.addlistener("Value", "PostSet", ...
+sliderListener = sliderHandle.addlistener("Value", "PostSet", ...
     @(~, ~) sliderCallback(sliderHandle, ...
         currentValueField, lowerBoundField, upperBoundField, ...
         options.ValueChangedHandler));
@@ -82,13 +82,13 @@ sliderHandle.addlistener("Value", "PostSet", ...
 % Edit field callbacks
 currentValueField.Callback = {@fieldCallback, ...
     sliderHandle, currentValueField, lowerBoundField, upperBoundField, ...
-    options.ValueChangedHandler};
+    sliderListener, options.ValueChangedHandler};
 lowerBoundField.Callback = {@fieldCallback, ...
     sliderHandle, currentValueField, lowerBoundField, upperBoundField, ...
-    options.ValueChangedHandler};
+    sliderListener, options.ValueChangedHandler};
 upperBoundField.Callback = {@fieldCallback, ...
     sliderHandle, currentValueField, lowerBoundField, upperBoundField, ...
-    options.ValueChangedHandler};
+    sliderListener, options.ValueChangedHandler};
 
 end
 
@@ -96,10 +96,6 @@ end
 
 
 %% Callbacks
-function temp(src, ev)
-    ev.AffectedObject.Value
-end
-
 function valueChangedCallback(val, userCallback)
     if iscell(userCallback)
         userCallback{1}(val, userCallback{2:end});
@@ -118,7 +114,7 @@ function sliderCallback(slider, cvField, minField, maxField, userCallback)
     valueChangedCallback(cvField.Value, userCallback);
 end
 
-function fieldCallback(src, ~, slider, cvField, minField, maxField, userCallback)
+function fieldCallback(src, ~, slider, cvField, minField, maxField, sliderListener, userCallback)
     newVal = str2double(src.String);
 
     if isnan(newVal)
@@ -132,8 +128,10 @@ function fieldCallback(src, ~, slider, cvField, minField, maxField, userCallback
     minVal = minField.Value;
     maxVal = maxField.Value;
 
+    sliderListener.Enabled = false;
     slider.Value = max(0, min(1, ...
         (currentVal - minVal) ./ (maxVal - minVal)));
+    sliderListener.Enabled = true;
 
     if src == cvField
         valueChangedCallback(cvField.Value, userCallback);

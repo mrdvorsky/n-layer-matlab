@@ -1,83 +1,111 @@
-classdef nLayerFilledRectangular < nLayerForward
-    %Implementation of nLayerForward for filled rectangular waveguides.
-    % This class can be used to calculate the reflection/transmission
-    % coefficients of a rectangular waveguide filled with a multilayer
-    % structure. Note that the units of all parameters should match that of
-    % the speed of light specified by the speedOfLight parameter (default
-    % is mm GHz).
+classdef nLayerFilledRectangular < nLayerFilled
+    %Implementation of nLayerFilled for filled rectangular waveguides.
+    %   This class can be used to calculate reflection and transmission
+    %   coefficients seen by a two-port filled rectangular waveguide when
+    %   filled with a multi-layered structure. Note the units of all
+    %   parameters should match that of the speed of light specified in
+    %   "distanceUnitScale" and "frequencyUnitScale" parameters (defaults
+    %   to mm and GHz), both of which can be set in the constructor.
     %
     % Example Usage:
-    %   NL = nLayerFilledRectangular(TE_m, TE_n, waveguideBand="x");
+    %   NL = nLayerFilledRectangular(modeIndexM, modeIndexN, waveguideBand="X");
+    %   NL = nLayerFilledRectangular(modeIndexM, modeIndexN, waveguideA=7.112, waveguideB=3.556);
+    %   NL = nLayerFilledRectangular(modeIndexM, modeIndexN, distanceUnitScale=1, ...
+    %       waveguideA=7.112e-3, waveguideB=3.556e-3);
+    %   NL = nLayerFilledRectangular(modeIndexM, modeIndexN, waveguideBand="Ka", ...
+    %       prop1=val1, prop2=val2, ...);
     %
-    %   S = NL.calculate(f, er, ur, thk);
-    %   S11 = S(:, 1, 1);
-    %   S12 = S(:, 1, 2);
-    %
-    %   S = NL.calculate(f, er, [], thk, BackingConductivity=sigma);
-    %   S11 = S(:, 1, 1);
-    %
-    % nLayerFilledRectangular Properties:
-    %   speedOfLight (299.792458) - Speed of light (default is mm GHz).
-    %   verbosity (0) - Verbosity level. Set to 1 for basic command line
-    %       output. Set to 2 for a per-frequency output.
-    %   checkStructureValues (true) - Flag used in the "verifyStructure"
-    %       function. If true, this function will throw errors if
-    %       non-physical values of er, ur, or thk are passed in.
-    %
-    % Author: Trent Moritz
+    %   Smn = NL.calculate(f, er, ur, thk);
+    %   Smn = NL.calculate(f, er, {}, thk);
+    %   Smn = NL.calculate(f, {}, ur, thk);
 
-    properties (GetAccess=public, SetAccess=public)
-        outputIndices(:, 1) {mustBeInteger, mustBeInRange(outputIndices, 1, 4)} = [];   % List of enabled channel indices
-        waveguideA(1, 1) {mustBePositive} = 1;                  % Waveguide broad dimension.
-        waveguideB(1, 1) {mustBePositive} = 0.5;                % Waveguide narrow dimension.
-        modeTE_m(1,1) {mustBeInteger, mustBeNonnegative} = 1;   %TE mode index m
-        modeTE_n(1,1) {mustBeInteger, mustBeNonnegative} = 0;   %TE mode index n
-    end
-    properties (GetAccess=public, SetAccess=private)
-        waveguideBand = "";     % Waveguide band identifier.
+    properties
+        waveguideBand(1,1) nLayer.rectangularWaveguideBand; %Waveguide band.
+        modeIndexM(1,1) {mustBeInteger, mustBeNonnegative} = 1; %Value of 'm' considered for TEmn or TMmn modes.
+        modeIndexN(1,1) {mustBeInteger, mustBeNonnegative} = 0; %Value of 'n' considered for TEmn or TMmn modes.
     end
 
-    %% Class Functions
-    methods (Access=public)
-        [gam] = calculate(O, f, er, ur, thk);
-        [outputLabels] = getOutputLabels(O);
-        [waveguideA, waveguideB] = setWaveguideBand(O, band, options);
-        setMode(O, modeTE_m, modeTE_n);
+    properties (Dependent, Access=public, AbortSet)
+        waveguideA(1,1) {mustBePositive, mustBeFinite}; %Waveguide 'A' dimension.
+        waveguideB(1,1) {mustBePositive, mustBeFinite}; %Waveguide 'B' dimension.
     end
 
-    %% Class constructor
+    properties (Access=private)
+        waveguideA_custom(1,1);
+        waveguideB_custom(1,1);
+    end
+
+    %% Class Constructor
     methods
-        function O = nLayerFilledRectangular(modeTE_m, modeTE_n, classProperties)
-            %NLAYERFILLEDRECTANGULAR Construct an instance of this class.
-            % Example Usage:
-            %   See example usage in main class documentation. Note that
-            %   all public class properties can be specified as a named
-            %   argument to the constructor (e.g., as "verbosity=1").
-            
+        function self = nLayerFilledRectangular(indexM, indexN, classProperties)
+
             arguments
-                modeTE_m(1,1) {mustBeInteger, mustBeNonnegative} = 1;
-                modeTE_n(1,1) {mustBeInteger, mustBeNonnegative} = 0;
-            end
-            arguments (Repeating)
-                classProperties;
+                indexM(1,1) {mustBeInteger, mustBeNonnegative};
+                indexN(1,1) {mustBeInteger, mustBeNonnegative};
+                classProperties.?nLayerFilledRectangular;
             end
 
-            %% Set Class Parameter Values
-            if mod(numel(classProperties), 2) ~= 0
-                error("Parameter and value arguments must come in pairs.");
+            self.modeIndexM = indexM;
+            self.modeIndexN = indexN;   
+
+            % Set Class Parameter Values
+            propPairs = namedargs2cell(classProperties);
+            for ii = 1:2:numel(propPairs)
+                self.(propPairs{ii}) = propPairs{ii + 1};
             end
-            for ii = 1:2:numel(classProperties)
-                O.(classProperties{ii}) = classProperties{ii + 1};
+
+            self.mode_kc0 = pi*hypot(indexM/self.waveguideA, ...
+                                    indexN/self.waveguideB);
+
+            if isfield(classProperties, "frequencyRange")
+                self.frequencyRange = classProperties.frequencyRange;
             end
-            if isempty(O.modeTE_m)
-                O.setMode(modeTE_m, modeTE_n);
-            end
-            if strlength(O.waveguideBand) > 0
-                O.setWaveguideBand(O.waveguideBand);
-            end
-            O.setMode(modeTE_m,modeTE_n);
         end
     end
 
-end
+    %% Class Setters
+    methods
+        function set.waveguideBand(self, newBand)
+            self.waveguideBand = newBand;
+        end
 
+        function set.waveguideA(self, newA)
+            self.waveguideA_custom = newA;
+            self.waveguideB_custom = self.waveguideB;
+            self.waveguideBand = "Custom";
+        end
+
+        function set.waveguideB(self, newB)
+            self.waveguideB_custom = newB;
+            self.waveguideA = self.waveguideA;
+            self.waveguideBand = "Custom";
+        end
+
+        function set.modeIndexM(self, newIndexM)
+            self.modeIndexM = newIndexM;
+        end
+
+        function set.modeIndexN(self, newIndexN)
+            self.modeIndexN = newIndexN;
+        end
+    end
+
+    %% Class Getters
+    methods
+        function [a] = get.waveguideA(self)
+            if self.waveguideBand == "Custom"
+                a = self.waveguideA_custom;
+                return
+            end
+            [a, ~] = self.waveguideBand.getDimensions(self.distanceUnitScale);
+        end
+
+        function [b] = get.waveguideB(self)
+            if self.waveguideBand == "Custom"
+                b = self.waveguideB_custom;
+                return
+            end
+            [~,b] = self.waveguideBand.getDimensions(self.distanceUnitScale);
+        end
+    end
+end

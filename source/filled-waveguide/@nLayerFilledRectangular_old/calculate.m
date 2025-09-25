@@ -22,7 +22,7 @@ function [gam] = calculate(self, f, er, ur, thk)
 % Author: Trent Moritz
 
 arguments
-    self nLayerFilledRectangular;
+    self nLayerFilledRectangular_old;
 
     f(:, 1);
     er;

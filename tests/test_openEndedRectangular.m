@@ -19,6 +19,12 @@ NL = nLayerRectangular(3, 2, waveguideBand="X");
 nLayer.printStructure(er, ur, thk);
 gam = NL.calculate(f, er, ur, thk);
 
+tic;
+for ii = 1:1000
+    gam = NL.calculate(f, er, ur, thk);
+end
+toc;
+
 %% Plot
 figure;
 plotComplex(f, gam, "", LineWidth=1.5);

@@ -33,13 +33,13 @@ thk = {22};
 %% Plot
 figure(1);
 subplot(2, 2, 1);
-ImgH = showImage(kx, ky, GamH, DisplayFormat="Magnitude");
+[ImgH, ImgH_update] = showImage(kx, ky, GamH, DisplayFormat="Magnitude");
 grid on;
 clim(10*[0, 1]);
 % colormap colormapplusminus;
 
 subplot(2, 2, 2);
-ImgE = showImage(kx, ky, GamE, DisplayFormat="Magnitude");
+[ImgE, ImgE_update]  = showImage(kx, ky, GamE, DisplayFormat="Magnitude");
 grid on;
 clim(10*[0, 1]);
 % colormap colormapplusminus;
@@ -56,15 +56,15 @@ grid on;
 %% Interactive
 subplot(2, 2, 1);
 hold on;
-interactivePlot([0.4, 1], [-0.2, -0.1], ...
-    {@updatePlot, ImgH, ImgE, contourH, contourE, kx, ky, krc, k0}, ...
+interactiveDots([0.4, 1], [-0.2, -0.1], ...
+    {@updatePlot, ImgH_update, ImgE_update, contourH, contourE, kx, ky, krc, k0}, ...
     DragClampFun=@(x, y) [max(0, x), min(0, y)], ...
     MarkerSize=20, MarkerColor="w");
 
 
 
 %% Helper
-function [x, y] = updatePlot(x, y, ind, ImgH, ImgE, contourH, contourE, kx, ky, krc, k0)
+function [x, y] = updatePlot(x, y, ind, ImgH_update, ImgE_update, contourH, contourE, kx, ky, krc, k0)
     kr = x + 1j*y;
     phase_val = 2*2*pi + pi;
     
@@ -88,11 +88,12 @@ function [x, y] = updatePlot(x, y, ind, ImgH, ImgE, contourH, contourE, kx, ky, 
 
     % Update Images
     [GamH, GamE] = nLayer.computeGamma0(kx + 1j*ky, k0, er, {1}, thk);
+    % [GamH, GamE] = nLayer.computeGamma0(kx + 1j*ky, k0, er, {1}, {inf});
     % [GamH, GamE] = nLayer.computeGamma0(kx + 1j*ky, k0, er, {1}, thk);
-    ImgH.CData = (real(GamE)).';
-    ImgE.CData = (imag(GamH)).';
-    title(ImgH.Parent, sprintf("t = %g mm, er = %g - j%g", ...
-        thk{1}, real(er{1}), imag(er{1})));
+    ImgH_update(GamE);
+    ImgE_update(GamH);
+    % title(ImgH.Parent, sprintf("t = %g mm, er = %g - j%g", ...
+    %     thk{1}, real(er{1}), imag(er{1})));
 
     % Update Plots
     [GamH_c, GamE_c] = nLayer.computeGamma0(krc, k0, er, {1}, thk);
